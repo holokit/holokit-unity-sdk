@@ -1,0 +1,19 @@
+{
+    "name": "HoloInteractive.XR.HoloKit",
+    "rootNamespace": "HoloInteractive.XR.HoloKit",
+    "references": [
+        "GUID:a9420e37d7990b54abdef6688edbe313"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "iOS"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,23 @@
+{
+  "name": "com.holoi.xr.holokit",
+  "displayName": "HoloKit Unity SDK",
+  "version": "0.2.0",
+  "unity": "2021.3",
+  "description": "HoloKit Unity SDK",
+  "keywords": [
+    "holokit",
+    "ar",
+    "mr",
+    "xr"
+  ],
+  "author": {
+    "name": "Holo Interactive",
+    "email": "yuchen@holoi.com",
+    "url": "https://holoi.com"
+  },
+  "dependencies": {
+    "com.unity.xr.arfoundation": "4.2.7",
+    "com.unity.xr.arkit": "4.2.7"
+  },
+  "hideInEditor": false
+}
