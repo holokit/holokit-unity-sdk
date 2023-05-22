@@ -1,1 +1,1 @@
-# holokit-unity-sdk
+# HoloKit Unity SDK
