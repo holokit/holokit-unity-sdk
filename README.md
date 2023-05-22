@@ -17,5 +17,5 @@ https://github.com/holoi/holokit-unity-sdk.git
 
 or by directly adding the following line to the `Packages/manifest.json` file.
 ```
-com.holoi.xr.holokit": "https://github.com/holoi/holokit-unity-sdk.git
+"com.holoi.xr.holokit": "https://github.com/holoi/holokit-unity-sdk.git"
 ```
