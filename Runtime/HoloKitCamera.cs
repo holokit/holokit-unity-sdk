@@ -3,7 +3,7 @@ using UnityEngine.XR.ARFoundation;
 
 namespace HoloInteractive.XR.HoloKit
 {
-    public enum RenderMode
+    public enum ScreenRenderMode
     {
         Mono = 0,
         Stereo = 1
@@ -27,18 +27,18 @@ namespace HoloInteractive.XR.HoloKit
 
         [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
 
-        RenderMode m_RenderMode = RenderMode.Mono;
+        ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
 
         Vector3 m_CameraToCenterEyeOffset;
 
         public Transform CenterEyePose => m_CenterEyePose;
 
-        public RenderMode RenderMode
+        public ScreenRenderMode ScreenRenderMode
         {
-            get => m_RenderMode;
+            get => m_ScreenRenderMode;
             set
             {
-                if (value == RenderMode.Mono)
+                if (value == ScreenRenderMode.Mono)
                 {
                     GetComponent<ARCameraBackground>().enabled = true;
                     m_MonoCamera.enabled = true;
@@ -46,7 +46,7 @@ namespace HoloInteractive.XR.HoloKit
                     m_RightEyeCamera.gameObject.SetActive(false);
                     m_BlackCamera.gameObject.SetActive(false);
                     m_CenterEyePose.localPosition = Vector3.zero;
-                    m_RenderMode = RenderMode.Mono;
+                    m_ScreenRenderMode = ScreenRenderMode.Mono;
                 }
                 else // Stereo
                 {
@@ -62,7 +62,7 @@ namespace HoloInteractive.XR.HoloKit
                     m_RightEyeCamera.gameObject.SetActive(true);
                     m_BlackCamera.gameObject.SetActive(true);
                     m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset;
-                    m_RenderMode = RenderMode.Stereo;
+                    m_ScreenRenderMode = ScreenRenderMode.Stereo;
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void Update()
         {
-            if (m_RenderMode == RenderMode.Stereo)
+            if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
             {
                 if (Utils.IsRuntime)
                 {
