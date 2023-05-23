@@ -13,7 +13,7 @@ You can install HoloKit Unity SDK from the following git URL in Package Manager:
 https://github.com/holoi/holokit-unity-sdk.git
 ```
 <img width="279" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a82656c9-aa73-4158-83b5-20d5178c8a81">
-<img width="332" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/e1b29ee4-d38e-419f-83c8-aea460076eac">
+<img width="326" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/511c748f-251c-42a5-b481-fd3160c19c63">
 
 or by directly adding the following line to the `Packages/manifest.json` file.
 ```
