@@ -149,9 +149,7 @@ namespace HoloInteractive.XR.HoloKit
         private void Start()
         {
 #if UNITY_IOS
-            // Hide the iOS home button
             UnityEngine.iOS.Device.hideHomeButton = true;
-            // Prevent the device from sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 #elif UNITY_ANDROID
             
@@ -172,7 +170,7 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
-        private void SetupCameraData()
+        public void SetupCameraData()
         {
             if (!DoesCurrentPhoneModelSupportStereoMode())
             {
@@ -183,7 +181,7 @@ namespace HoloInteractive.XR.HoloKit
             HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
             PhoneModelSpecs phoneModelSpecs = GetCurrentPhoneModelSpecs();
 
-            float screenDpi = Screen.dpi;
+            float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
             float screenWidthInMeters = Utils.GetScreenWidth() / screenDpi * Utils.INCH_TO_METER_RATIO;
             float screenHeightInMeters = Utils.GetScreenHeight() / screenDpi * Utils.INCH_TO_METER_RATIO;
 
@@ -296,7 +294,7 @@ namespace HoloInteractive.XR.HoloKit
             }
             return DeviceProfile.GetDefaultPhoneModelSpecs();
 #elif UNITY_ANDROID
-string modelName = SystemInfo.deviceModel;
+            string modelName = SystemInfo.deviceModel;
             foreach (PhoneModel phoneModel in m_DefaultAndroidPhoneModelList.PhoneModels)
             {
                 if (modelName.Equals(phoneModel.ModelName))
@@ -340,11 +338,13 @@ string modelName = SystemInfo.deviceModel;
             rectTransform.anchorMax = new(0.5f, 1f);
             // Calculate anchored position X
             var holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
-            float posX = holokitModelSpecs.AlignmentMarkerOffset * Utils.METER_TO_INCH_RATIO * Screen.dpi;
+            var phoneModelSpecs = GetCurrentPhoneModelSpecs();
+            float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
+            float posX = holokitModelSpecs.AlignmentMarkerOffset * Utils.METER_TO_INCH_RATIO * screenDpi;
             rectTransform.anchoredPosition = new(posX, 0f);
             // Calculate width and height
             float screenHeight = Utils.GetScreenHeight();
-            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * Utils.METER_TO_INCH_RATIO * Screen.dpi / screenHeight;
+            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * Utils.METER_TO_INCH_RATIO * screenDpi / screenHeight;
             float height = (1f - m_LeftEyeCamera.rect.yMax - heightOffset) * screenHeight;
             rectTransform.sizeDelta = new(ALIGNMENT_MARKER_THICKNESS, height);
         }

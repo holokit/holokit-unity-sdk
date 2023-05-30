@@ -10,12 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4ba3d76a6d8fc4ccfbdca918b25bfbbb, type: 3}
-  m_Name: DefaultAndroidPhoneModelList
+  m_Name: CustomAndroidPhoneModelList
   m_EditorClassIdentifier: 
-  PhoneModels:
-  - ModelName: samsung SM-G9910
-    Description: 
-    ModelSpecs:
-      CameraOffset: {x: 0.043, y: -0.0565, z: -0.005}
-      ScreenBottom: 0.002
-      ScreenDpi: 421
+  PhoneModels: []

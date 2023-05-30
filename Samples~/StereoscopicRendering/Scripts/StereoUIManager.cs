@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HoloInteractive.XR.HoloKit.Samples.StereoscopicRendering
 {
-    public class UIManager : MonoBehaviour
+    public class StereoUIManager : MonoBehaviour
     {
         [SerializeField] Text m_BtnText;
 

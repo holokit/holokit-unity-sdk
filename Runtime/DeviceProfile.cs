@@ -55,6 +55,9 @@ namespace HoloInteractive.XR.HoloKit
 
         // The distance from the bottom of display area to the touching surface of the holokit phone holder
         public float ScreenBottom;
+
+        [Tooltip("Optional, in case the Unity provided value is not correct")]
+        public float ScreenDpi;
     }
 
     [Serializable]
