@@ -6,7 +6,7 @@ namespace HoloInteractive.XR.HoloKit
     {
         public const float INCH_TO_METER_RATIO = 0.0254f;
 
-        public const float METER_TO_INCH_RATIO = 37.3701f;
+        public const float METER_TO_INCH_RATIO = 39.3701f;
 
         public static float GetScreenWidth()
         {

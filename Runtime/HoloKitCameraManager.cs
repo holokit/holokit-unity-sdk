@@ -3,6 +3,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.UI;
 
 namespace HoloInteractive.XR.HoloKit
 {
@@ -41,10 +42,6 @@ namespace HoloInteractive.XR.HoloKit
 
         [SerializeField] PhoneModelList m_CustomAndroidPhoneModelList;
 
-        ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
-
-        Vector3 m_CameraToCenterEyeOffset;
-
         public Transform CenterEyePose => m_CenterEyePose;
 
         public ScreenRenderMode ScreenRenderMode
@@ -61,10 +58,13 @@ namespace HoloInteractive.XR.HoloKit
                     m_BlackCamera.gameObject.SetActive(false);
                     m_CenterEyePose.localPosition = Vector3.zero;
                     m_ScreenRenderMode = ScreenRenderMode.Mono;
+
+                    if (m_AlignmentMarkerCanvas)
+                        m_AlignmentMarkerCanvas.SetActive(false);
                 }
                 else // Stereo
                 {
-                    if (!DoesCurrentPhoneSupportStereoMode())
+                    if (!DoesCurrentPhoneModelSupportStereoMode())
                     {
                         Debug.LogWarning($"Device {SystemInfo.deviceModel} does not support Stereo mode");
                         return;
@@ -77,9 +77,21 @@ namespace HoloInteractive.XR.HoloKit
                     m_BlackCamera.gameObject.SetActive(true);
                     m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset;
                     m_ScreenRenderMode = ScreenRenderMode.Stereo;
+
+                    SpawnAlignmentMarker();
                 }
             }
         }
+
+        ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
+
+        Vector3 m_CameraToCenterEyeOffset;
+
+        GameObject m_AlignmentMarkerCanvas;
+
+        const float ALIGNMENT_MARKER_THICKNESS = 6f; // In pixels
+
+        const float ALIGNMENT_MARKER_HEIGHT_OFFSET = 0.006f; // In meters
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -92,12 +104,12 @@ namespace HoloInteractive.XR.HoloKit
 
             gameObject.name = "HoloKit Camera";
 
-            GameObject centerEyePoseGo = new GameObject();
+            GameObject centerEyePoseGo = new();
             centerEyePoseGo.name = "Center Eye Pose";
             centerEyePoseGo.transform.SetParent(transform);
             m_CenterEyePose = centerEyePoseGo.transform;
 
-            GameObject blackCameraGo = new GameObject();
+            GameObject blackCameraGo = new();
             blackCameraGo.name = "Black Camera";
             blackCameraGo.transform.SetParent(centerEyePoseGo.transform);
             m_BlackCamera = blackCameraGo.AddComponent<Camera>();
@@ -136,14 +148,13 @@ namespace HoloInteractive.XR.HoloKit
 
         private void Start()
         {
-
 #if UNITY_IOS
             // Hide the iOS home button
             UnityEngine.iOS.Device.hideHomeButton = true;
             // Prevent the device from sleeping
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 #elif UNITY_ANDROID
-
+            
 #endif
             SetupCameraData();
         }
@@ -163,7 +174,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void SetupCameraData()
         {
-            if (!DoesCurrentPhoneSupportStereoMode())
+            if (!DoesCurrentPhoneModelSupportStereoMode())
             {
                 Debug.LogWarning($"Device {SystemInfo.deviceModel} does not support Stereo mode");
                 return;
@@ -172,8 +183,9 @@ namespace HoloInteractive.XR.HoloKit
             HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
             PhoneModelSpecs phoneModelSpecs = GetCurrentPhoneModelSpecs();
 
-            float screenWidthInMeters = Utils.GetScreenWidth() / phoneModelSpecs.ScreenDpi * Utils.INCH_TO_METER_RATIO;
-            float screenHeightInMeters = Utils.GetScreenHeight() / phoneModelSpecs.ScreenDpi * Utils.INCH_TO_METER_RATIO;
+            float screenDpi = Screen.dpi;
+            float screenWidthInMeters = Utils.GetScreenWidth() / screenDpi * Utils.INCH_TO_METER_RATIO;
+            float screenHeightInMeters = Utils.GetScreenHeight() / screenDpi * Utils.INCH_TO_METER_RATIO;
 
             float viewportWidthInMeters = holokitModelSpecs.ViewportInner + holokitModelSpecs.ViewportOuter;
             float viewportHeightInMeters = holokitModelSpecs.ViewportTop + holokitModelSpecs.ViewportBottom;
@@ -181,7 +193,7 @@ namespace HoloInteractive.XR.HoloKit
             float viewportsFullWidthInMeters = holokitModelSpecs.OpticalAxisDistance + 2f * holokitModelSpecs.ViewportOuter;
             float gap = viewportsFullWidthInMeters - viewportWidthInMeters * 2f;
 
-            // 1. Calculate projection matrices
+            // Calculate projection matrices
             Matrix4x4 leftProjMat = Matrix4x4.zero;
             leftProjMat[0, 0] = 2f * nearClipPlane / viewportWidthInMeters;
             leftProjMat[1, 1] = 2f * nearClipPlane / viewportHeightInMeters;
@@ -194,7 +206,7 @@ namespace HoloInteractive.XR.HoloKit
             Matrix4x4 rightProjMat = leftProjMat;
             rightProjMat[0, 2] = -leftProjMat[0, 2];
 
-            // 2. Calculate viewport rects
+            // Calculate viewport rects
             float centerX = 0.5f;
             float centerY = (holokitModelSpecs.AxisToBottom - phoneModelSpecs.ScreenBottom) / screenHeightInMeters;
             float fullWidth = viewportsFullWidthInMeters / screenWidthInMeters;
@@ -211,7 +223,7 @@ namespace HoloInteractive.XR.HoloKit
             Rect leftViewportRect = Rect.MinMaxRect(xMinLeft, yMin, xMaxLeft, yMax);
             Rect rightViewportRect = Rect.MinMaxRect(xMinRight, yMin, xMaxRight, yMax);
 
-            // 3. Calculate offsets
+            // Calculate offsets
             Vector3 cameraToCenterEyeOffset = phoneModelSpecs.CameraOffset + holokitModelSpecs.MrOffset;
             //Vector3 cameraToScreenCenterOffset = phoneModel.CameraOffset + new Vector3(0f, phoneModel.ScreenBottom + (phoneModel.ScreenHeight / 2f), 0f);
             Vector3 centerEyeToLeftEyeOffset = new(-m_Ipd / 2f, 0f, 0f);
@@ -240,9 +252,11 @@ namespace HoloInteractive.XR.HoloKit
             m_CameraToCenterEyeOffset = cameraToCenterEyeOffset;
         }
 
-        private bool DoesCurrentPhoneSupportStereoMode()
+        private bool DoesCurrentPhoneModelSupportStereoMode()
         {
-#if UNITY_IOS
+#if UNITY_EDITOR
+            return true;
+#elif UNITY_IOS
             string modelName = SystemInfo.deviceModel;
             foreach (PhoneModel phoneModel in m_iOSPhoneModelList.PhoneModels)
             {
@@ -266,14 +280,14 @@ namespace HoloInteractive.XR.HoloKit
                 }
             }
             return false;
-#elif UNITY_EDITOR
-            return true;
 #endif
         }
 
         private PhoneModelSpecs GetCurrentPhoneModelSpecs()
         {
-#if UNITY_IOS
+#if UNITY_EDITOR
+            return DeviceProfile.GetDefaultPhoneModelSpecs();
+#elif UNITY_IOS
             string modelName = SystemInfo.deviceModel;
             foreach (PhoneModel phoneModel in m_iOSPhoneModelList.PhoneModels)
             {
@@ -296,10 +310,43 @@ string modelName = SystemInfo.deviceModel;
                         return phoneModel.ModelSpecs;
                 }
             }
-            return DeviceProfile.GetDefaultPhoneModelSpecs();
-#elif UNITY_EDITOR
-            return DeviceProfile.GetDefaultPhoneModelSpecs();
+            return DeviceProfile.GetDefaultPhoneModelSpecs();     
 #endif
+        }
+
+        private void SpawnAlignmentMarker()
+        {
+            if (!m_ShowAlignmentMarkerInStereoMode)
+                return;
+            if (m_AlignmentMarkerCanvas)
+            {
+                m_AlignmentMarkerCanvas.SetActive(true);
+                return;
+            }
+
+            m_AlignmentMarkerCanvas = new();
+            m_AlignmentMarkerCanvas.name = "Alignment Marker Canvas";
+            var canvas = m_AlignmentMarkerCanvas.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            GameObject alignmentMarker = new();
+            alignmentMarker.name = "Alignment Marker";
+            alignmentMarker.transform.SetParent(m_AlignmentMarkerCanvas.transform);
+            var img = alignmentMarker.AddComponent<Image>();
+            img.color = Color.white;
+            var rectTransform = alignmentMarker.GetComponent<RectTransform>();
+            rectTransform.pivot = new(0.5f, 1f);
+            rectTransform.anchorMin = new(0.5f, 1f);
+            rectTransform.anchorMax = new(0.5f, 1f);
+            // Calculate anchored position X
+            var holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
+            float posX = holokitModelSpecs.AlignmentMarkerOffset * Utils.METER_TO_INCH_RATIO * Screen.dpi;
+            rectTransform.anchoredPosition = new(posX, 0f);
+            // Calculate width and height
+            float screenHeight = Utils.GetScreenHeight();
+            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * Utils.METER_TO_INCH_RATIO * Screen.dpi / screenHeight;
+            float height = (1f - m_LeftEyeCamera.rect.yMax - heightOffset) * screenHeight;
+            rectTransform.sizeDelta = new(ALIGNMENT_MARKER_THICKNESS, height);
         }
     }
 }

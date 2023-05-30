@@ -38,17 +38,17 @@ namespace HoloInteractive.XR.HoloKit
         // Fresnel To eye distance
         public float LensToEye;
 
-        // Bottom of the holder to bottom of the view
+        // Bottom of the holder to center of the view
         public float AxisToBottom;
 
         // The distance between the center of the HME and the marker
-        public float HorizontalAlignmentMarkerOffset;
+        public float AlignmentMarkerOffset;
     }
 
     [Serializable]
     public struct PhoneModelSpecs
     {
-        public float ScreenDpi;
+        //public float ScreenDpi;
 
         // The 3D offset vector from center of the camera to the center of the display area's bottomline
         public Vector3 CameraOffset;
@@ -86,7 +86,7 @@ namespace HoloInteractive.XR.HoloKit
                         ScreenToLens = 0.02715f + 0.03136f + 0.002f,
                         LensToEye = 0.02497f + 0.03898f,
                         AxisToBottom = 0.02990f,
-                        HorizontalAlignmentMarkerOffset = 0.05075f
+                        AlignmentMarkerOffset = 0.05075f
                     };
             }
         }
@@ -96,7 +96,6 @@ namespace HoloInteractive.XR.HoloKit
         {
             return new PhoneModelSpecs
             {
-                ScreenDpi = 460f,
                 CameraOffset = new(0.042005f, -0.05809f, -0.00727f),
                 ScreenBottom = 0.00347f
             };
