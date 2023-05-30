@@ -19,5 +19,11 @@
     "com.unity.xr.arfoundation": "4.2.7",
     "com.unity.xr.arkit": "4.2.7"
   },
-  "hideInEditor": false
+  "samples": [
+    {
+      "displayName": "Stereoscopic Rendering",
+      "description": "Contains sample project on how to implement the stereoscopic rendering feature",
+      "path": "Samples~/StereoscopicRendering"
+    }
+  ]
 }

@@ -1,3 +1,6 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
@@ -9,8 +12,9 @@ namespace HoloInteractive.XR.HoloKit
         Stereo = 1
     }
 
-    public class HoloKitCamera : MonoBehaviour
+    public class HoloKitCameraManager : MonoBehaviour
     {
+        [Header("Cameras")]
         [SerializeField] Camera m_MonoCamera;
 
         [SerializeField] Camera m_LeftEyeCamera;
@@ -21,11 +25,21 @@ namespace HoloInteractive.XR.HoloKit
 
         [SerializeField] Transform m_CenterEyePose;
 
+        [Header("Settings")]
         [SerializeField] [Range(0.054f, 0.074f)] float m_Ipd = 0.064f;
 
         [SerializeField] float m_FarClipPlane = 50f;
 
+        [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
+
+        [Header("Devices")]
         [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
+
+        [SerializeField] PhoneModelList m_iOSPhoneModelList;
+
+        [SerializeField] PhoneModelList m_DefaultAndroidPhoneModelList;
+
+        [SerializeField] PhoneModelList m_CustomAndroidPhoneModelList;
 
         ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
 
@@ -50,9 +64,9 @@ namespace HoloInteractive.XR.HoloKit
                 }
                 else // Stereo
                 {
-                    if (!DeviceProfile.DoesDeviceSupportStereoMode())
+                    if (!DoesCurrentPhoneSupportStereoMode())
                     {
-                        Debug.LogWarning("Device does not support Stereo mode");
+                        Debug.LogWarning($"Device {SystemInfo.deviceModel} does not support Stereo mode");
                         return;
                     }
 
@@ -67,6 +81,7 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (Application.isPlaying)
@@ -91,19 +106,24 @@ namespace HoloInteractive.XR.HoloKit
             m_BlackCamera.cullingMask = 0;
             m_BlackCamera.depth = -1;
 
-            GameObject leftEyeCameraGo = new GameObject();
+            GameObject leftEyeCameraGo = new();
             leftEyeCameraGo.name = "Left Eye Camera";
             leftEyeCameraGo.transform.SetParent(centerEyePoseGo.transform);
             m_LeftEyeCamera = leftEyeCameraGo.AddComponent<Camera>();
             m_LeftEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_LeftEyeCamera.backgroundColor = Color.black;
 
-            GameObject rightEyeCameraGo = new GameObject();
+            GameObject rightEyeCameraGo = new();
             rightEyeCameraGo.name = "Right Eye Camera";
             rightEyeCameraGo.transform.SetParent(centerEyePoseGo.transform);
             m_RightEyeCamera = rightEyeCameraGo.AddComponent<Camera>();
             m_RightEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_RightEyeCamera.backgroundColor = Color.black;
+
+            PhoneModelList iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
+            m_iOSPhoneModelList = iOSPhoneModelList;
+            PhoneModelList defaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
+            m_DefaultAndroidPhoneModelList = defaultAndroidPhoneModelList;
 
             SetupCameraData();
 
@@ -112,36 +132,27 @@ namespace HoloInteractive.XR.HoloKit
             m_RightEyeCamera.gameObject.SetActive(false);
             m_BlackCamera.gameObject.SetActive(false);
         }
+#endif
 
         private void Start()
         {
-            if (Utils.IsRuntime)
-            {
-                // Hide the iOS home button
-                UnityEngine.iOS.Device.hideHomeButton = true;
-                // Prevent the device from sleeping
-                Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
-                if (DeviceProfile.DoesDeviceSupportStereoMode())
-                {
-                    SetupCameraData();
-                }
-                else
-                {
-                    Debug.LogWarning("Device does not support Stereo mode");
-                }
-            }
+#if UNITY_IOS
+            // Hide the iOS home button
+            UnityEngine.iOS.Device.hideHomeButton = true;
+            // Prevent the device from sleeping
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
+#elif UNITY_ANDROID
+
+#endif
+            SetupCameraData();
         }
 
         private void Update()
         {
             if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
             {
-                if (Utils.IsRuntime)
-                {
-                    // Set screen brightness
-
-                }
+                // Set screen brightness
 
                 if (Screen.orientation != ScreenOrientation.LandscapeLeft)
                 {
@@ -152,13 +163,22 @@ namespace HoloInteractive.XR.HoloKit
 
         private void SetupCameraData()
         {
-            HoloKitModel holokitModel = DeviceProfile.GetHoloKitModel(m_HoloKitGeneration);
-            PhoneModel phoneModel = DeviceProfile.GetPhoneModel(UnityEngine.iOS.Device.generation);
+            if (!DoesCurrentPhoneSupportStereoMode())
+            {
+                Debug.LogWarning($"Device {SystemInfo.deviceModel} does not support Stereo mode");
+                return;
+            }
 
-            float viewportWidthInMeters = holokitModel.ViewportInner + holokitModel.ViewportOuter;
-            float viewportHeightInMeters = holokitModel.ViewportTop + holokitModel.ViewportBottom;
-            float nearClipPlane = holokitModel.LensToEye;
-            float viewportsFullWidthInMeters = holokitModel.OpticalAxisDistance + 2f * holokitModel.ViewportOuter;
+            HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
+            PhoneModelSpecs phoneModelSpecs = GetCurrentPhoneModelSpecs();
+
+            float screenWidthInMeters = Utils.GetScreenWidth() / phoneModelSpecs.ScreenDpi * Utils.INCH_TO_METER_RATIO;
+            float screenHeightInMeters = Utils.GetScreenHeight() / phoneModelSpecs.ScreenDpi * Utils.INCH_TO_METER_RATIO;
+
+            float viewportWidthInMeters = holokitModelSpecs.ViewportInner + holokitModelSpecs.ViewportOuter;
+            float viewportHeightInMeters = holokitModelSpecs.ViewportTop + holokitModelSpecs.ViewportBottom;
+            float nearClipPlane = holokitModelSpecs.LensToEye;
+            float viewportsFullWidthInMeters = holokitModelSpecs.OpticalAxisDistance + 2f * holokitModelSpecs.ViewportOuter;
             float gap = viewportsFullWidthInMeters - viewportWidthInMeters * 2f;
 
             // 1. Calculate projection matrices
@@ -176,10 +196,10 @@ namespace HoloInteractive.XR.HoloKit
 
             // 2. Calculate viewport rects
             float centerX = 0.5f;
-            float centerY = (holokitModel.AxisToBottom - phoneModel.ScreenBottom) / phoneModel.ScreenHeight;
-            float fullWidth = viewportsFullWidthInMeters / phoneModel.ScreenWidth;
-            float width = viewportWidthInMeters / phoneModel.ScreenWidth;
-            float height = viewportHeightInMeters / phoneModel.ScreenHeight;
+            float centerY = (holokitModelSpecs.AxisToBottom - phoneModelSpecs.ScreenBottom) / screenHeightInMeters;
+            float fullWidth = viewportsFullWidthInMeters / screenWidthInMeters;
+            float width = viewportWidthInMeters / screenWidthInMeters;
+            float height = viewportHeightInMeters / screenHeightInMeters;
 
             float xMinLeft = centerX - fullWidth / 2f;
             float xMaxLeft = xMinLeft + width;
@@ -192,10 +212,10 @@ namespace HoloInteractive.XR.HoloKit
             Rect rightViewportRect = Rect.MinMaxRect(xMinRight, yMin, xMaxRight, yMax);
 
             // 3. Calculate offsets
-            Vector3 cameraToCenterEyeOffset = phoneModel.CameraOffset + holokitModel.MrOffset;
+            Vector3 cameraToCenterEyeOffset = phoneModelSpecs.CameraOffset + holokitModelSpecs.MrOffset;
             //Vector3 cameraToScreenCenterOffset = phoneModel.CameraOffset + new Vector3(0f, phoneModel.ScreenBottom + (phoneModel.ScreenHeight / 2f), 0f);
-            Vector3 centerEyeToLeftEyeOffset = new Vector3(-m_Ipd / 2f, 0f, 0f);
-            Vector3 centerEyeToRightEyeOffset = new Vector3(m_Ipd / 2f, 0f, 0f);
+            Vector3 centerEyeToLeftEyeOffset = new(-m_Ipd / 2f, 0f, 0f);
+            Vector3 centerEyeToRightEyeOffset = new(m_Ipd / 2f, 0f, 0f);
 
             // Apply camera data
             m_LeftEyeCamera.transform.localPosition = centerEyeToLeftEyeOffset;
@@ -205,17 +225,81 @@ namespace HoloInteractive.XR.HoloKit
             m_LeftEyeCamera.nearClipPlane = nearClipPlane;
             m_LeftEyeCamera.farClipPlane = m_FarClipPlane;
             m_LeftEyeCamera.rect = leftViewportRect;
-            if (Utils.IsRuntime)
-                m_LeftEyeCamera.projectionMatrix = leftProjMat;
+#if !UNITY_EDITOR
+            m_LeftEyeCamera.projectionMatrix = leftProjMat;
+#endif
 
             // Setup right eye camera
             m_RightEyeCamera.nearClipPlane = nearClipPlane;
             m_RightEyeCamera.farClipPlane = m_FarClipPlane;
             m_RightEyeCamera.rect = rightViewportRect;
-            if (Utils.IsRuntime)
-                m_RightEyeCamera.projectionMatrix = rightProjMat;
+#if !UNITY_EDITOR
+            m_RightEyeCamera.projectionMatrix = rightProjMat;
+#endif
 
             m_CameraToCenterEyeOffset = cameraToCenterEyeOffset;
+        }
+
+        private bool DoesCurrentPhoneSupportStereoMode()
+        {
+#if UNITY_IOS
+            string modelName = SystemInfo.deviceModel;
+            foreach (PhoneModel phoneModel in m_iOSPhoneModelList.PhoneModels)
+            {
+                if (modelName.Equals(phoneModel.ModelName))
+                    return true;
+            }
+            return false;
+#elif UNITY_ANDROID
+            string modelName = SystemInfo.deviceModel;
+            foreach (PhoneModel phoneModel in m_DefaultAndroidPhoneModelList.PhoneModels)
+            {
+                if (modelName.Equals(phoneModel.ModelName))
+                    return true;
+            }
+            if (m_CustomAndroidPhoneModelList != null)
+            {
+                foreach (PhoneModel phoneModel in m_CustomAndroidPhoneModelList.PhoneModels)
+                {
+                    if (modelName.Equals(phoneModel.ModelName))
+                        return true;
+                }
+            }
+            return false;
+#elif UNITY_EDITOR
+            return true;
+#endif
+        }
+
+        private PhoneModelSpecs GetCurrentPhoneModelSpecs()
+        {
+#if UNITY_IOS
+            string modelName = SystemInfo.deviceModel;
+            foreach (PhoneModel phoneModel in m_iOSPhoneModelList.PhoneModels)
+            {
+                if (modelName.Equals(phoneModel.ModelName))
+                    return phoneModel.ModelSpecs;
+            }
+            return DeviceProfile.GetDefaultPhoneModelSpecs();
+#elif UNITY_ANDROID
+string modelName = SystemInfo.deviceModel;
+            foreach (PhoneModel phoneModel in m_DefaultAndroidPhoneModelList.PhoneModels)
+            {
+                if (modelName.Equals(phoneModel.ModelName))
+                    return phoneModel.ModelSpecs;
+            }
+            if (m_CustomAndroidPhoneModelList != null)
+            {
+                foreach (PhoneModel phoneModel in m_CustomAndroidPhoneModelList.PhoneModels)
+                {
+                    if (modelName.Equals(phoneModel.ModelName))
+                        return phoneModel.ModelSpecs;
+                }
+            }
+            return DeviceProfile.GetDefaultPhoneModelSpecs();
+#elif UNITY_EDITOR
+            return DeviceProfile.GetDefaultPhoneModelSpecs();
+#endif
         }
     }
 }

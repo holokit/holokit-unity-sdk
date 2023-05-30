@@ -4,8 +4,18 @@ namespace HoloInteractive.XR.HoloKit
 {
     public static class Utils
     {
-        public static bool IsEditor => Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.WindowsPlayer;
+        public const float INCH_TO_METER_RATIO = 0.0254f;
 
-        public static bool IsRuntime => Application.platform == RuntimePlatform.IPhonePlayer;
+        public const float METER_TO_INCH_RATIO = 37.3701f;
+
+        public static float GetScreenWidth()
+        {
+            return Screen.width > Screen.height ? Screen.width : Screen.height;
+        }
+
+        public static float GetScreenHeight()
+        {
+            return Screen.width > Screen.height ? Screen.height : Screen.width;
+        }
     }
 }

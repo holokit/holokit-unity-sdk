@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ba3d76a6d8fc4ccfbdca918b25bfbbb, type: 3}
+  m_Name: iOSPhoneModelList
+  m_EditorClassIdentifier: 
+  PhoneModels:
+  - ModelName: iPhone11,2
+    Description: iPhone XS
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.05986, y: -0.055215, z: -0.0091}
+      ScreenBottom: 0.00391
+  - ModelName: iPhone11,4
+    Description: iPhone XS Max
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.06694, y: -0.09405, z: -0.00591}
+      ScreenBottom: 0.00391
+  - ModelName: iPhone11,6
+    Description: iPhone XS Max
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.06694, y: -0.09405, z: -0.00591}
+      ScreenBottom: 0.00391
+  - ModelName: iPhone12,3
+    Description: iPhone 11 Pro
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.059955, y: -0.05932, z: -0.00591}
+      ScreenBottom: 0.00452
+  - ModelName: iPhone12,5
+    Description: iPhone 11 Pro Max
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.066935, y: -0.0658, z: -0.00591}
+      ScreenBottom: 0.00452
+  - ModelName: iPhone13,2
+    Description: iPhone 12
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.060625, y: -0.05879, z: -0.00633}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone13,3
+    Description: iPhone 12 Pro
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.061195, y: -0.05936, z: -0.00551}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone13,4
+    Description: iPhone 12 Pro Max
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.04952, y: -0.06464, z: -0.00591}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone14,5
+    Description: iPhone 13
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.06147, y: -0.05964, z: -0.00781}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone14,2
+    Description: iPhone 13 Pro
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.042005, y: -0.05809, z: -0.00727}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone14,3
+    Description: iPhone 13 Pro Max
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.04907, y: -0.06464, z: -0.00727}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone14,7
+    Description: iPhone 14
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.061475, y: -0.05964, z: -0.00848}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone14,8
+    Description: iPhone 14 Plus
+    ModelSpecs:
+      ScreenDpi: 458
+      CameraOffset: {x: 0.06787, y: -0.06552, z: -0.00851}
+      ScreenBottom: 0.00347
+  - ModelName: iPhone15,2
+    Description: iPhone 14 Pro
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.04021, y: -0.05717, z: -0.00784}
+      ScreenBottom: 0.003185
+  - ModelName: iPhone15,3
+    Description: iPhone 14 Pro Max
+    ModelSpecs:
+      ScreenDpi: 460
+      CameraOffset: {x: 0.046835, y: -0.0633, z: -0.0078}
+      ScreenBottom: 0.003185
