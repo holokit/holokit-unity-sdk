@@ -19,3 +19,7 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 ```
 "com.holoi.xr.holokit": "https://github.com/holoi/holokit-unity-sdk.git"
 ```
+
+## iOS and Android Compatibility
+
+HoloKit was primarily built for iOS devices. Check this list to see if your iOS device is supported.
