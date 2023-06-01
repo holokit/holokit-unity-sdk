@@ -20,6 +20,14 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 "com.holoi.xr.holokit": "https://github.com/holoi/holokit-unity-sdk.git"
 ```
 
-## iOS and Android Compatibility
+## Phone Compatibility
 
-HoloKit was primarily built for iOS devices. Check this list to see if your iOS device is supported.
+### iOS
+
+HoloKit was primarily built for iOS devices. Please see the [Supported iOS Devices](Supported_iOS_Devices.md) to check if your iPhone is supported.
+
+### Android
+
+HoloKit currently only supports a limited number of Android phones. Please see the [Supported Android Devices](Supported_Android_Devices.md) for more details.
+
+If your Android phone is not supported, we also provide a calibration method to let you figure out the specs of your Android phone yourself. You can then enter your Android phone specs to the SDK to have your device rendering stereo images. Please see [Phone Model Specs Calibration], which is a step-by-step guide on how to figure out the specs of your phone model.
