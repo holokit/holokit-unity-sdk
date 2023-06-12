@@ -14,7 +14,7 @@ namespace HoloInteractive.XR.HoloKit
         // Distance beetween eyes
         public float OpticalAxisDistance;
 
-        // 3D offset from the center of bottomline of the holokit phone display to the center of two eyes.
+        // 3D offset from the center of bottomline of the holokit phone display to the center of two eyes
         public Vector3 MrOffset;
 
         // Eye view area width
