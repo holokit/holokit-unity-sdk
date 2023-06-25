@@ -11,7 +11,7 @@ float HoloInteractiveHoloKit_EnvironmentDepthManager_getDepth(void *self, float 
     return [depthManager getDepthWithX: x y:y];
 }
 
-float HoloInteractiveHoloKit_EnvironmentDepthManager_unprojectScreenPoint(void *self, float locationX, float locationY, float depth, float *x, float *y, float *z) {
+void HoloInteractiveHoloKit_EnvironmentDepthManager_unprojectScreenPoint(void *self, float locationX, float locationY, float depth, float *x, float *y, float *z) {
     EnvironmentDepthManager *depthManager = (__bridge EnvironmentDepthManager *)self;
     simd_float3 unprojectedPoint = [depthManager unprojectScreenPointWithLocationX:locationX locationY:locationY depth:depth];
     *x = unprojectedPoint.x;

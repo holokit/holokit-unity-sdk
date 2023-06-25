@@ -102,4 +102,20 @@ ARSession *m_ARSession;
     }
 }
 
+- (simd_float3)unprojectScreenPointWithLocationX:(float)locationX locationY:(float)locationY depth:(float)depth {
+    CGFloat screenX = (CGFloat)locationX * m_ARSession.currentFrame.camera.imageResolution.width;
+    CGFloat screenY = (CGFloat)(1 - locationY) * m_ARSession.currentFrame.camera.imageResolution.height;
+    CGPoint screenPoint = CGPointMake(screenX, screenY);
+    
+    simd_float4x4 translation = matrix_identity_float4x4;
+    translation.columns[3].z = -depth;
+    simd_float4x4 planeOrigin = simd_mul(m_ARSession.currentFrame.camera.transform, translation);
+    simd_float3 xAxis = simd_make_float3(1, 0, 0);
+    simd_float4x4 rotation = simd_matrix4x4(simd_quaternion(0.5 * M_PI, xAxis));
+    simd_float4x4 plane = simd_mul(planeOrigin, rotation);
+    simd_float3 unprojectedPoint = [m_ARSession.currentFrame.camera unprojectPoint:screenPoint ontoPlaneWithTransform:plane orientation:UIInterfaceOrientationLandscapeRight viewportSize:m_ARSession.currentFrame.camera.imageResolution];
+    
+    return simd_make_float3(unprojectedPoint.x, unprojectedPoint.y, -unprojectedPoint.z);
+}
+
 @end

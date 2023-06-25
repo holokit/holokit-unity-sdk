@@ -8,5 +8,6 @@
 - (BOOL)processCurrentFrame;
 - (int)getResultCount;
 - (VNRecognizedPoint *)getHandJointWithHandIndex:(int)handIndex jointIndex:(int)jointIndex;
+- (simd_float3)unprojectScreenPointWithLocationX:(float)locationX locationY:(float)locationY depth:(float)depth;
 
 @end

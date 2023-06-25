@@ -81,6 +81,11 @@ namespace HoloInteractive.XR.HoloKit.iOS
             return m_HandPoseDetector.GetHandJointConfidence(handIndex, jointName);
         }
 
+        public Vector3 UnprojectScreenPoint(Vector2 location, float depth)
+        {
+            return m_HandPoseDetector.UnprojectScreenPoint(location, depth);
+        }
+
         private void OnDestroy()
         {
             m_HandPoseDetector.Dispose();

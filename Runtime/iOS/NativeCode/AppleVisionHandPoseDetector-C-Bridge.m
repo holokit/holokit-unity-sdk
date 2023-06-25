@@ -36,3 +36,11 @@ float HoloInteractiveHoloKit_AppleVisionHandPoseDetector_getHandJointConfidence(
         return 0;
     }
 }
+
+void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_unprojectScreenPoint(void *self, float locationX, float locationY, float depth, float *x, float *y, float *z) {
+    AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
+    simd_float3 unprojectedPoint = [detector unprojectScreenPointWithLocationX:locationX locationY:locationY depth:depth];
+    *x = unprojectedPoint.x;
+    *y = unprojectedPoint.y;
+    *z = unprojectedPoint.z;
+}

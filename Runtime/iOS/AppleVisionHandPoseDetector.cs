@@ -48,6 +48,12 @@ namespace HoloInteractive.XR.HoloKit.iOS
             return GetHandJointConfidence(m_Ptr, handIndex, (int)jointName);
         }
 
+        public Vector3 UnprojectScreenPoint(Vector2 location, float depth)
+        {
+            UnprojectScreenPoint(m_Ptr, location.x, location.y, depth, out float x, out float y, out float z);
+            return new Vector3(x, y, z);
+        }
+
         public void Dispose()
         {
             if (m_Ptr != IntPtr.Zero)
@@ -71,5 +77,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_getHandJointConfidence")]
         static extern float GetHandJointConfidence(IntPtr self, int handIndex, int jointIndex);
+
+        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_unprojectScreenPoint")]
+        static extern void UnprojectScreenPoint(IntPtr self, float locationX, float locationY, float depth, out float x, out float y, out float z);
     }
 }

@@ -55,7 +55,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             }
 
             m_EnvironmentDepthManager = new();
-            m_MainCamera = Camera.main;
+            m_MainCamera = m_AROcclusionManager.gameObject.GetComponent<Camera>();
             for (int i = 0; i < transform.childCount; i++)
             {
                 var hand = transform.GetChild(i);
@@ -74,22 +74,38 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         private void OnHandPoseUpdated()
         {
-            for (int i = 0; i < m_HandPoseManager.HandCount; i++)
+            if (m_HandPoseManager.HandCount > 0)
             {
-                var hand = m_Hands[i];
-                for (int j = 0; j < hand.Count; j++)
+                using (EnvironmentDepthImage depthImage = new(m_AROcclusionManager))
                 {
-                    JointName jointName = (JointName)j;
-                    Vector2 location = m_HandPoseManager.GetHandJointLocation(i, jointName);
-                    //Debug.Log($"jointName: {jointName} location: {location}");
+                    if (depthImage == null)
+                        return;
 
-                    //float depth = m_EnvironmentDepthManager.GetDepth(location);
-                    //Debug.Log($"jointName: {jointName} location: {location} depth: {depth}");
-                    ////float depth = 0.3f;
-                    ////Debug.Log($"handIndex: {i} jointName: {jointName} location: {location} depth: {depth}");
-                    ////Vector3 worldPos = m_MainCamera.ScreenToWorldPoint(new Vector3(location.x * Screen.width, location.y * Screen.height, depth));
-                    //Vector3 worldPos = m_EnvironmentDepthManager.UnprojectScreenPoint(location, depth);
-                    //hand[jointName].transform.position = worldPos;
+                    for (int i = 0; i < m_HandPoseManager.HandCount; i++)
+                    {
+                        var hand = m_Hands[i];
+                        for (int j = 0; j < hand.Count; j++)
+                        {
+                            JointName jointName = (JointName)j;
+                            Vector2 location = m_HandPoseManager.GetHandJointLocation(i, jointName);
+                            float depth = depthImage.GetDepth(location);
+                            //Debug.Log($"jointName: {jointName} location: {location} depth: {depth}");
+
+
+                            //Debug.Log($"jointName: {jointName} location: {location}");
+
+                            //float depth = m_EnvironmentDepthManager.GetDepth(location);
+
+                            //float depth = 0.3f;
+                            ////Debug.Log($"handIndex: {i} jointName: {jointName} location: {location} depth: {depth}");
+
+
+                            //Vector3 worldPos = m_MainCamera.ScreenToWorldPoint(new Vector3(location.x * Screen.width, location.y * Screen.height, depth));
+                            //Vector3 worldPos = m_EnvironmentDepthManager.UnprojectScreenPoint(location, depth);
+                            Vector3 worldPos = m_HandPoseManager.UnprojectScreenPoint(location, depth);
+                            hand[jointName].transform.position = worldPos;
+                        }
+                    }
                 }
             }
         }
