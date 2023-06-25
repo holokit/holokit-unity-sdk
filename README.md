@@ -31,3 +31,30 @@ HoloKit was primarily built for iOS devices. Please see the [Supported iOS Devic
 HoloKit currently only supports a limited number of Android phones. Please see the [Supported Android Devices](Supported_Android_Devices.md) for more details.
 
 If your Android phone is not supported, we also provide a calibration method to let you figure out the specs of your Android phone yourself. You can then enter your Android phone specs to the SDK to have your device rendering stereo images. Please see [Phone Model Specs Calibration], which is a step-by-step guide on how to figure out the specs of your phone model.
+
+## How to Use HoloKit Unity SDK
+
+The SDK package provides several sample projects to show how to use each key feature of the SDK. You can import those samples into you project and use them as templates to build your own scene. The Stereoscopic Rendering sample is a minimal implementation of the SDK, you can use that sample as a basic template for any project.
+
+### Stereoscopic Rendering
+
+Stereoscopic rendering is the most important feature of the SDK, which can easily upgrade an existing screen AR project to a stereoscopic one. In this section, we will show how to add stereoscopic rendering feature to your ARFoundation project.
+
+First, you need to setup an AR scene using ARFoundation. More specifically, you need to add `AR Session` and `AR Session Origin` components into the scene. After adding `AR Session Origin` into the scene, the GameObject will have an `AR Camera` child GameObject by default. Choose the child `AR Camera` GameObject and add component `HoloKit Camera Manager` onto the GameObject. By adding `HoloKit Camera Manager` component, the script will automatically add some necessary GameObjects under the camera.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="HoloKit Camera Manager" width="800"/>
+
+In HoloKit Unity SDK, there are two screen render modes, which are `ScreenRenderMode.Mono` and `ScreenRenderMode.Stereo`. In mono mode, the phone screen will render the camera background image together on top of which virtual content is rendered. In stereo mode, the phone screen will render two viewports with black background and you can put your phone onto HoloKit to have stereoscopic AR experience.
+
+| <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a9d048a0-b2b5-4f0e-a7f8-03ca782b9725" alt="ScreenRenderMode.Mono" width="450"/> | <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/01bf3231-41ec-4a29-9d94-a48dcebfeefb" alt="ScreenRenderMode.Stereo" width="450"/> |
+|:---:|:---:|
+| `ScreenRenderMode.Mono` | `ScreenRenderMode.Stereo` |
+
+`HoloKit Camera Manager` is responsible for switching between those two render modes.
+```
+public void SwitchRenderMode()
+{
+    var holokitCamera = FindObjectOfType<HoloKitCameraManager>();
+    holokitCamera.ScreenRenderMode = holokitCamera.ScreenRenderMode == ScreenRenderMode.Mono ? ScreenRenderMode.Stereo : ScreenRenderMode.Mono;
+}
+```
