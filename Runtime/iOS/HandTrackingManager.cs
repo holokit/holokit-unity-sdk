@@ -15,8 +15,6 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         AROcclusionManager m_AROcclusionManager;
 
-        EnvironmentDepthManager m_EnvironmentDepthManager;
-
         Camera m_MainCamera;
 
         List<Dictionary<JointName, GameObject>> m_Hands = new();
@@ -54,7 +52,6 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 return;
             }
 
-            m_EnvironmentDepthManager = new();
             m_MainCamera = m_AROcclusionManager.gameObject.GetComponent<Camera>();
             for (int i = 0; i < transform.childCount; i++)
             {
@@ -89,30 +86,13 @@ namespace HoloInteractive.XR.HoloKit.iOS
                             JointName jointName = (JointName)j;
                             Vector2 location = m_HandPoseManager.GetHandJointLocation(i, jointName);
                             float depth = depthImage.GetDepth(location);
-                            //Debug.Log($"jointName: {jointName} location: {location} depth: {depth}");
-
-
-                            //Debug.Log($"jointName: {jointName} location: {location}");
-
-                            //float depth = m_EnvironmentDepthManager.GetDepth(location);
-
                             //float depth = 0.3f;
-                            ////Debug.Log($"handIndex: {i} jointName: {jointName} location: {location} depth: {depth}");
-
-
-                            //Vector3 worldPos = m_MainCamera.ScreenToWorldPoint(new Vector3(location.x * Screen.width, location.y * Screen.height, depth));
-                            //Vector3 worldPos = m_EnvironmentDepthManager.UnprojectScreenPoint(location, depth);
                             Vector3 worldPos = m_HandPoseManager.UnprojectScreenPoint(location, depth);
                             hand[jointName].transform.position = worldPos;
                         }
                     }
                 }
             }
-        }
-
-        private void OnDestroy()
-        {
-            m_EnvironmentDepthManager.Dispose();
         }
     }
 }
