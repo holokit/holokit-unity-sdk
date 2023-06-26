@@ -2,22 +2,24 @@
 // SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
 // SPDX-License-Identifier: MIT
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
 namespace HoloInteractive.XR.HoloKit.iOS
 {
-    [RequireComponent(typeof(AppleVisionHandPoseManager))]
     public class HandTrackingManager : MonoBehaviour
     {
-        AppleVisionHandPoseManager m_HandPoseManager;
+        AppleVisionHandPoseDetector m_HandPoseDetector;
 
-        AROcclusionManager m_AROcclusionManager;
+        ARCameraManager m_ARCameraManager;
 
-        Camera m_MainCamera;
+        [SerializeField] MaxHandCount m_MaxHandCount = MaxHandCount.One;
 
-        List<Dictionary<JointName, GameObject>> m_Hands = new();
+        List<GameObject> m_Hands = new();
+
+        List<Dictionary<JointName, GameObject>> m_HandJoints = new();
 
         private void OnValidate()
         {
@@ -28,6 +30,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 return;
 
             gameObject.name = "Hand Tracking Manager";
+            transform.position = Vector3.zero;
 
             for (int i = 0; i < 2; i++)
             {
@@ -45,53 +48,77 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         private void Start()
         {
-            m_AROcclusionManager = FindObjectOfType<AROcclusionManager>();
+            m_ARCameraManager = FindObjectOfType<ARCameraManager>();
+            if (m_ARCameraManager == null)
+            {
+                Debug.LogWarning("HandTrackingManager won't work without ARCameraManager in the scene");
+                return;
+            }
+            m_ARCameraManager.frameReceived += OnFrameReceived;
+
+            var m_AROcclusionManager = FindObjectOfType<AROcclusionManager>();
             if (m_AROcclusionManager == null)
             {
-                Debug.LogWarning("Failed to find AROcclusionManager. You cannot use hand tracking without AROcclusionManager.");
+                Debug.LogWarning("HandTrackingManager won't work without AROcclusionManager in the scene");
                 return;
             }
 
-            m_MainCamera = m_AROcclusionManager.gameObject.GetComponent<Camera>();
             for (int i = 0; i < transform.childCount; i++)
             {
                 var hand = transform.GetChild(i);
+                m_Hands.Add(hand.gameObject);
                 Dictionary<JointName, GameObject> dict = new();
-                m_Hands.Add(dict);
+                m_HandJoints.Add(dict);
                 for (int j = 0; j < hand.childCount; j++)
                 {
                     var joint = hand.GetChild(j);
-                    m_Hands[i].Add((JointName)j, joint.gameObject);
+                    m_HandJoints[i].Add((JointName)j, joint.gameObject);
                 }
             }
 
-            m_HandPoseManager = GetComponent<AppleVisionHandPoseManager>();
-            m_HandPoseManager.OnHandPoseUpdated += OnHandPoseUpdated;
+            m_HandPoseDetector = new(m_MaxHandCount);
+            m_HandPoseDetector.OnHandPose3DUpdated += OnHandPose3DUpdated;
+            m_HandPoseDetector.OnHandPoseLost += OnHandPoseLost;
         }
 
-        private void OnHandPoseUpdated()
+        private void OnDestroy()
         {
-            if (m_HandPoseManager.HandCount > 0)
-            {
-                using (EnvironmentDepthImage depthImage = new(m_AROcclusionManager))
-                {
-                    if (depthImage == null)
-                        return;
+            m_HandPoseDetector.Dispose();
+        }
 
-                    for (int i = 0; i < m_HandPoseManager.HandCount; i++)
+        private void OnFrameReceived(ARCameraFrameEventArgs args)
+        {
+            if (enabled)
+            {
+                m_HandPoseDetector.ProcessCurrentFrame3D();
+            }
+        }
+
+        private void OnHandPose3DUpdated()
+        {
+            for (int i = 0; i < m_HandJoints.Count; i++)
+            {
+                if (i < m_HandPoseDetector.HandCount)
+                {
+                    m_Hands[i].SetActive(true);
+                    for (int j = 0; j < 21; j++)
                     {
-                        var hand = m_Hands[i];
-                        for (int j = 0; j < hand.Count; j++)
-                        {
-                            JointName jointName = (JointName)j;
-                            Vector2 location = m_HandPoseManager.GetHandJointLocation(i, jointName);
-                            float depth = depthImage.GetDepth(location);
-                            //float depth = 0.3f;
-                            Vector3 worldPos = m_HandPoseManager.UnprojectScreenPoint(location, depth);
-                            hand[jointName].transform.position = worldPos;
-                        }
+                        JointName jointName = (JointName)j;
+                        m_HandJoints[i][jointName].transform.position = m_HandPoseDetector.HandPoses3D[i][jointName];
                     }
                 }
+                else
+                {
+                    m_Hands[i].SetActive(false);
+                }
+            }
+        }
+
+        private void OnHandPoseLost()
+        {
+            foreach (var hand in m_Hands)
+            {
+                hand.SetActive(false);
             }
         }
     }

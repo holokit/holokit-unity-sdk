@@ -2,12 +2,16 @@
 #import <ARKit/ARKit.h>
 #import "UnityXRInterface.h"
 
+typedef void (*OnHandPose2DUpdatedCallback)(void * _Nonnull, int, void * _Nullable);
+typedef void (*OnHandPose3DUpdatedCallback)(void * _Nonnull, int, void * _Nullable);
+
 @interface AppleVisionHandPoseDetector : NSObject
 
+@property (nonatomic, assign) OnHandPose2DUpdatedCallback _Nullable onHandPose2DUpdatedCallback;
+@property (nonatomic, assign) OnHandPose3DUpdatedCallback _Nullable onHandPose3DUpdatedCallback;
+
 - (nonnull instancetype)initWithARSession:(ARSession *_Nonnull)arSession maximumHandCount:(int)maximumHandCount;
-- (BOOL)processCurrentFrame;
-- (int)getResultCount;
-- (VNRecognizedPoint *)getHandJointWithHandIndex:(int)handIndex jointIndex:(int)jointIndex;
-- (simd_float3)unprojectScreenPointWithLocationX:(float)locationX locationY:(float)locationY depth:(float)depth;
+- (void)processCurrentFrame2D;
+- (void)processCurrentFrame3D;
 
 @end

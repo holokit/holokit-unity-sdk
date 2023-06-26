@@ -1,18 +1,22 @@
 #import "AppleVisionHandPoseDetector.h"
 
-@implementation AppleVisionHandPoseDetector
-
 API_AVAILABLE(ios(14.0))
-VNDetectHumanHandPoseRequest *m_HandPoseRequest;
-ARSession *m_ARSession;
+@interface AppleVisionHandPoseDetector ()
+
+@property (nonatomic, strong) VNDetectHumanHandPoseRequest *handPoseRequest;
+@property (nonatomic, strong) ARSession *arSession;
+
+@end
+
+@implementation AppleVisionHandPoseDetector
 
 - (instancetype)initWithARSession:(ARSession *)arSession maximumHandCount:(int)maximumHandCount {
     if (self = [super init]) {
         if (@available(iOS 14.0, *)) {
-            m_HandPoseRequest = [[VNDetectHumanHandPoseRequest alloc] init];
-            m_HandPoseRequest.usesCPUOnly = false;
-            m_HandPoseRequest.maximumHandCount = maximumHandCount;
-            m_ARSession = arSession;
+            self.handPoseRequest = [[VNDetectHumanHandPoseRequest alloc] init];
+            self.handPoseRequest.usesCPUOnly = false;
+            self.handPoseRequest.maximumHandCount = maximumHandCount;
+            self.arSession = arSession;
         } else {
             NSLog(@"Apple Vision framework is only available on iOS 14.0 or higher");
         }
@@ -22,9 +26,9 @@ ARSession *m_ARSession;
 
 - (BOOL)processCurrentFrame {
     if (@available(iOS 14.0, *)) {
-        VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer: m_ARSession.currentFrame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
+        VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer: self.arSession.currentFrame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
         @try {
-            NSArray<VNRequest *> *requests = [[NSArray alloc] initWithObjects:m_HandPoseRequest, nil];
+            NSArray<VNRequest *> *requests = [[NSArray alloc] initWithObjects:self.handPoseRequest, nil];
             [imageRequestHandler performRequests:requests error:nil];
             return YES;
         } @catch(NSException *e) {
@@ -33,20 +37,105 @@ ARSession *m_ARSession;
     }
 }
 
-- (int)getResultCount {
+- (void)processCurrentFrame2D {
     if (@available(iOS 14.0, *)) {
-        return (int)m_HandPoseRequest.results.count;
+        if ([self processCurrentFrame]) {
+            int handCount = (int)self.handPoseRequest.results.count;
+            if (handCount == 0) {
+                if (self.onHandPose2DUpdatedCallback != NULL) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        self.onHandPose2DUpdatedCallback((__bridge void *)self, 0, NULL);
+                    });
+                }
+                return;
+            }
+            
+            float *results = malloc(sizeof(float) * 2 * 21 * handCount);
+            for (int i = 0; i < handCount; i++) {
+                VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
+                for (int j = 0; j < 21; j++) {
+                    VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
+                    results[i * 2 * 21 + j * 2] = point.location.x;
+                    results[i * 2 * 21 + j * 2 + 1] = point.location.y;
+                }
+            }
+            
+            if (self.onHandPose2DUpdatedCallback != NULL) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.onHandPose2DUpdatedCallback((__bridge void *)self, handCount, results);
+                    free(results);
+                });
+            }
+        } else {
+            if (self.onHandPose2DUpdatedCallback != NULL) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.onHandPose2DUpdatedCallback((__bridge void *)self, 0, NULL);
+                });
+            }
+        }
     } else {
-        return 0;
+        
     }
 }
 
-- (VNRecognizedPoint *)getHandJointWithHandIndex:(int)handIndex jointIndex:(int)jointIndex  API_AVAILABLE(ios(14.0)){
-    if (m_HandPoseRequest.results.count <= handIndex) {
-        return nil;
+- (void)processCurrentFrame3D {
+    if (@available(iOS 14.0, *)) {
+        if (self.arSession.currentFrame.sceneDepth == nil) {
+            NSLog(@"Failed to get environment depth image");
+            return;
+        }
+        
+        if ([self processCurrentFrame]) {
+            int handCount = (int)self.handPoseRequest.results.count;
+            if (handCount == 0) {
+                if (self.onHandPose3DUpdatedCallback != NULL) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        self.onHandPose3DUpdatedCallback((__bridge void *)self, 0, NULL);
+                    });
+                }
+                return;
+            }
+
+            // Get scene depth
+            CVPixelBufferLockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
+            size_t depthBufferWidth = CVPixelBufferGetWidth(self.arSession.currentFrame.sceneDepth.depthMap);
+            size_t depthBufferHeight = CVPixelBufferGetHeight(self.arSession.currentFrame.sceneDepth.depthMap);
+            Float32 *depthBufferBaseAddress = (Float32 *)CVPixelBufferGetBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap);
+
+            float *results = malloc(sizeof(float) * 3 * 21 * handCount);
+            for (int i = 0; i < handCount; i++) {
+                VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
+                for (int j = 0; j < 21; j++) {
+                    VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
+                    // Get the depth of the point
+                    int depthX = point.x * depthBufferWidth;
+                    int depthY = (1 - point.y) * depthBufferHeight;
+                    float depth = (float)depthBufferBaseAddress[depthY * depthBufferWidth + depthX];
+                    
+                    simd_float3 unprojectedPoint = [self unprojectScreenPointWithLocationX:point.x locationY:point.y depth:depth];
+                    results[i * 3 * 21 + j * 3] = unprojectedPoint.x;
+                    results[i * 3 * 21 + j * 3 + 1] = unprojectedPoint.y;
+                    results[i * 3 * 21 + j * 3 + 2] = -unprojectedPoint.z;
+                }
+            }
+            CVPixelBufferUnlockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
+
+            if (self.onHandPose3DUpdatedCallback != NULL) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.onHandPose3DUpdatedCallback((__bridge void *)self, handCount, results);
+                    free(results);
+                });
+            }
+        } else {
+            if (self.onHandPose3DUpdatedCallback != NULL) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.onHandPose3DUpdatedCallback((__bridge void *)self, 0, NULL);
+                });
+            }
+        }
+    } else {
+        
     }
-    VNHumanHandPoseObservation *observation = m_HandPoseRequest.results[handIndex];
-    return [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:jointIndex] error:nil];
 }
 
 + (VNRecognizedPointKey)getVNHumanHandPoseObservationJointNameWithJointIndex:(int)jointIndex {
@@ -103,19 +192,18 @@ ARSession *m_ARSession;
 }
 
 - (simd_float3)unprojectScreenPointWithLocationX:(float)locationX locationY:(float)locationY depth:(float)depth {
-    CGFloat screenX = (CGFloat)locationX * m_ARSession.currentFrame.camera.imageResolution.width;
-    CGFloat screenY = (CGFloat)(1 - locationY) * m_ARSession.currentFrame.camera.imageResolution.height;
+    CGFloat screenX = (CGFloat)locationX * self.arSession.currentFrame.camera.imageResolution.width;
+    CGFloat screenY = (CGFloat)(1 - locationY) * self.arSession.currentFrame.camera.imageResolution.height;
     CGPoint screenPoint = CGPointMake(screenX, screenY);
     
     simd_float4x4 translation = matrix_identity_float4x4;
     translation.columns[3].z = -depth;
-    simd_float4x4 planeOrigin = simd_mul(m_ARSession.currentFrame.camera.transform, translation);
+    simd_float4x4 planeOrigin = simd_mul(self.arSession.currentFrame.camera.transform, translation);
     simd_float3 xAxis = simd_make_float3(1, 0, 0);
     simd_float4x4 rotation = simd_matrix4x4(simd_quaternion(0.5 * M_PI, xAxis));
     simd_float4x4 plane = simd_mul(planeOrigin, rotation);
-    simd_float3 unprojectedPoint = [m_ARSession.currentFrame.camera unprojectPoint:screenPoint ontoPlaneWithTransform:plane orientation:UIInterfaceOrientationLandscapeRight viewportSize:m_ARSession.currentFrame.camera.imageResolution];
-    
-    return simd_make_float3(unprojectedPoint.x, unprojectedPoint.y, -unprojectedPoint.z);
+    simd_float3 unprojectedPoint = [self.arSession.currentFrame.camera unprojectPoint:screenPoint ontoPlaneWithTransform:plane orientation:UIInterfaceOrientationLandscapeRight viewportSize:self.arSession.currentFrame.camera.imageResolution];
+    return simd_make_float3(unprojectedPoint.x, unprojectedPoint.y, unprojectedPoint.z);
 }
 
 @end

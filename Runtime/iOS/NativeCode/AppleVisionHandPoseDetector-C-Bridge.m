@@ -6,41 +6,20 @@ void* HoloInteractiveHoloKit_AppleVisionHandPoseDetector_initWithARSession(Unity
     return (__bridge_retained void *)detector;
 }
 
-bool HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame(void *self) {
+void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks(void *self,
+                                                                          OnHandPose2DUpdatedCallback onHandPose2DUpdatedCallback,
+                                                                          OnHandPose3DUpdatedCallback onHandPose3DUpdatedCallback) {
     AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-    return [detector processCurrentFrame];
+    [detector setOnHandPose2DUpdatedCallback:onHandPose2DUpdatedCallback];
+    [detector setOnHandPose3DUpdatedCallback:onHandPose3DUpdatedCallback];
 }
 
-int HoloInteractiveHoloKit_AppleVisionHandPoseDetector_getResultCount(void *self) {
+void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D(void *self) {
     AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-    return [detector getResultCount];
+    return [detector processCurrentFrame2D];
 }
 
-void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_getHandJointLocation(void *self, int handIndex, int jointIndex, float *x, float *y) {
-    if (@available(iOS 14.0, *)) {
-        AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-        VNRecognizedPoint *point = [detector getHandJointWithHandIndex: handIndex jointIndex: jointIndex];
-        *x = point.location.x;
-        *y = point.location.y;
-    } else {
-        // Fallback on earlier versions
-    }
-}
-
-float HoloInteractiveHoloKit_AppleVisionHandPoseDetector_getHandJointConfidence(void *self, int handIndex, int jointIndex) {
-    if (@available(iOS 14.0, *)) {
-        AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-        VNRecognizedPoint *point = [detector getHandJointWithHandIndex: handIndex jointIndex: jointIndex];
-        return point.confidence;
-    } else {
-        return 0;
-    }
-}
-
-void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_unprojectScreenPoint(void *self, float locationX, float locationY, float depth, float *x, float *y, float *z) {
+void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D(void *self) {
     AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-    simd_float3 unprojectedPoint = [detector unprojectScreenPointWithLocationX:locationX locationY:locationY depth:depth];
-    *x = unprojectedPoint.x;
-    *y = unprojectedPoint.y;
-    *z = unprojectedPoint.z;
+    return [detector processCurrentFrame3D];
 }
