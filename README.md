@@ -66,10 +66,19 @@ public void SwitchRenderMode()
 
 ### Hand Tracking
 
-`HandTrackingManager` tracks the user's hand and provides the positions of the 21 hand joints of each hand.
+`HandTrackingManager` tracks the user's hand and provides the positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
 
 To use `HandTrackingManager`, you need to do is to create a new empty GameObject in the scene and add `HandTrackingManager` component onto it. The script will automatically setup the GameObject.
 
 <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
 
-Since the algorithm requires depth information to compute
+Since the algorithm requires depth information to compute the 3D positions, we need to have an `AROcclusionManager` component in the scene. We add `AROcclusionManager` component onto the `HoloKit Camera` GameObject and configure the component as shown below.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/322b66f7-dd66-436b-b77a-3385926690bf" alt="HandTrackingManager" width="800"/>
+
+That is all you need to do to setup the hand tracking. If you want to acquire the position of a specific hand joint in code, you should use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. The hand tracking algorithm cannot distinguish the handedness of the detected hands, so `handIndex` only represents the detection order. When there is only one hand being detected, the `handIndex` should always be 0. When there are 2 hands being detected, the `handIndex` can either be 0 or 1.
+
+The hand tracking feature can only run on iOS devices equipped with LiDAR depth sensor.
+
+### Hand Gesture Recognition
+
