@@ -88,7 +88,6 @@ namespace HoloInteractive.XR.HoloKit.iOS
             {
                 m_HandGesture = handGesture;
                 OnHandGestureChanged?.Invoke(m_HandGesture);
-                Debug.Log($"Hand gesture changed to {m_HandGesture}");
             }
         }
 

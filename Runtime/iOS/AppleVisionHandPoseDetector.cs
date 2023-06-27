@@ -120,7 +120,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                     {
                         for (int j = 0; j < 21; j++)
                         {
-                            detector.m_HandPoses2D[i][(JointName)j] = new Vector3(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1], 0f);
+                            detector.m_HandPoses2D[i][(JointName)j] = new Vector2(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1]);
                         }
                     }
                 }
