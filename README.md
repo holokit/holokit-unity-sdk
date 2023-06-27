@@ -68,7 +68,7 @@ public void SwitchRenderMode()
 
 `HandTrackingManager` tracks the user's hand and provides the positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
 
-To use `HandTrackingManager`, you need to do is to create a new empty GameObject in the scene and add `HandTrackingManager` component onto it. The script will automatically setup the GameObject.
+To use `HandTrackingManager`, you need to do is to create a new empty GameObject in the scene and add `HandTrackingManager` component onto it. The script will automatically setup the GameObject for you.
 
 <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
 
@@ -76,9 +76,25 @@ Since the algorithm requires depth information to compute the 3D positions, we n
 
 <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/322b66f7-dd66-436b-b77a-3385926690bf" alt="HandTrackingManager" width="800"/>
 
-That is all you need to do to setup the hand tracking. If you want to acquire the position of a specific hand joint in code, you should use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. The hand tracking algorithm cannot distinguish the handedness of the detected hands, so `handIndex` only represents the detection order. When there is only one hand being detected, the `handIndex` should always be 0. When there are 2 hands being detected, the `handIndex` can either be 0 or 1.
+That is all you need to do to setup the hand tracking. If you want to acquire the position of a specific hand joint in code, you should use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. The hand tracking algorithm cannot distinguish the handedness of the detected hands, so `handIndex` only represents the detection order. When there is only one hand being detected, the `handIndex` should always be 0. When there are 2 hands being detected, the `handIndex` can be either 0 or 1.
 
 The hand tracking feature can only run on iOS devices equipped with LiDAR depth sensor.
 
 ### Hand Gesture Recognition
 
+`HandGestureRecognitionManager` recognizes the user's hand gesture, you can use the gesture transitions as inputs to trigger some operations in your project. There are three hand gestures available:
+```
+public enum HandGesture
+{
+    None = 0,
+    Pinched = 1,
+    Apart = 2
+}
+```
+To use hand gesture recognition, all you need to do is to add `HandGestureRecognitionManager` into the scene. The callback function `HandGestureRecognitionManager.OnHandGestureChanged` is invoked when the algorithm detects a transition of the user's hand gesture, you can register this callback to get notified. You can also get the user's current hand gesture via `HandGestureRecognitionManager.HandGesture`.
+
+The hand gesture recognition feature is only available on iOS 14.0 or higher devices.
+
+## Community and Feedback
+
+If you have any problem, question, suggestion, or find a bug, please join our [Discord](https://discord.gg/dkah5sWR) or submit an issue. We will continue to update this SDK and your feedbacks are appreciated.
