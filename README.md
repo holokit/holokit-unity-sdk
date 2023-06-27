@@ -34,7 +34,12 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 ## How to Use HoloKit Unity SDK
 
-The SDK package provides several sample projects to show how to use each key feature of the SDK. You can import those samples into you project and use them as templates to build your own scene. The Stereoscopic Rendering sample is a minimal implementation of the SDK, you can use that sample as a basic template for any project.
+The SDK current provides three main features:
+- Stereoscopic Rendering: Renders two stereo images on the phone's screen which can be used together with HoloKit headset.
+- Hand Tracking: Tracks the 3D positions of the 21 hand joints of each hand.
+- Hand Gesture Recognition: Recognizes the hand gesture of the user's hand.
+
+For each feature, the SDK package provides a sample project showing how to use it. The Stereoscopic Rendering sample is a minimal use case of the SDK, you can use that sample as a basic template for your project. Please note that the hand tracking and hand gesture recognition features use Apple Vision framework to detect the user's hand poses, which can only be used on iOS devices. For detailed information of the algorithm, please see [Apple's document](https://developer.apple.com/documentation/vision/detecting_hand_poses_with_vision?language=objc).
 
 ### Stereoscopic Rendering
 
@@ -42,7 +47,7 @@ Stereoscopic rendering is the most important feature of the SDK, which can easil
 
 First, you need to setup an AR scene using ARFoundation. More specifically, you need to add `AR Session` and `AR Session Origin` components into the scene. After adding `AR Session Origin` into the scene, the GameObject will have an `AR Camera` child GameObject by default. Choose the child `AR Camera` GameObject and add component `HoloKit Camera Manager` onto the GameObject. By adding `HoloKit Camera Manager` component, the script will automatically add some necessary GameObjects under the camera.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="HoloKit Camera Manager" width="800"/>
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="HoloKitCameraManager" width="800"/>
 
 In HoloKit Unity SDK, there are two screen render modes, which are `ScreenRenderMode.Mono` and `ScreenRenderMode.Stereo`. In mono mode, the phone screen will render the camera background image together on top of which virtual content is rendered. In stereo mode, the phone screen will render two viewports with black background and you can put your phone onto HoloKit to have stereoscopic AR experience.
 
@@ -58,3 +63,13 @@ public void SwitchRenderMode()
     holokitCamera.ScreenRenderMode = holokitCamera.ScreenRenderMode == ScreenRenderMode.Mono ? ScreenRenderMode.Stereo : ScreenRenderMode.Mono;
 }
 ```
+
+### Hand Tracking
+
+`HandTrackingManager` tracks the user's hand and provides the positions of the 21 hand joints of each hand.
+
+To use `HandTrackingManager`, you need to do is to create a new empty GameObject in the scene and add `HandTrackingManager` component onto it. The script will automatically setup the GameObject.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
+
+Since the algorithm requires depth information to compute
