@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-License-Identifier: MIT
+
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HoloInteractive.XR.HoloKit.Samples.StereoscopicRendering
 {
-    public class StereoUIManager : MonoBehaviour
+    public class StereoscopicRenderingUI : MonoBehaviour
     {
         [SerializeField] Text m_BtnText;
 

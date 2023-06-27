@@ -15,7 +15,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         Apart = 2
     }
 
-    public class HandGestureManager : MonoBehaviour
+    public class HandGestureRecognitionManager : MonoBehaviour
     {
         public HandGesture HandGesture => m_HandGesture;
 
