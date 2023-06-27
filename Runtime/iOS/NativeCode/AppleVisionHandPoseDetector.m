@@ -42,34 +42,34 @@ API_AVAILABLE(ios(14.0))
         if ([self processCurrentFrame]) {
             int handCount = (int)self.handPoseRequest.results.count;
             if (handCount == 0) {
-                if (self.onHandPose2DUpdatedCallback != NULL) {
+                if (self.onHandPoseUpdatedCallback != NULL) {
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        self.onHandPose2DUpdatedCallback((__bridge void *)self, 0, NULL);
+                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
                     });
                 }
                 return;
             }
             
-            float *results = malloc(sizeof(float) * 2 * 21 * handCount);
+            float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
-                    results[i * 2 * 21 + j * 2] = point.location.x;
-                    results[i * 2 * 21 + j * 2 + 1] = point.location.y;
+                    results2D[i * 2 * 21 + j * 2] = point.x;
+                    results2D[i * 2 * 21 + j * 2 + 1] = point.y;
                 }
             }
             
-            if (self.onHandPose2DUpdatedCallback != NULL) {
+            if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPose2DUpdatedCallback((__bridge void *)self, handCount, results);
-                    free(results);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, NULL);
+                    free(results2D);
                 });
             }
         } else {
-            if (self.onHandPose2DUpdatedCallback != NULL) {
+            if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPose2DUpdatedCallback((__bridge void *)self, 0, NULL);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
                 });
             }
         }
@@ -88,9 +88,9 @@ API_AVAILABLE(ios(14.0))
         if ([self processCurrentFrame]) {
             int handCount = (int)self.handPoseRequest.results.count;
             if (handCount == 0) {
-                if (self.onHandPose3DUpdatedCallback != NULL) {
+                if (self.onHandPoseUpdatedCallback != NULL) {
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        self.onHandPose3DUpdatedCallback((__bridge void *)self, 0, NULL);
+                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
                     });
                 }
                 return;
@@ -102,34 +102,38 @@ API_AVAILABLE(ios(14.0))
             size_t depthBufferHeight = CVPixelBufferGetHeight(self.arSession.currentFrame.sceneDepth.depthMap);
             Float32 *depthBufferBaseAddress = (Float32 *)CVPixelBufferGetBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap);
 
-            float *results = malloc(sizeof(float) * 3 * 21 * handCount);
+            float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
+            float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
+                    results2D[i * 2 * 21 + j * 2] = point.x;
+                    results2D[i * 2 * 21 + j * 2 + 1] = point.y;
+                    
                     // Get the depth of the point
                     int depthX = point.x * depthBufferWidth;
                     int depthY = (1 - point.y) * depthBufferHeight;
                     float depth = (float)depthBufferBaseAddress[depthY * depthBufferWidth + depthX];
-                    
                     simd_float3 unprojectedPoint = [self unprojectScreenPointWithLocationX:point.x locationY:point.y depth:depth];
-                    results[i * 3 * 21 + j * 3] = unprojectedPoint.x;
-                    results[i * 3 * 21 + j * 3 + 1] = unprojectedPoint.y;
-                    results[i * 3 * 21 + j * 3 + 2] = -unprojectedPoint.z;
+                    results3D[i * 3 * 21 + j * 3] = unprojectedPoint.x;
+                    results3D[i * 3 * 21 + j * 3 + 1] = unprojectedPoint.y;
+                    results3D[i * 3 * 21 + j * 3 + 2] = -unprojectedPoint.z;
                 }
             }
             CVPixelBufferUnlockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
 
-            if (self.onHandPose3DUpdatedCallback != NULL) {
+            if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPose3DUpdatedCallback((__bridge void *)self, handCount, results);
-                    free(results);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, results3D);
+                    free(results2D);
+                    free(results3D);
                 });
             }
         } else {
-            if (self.onHandPose3DUpdatedCallback != NULL) {
+            if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPose3DUpdatedCallback((__bridge void *)self, 0, NULL);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
                 });
             }
         }

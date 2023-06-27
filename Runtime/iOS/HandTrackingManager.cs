@@ -2,7 +2,6 @@
 // SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
 // SPDX-License-Identifier: MIT
 
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
@@ -11,9 +10,9 @@ namespace HoloInteractive.XR.HoloKit.iOS
 {
     public class HandTrackingManager : MonoBehaviour
     {
-        AppleVisionHandPoseDetector m_HandPoseDetector;
+        public AppleVisionHandPoseDetector HandPoseDetector => m_HandPoseDetector;
 
-        ARCameraManager m_ARCameraManager;
+        AppleVisionHandPoseDetector m_HandPoseDetector;
 
         [SerializeField] MaxHandCount m_MaxHandCount = MaxHandCount.One;
 
@@ -46,18 +45,16 @@ namespace HoloInteractive.XR.HoloKit.iOS
             }
         }
 
-        private void Start()
+        private void Awake()
         {
-            m_ARCameraManager = FindObjectOfType<ARCameraManager>();
-            if (m_ARCameraManager == null)
+            var arCameraManager = FindObjectOfType<ARCameraManager>();
+            if (arCameraManager == null)
             {
                 Debug.LogWarning("HandTrackingManager won't work without ARCameraManager in the scene");
                 return;
             }
-            m_ARCameraManager.frameReceived += OnFrameReceived;
 
-            var m_AROcclusionManager = FindObjectOfType<AROcclusionManager>();
-            if (m_AROcclusionManager == null)
+            if (FindObjectOfType<AROcclusionManager>() == null)
             {
                 Debug.LogWarning("HandTrackingManager won't work without AROcclusionManager in the scene");
                 return;
@@ -76,8 +73,9 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 }
             }
 
+            arCameraManager.frameReceived += OnFrameReceived;
             m_HandPoseDetector = new(m_MaxHandCount);
-            m_HandPoseDetector.OnHandPose3DUpdated += OnHandPose3DUpdated;
+            m_HandPoseDetector.OnHandPoseUpdated += OnHandPoseUpdated;
             m_HandPoseDetector.OnHandPoseLost += OnHandPoseLost;
         }
 
@@ -94,7 +92,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             }
         }
 
-        private void OnHandPose3DUpdated()
+        private void OnHandPoseUpdated()
         {
             for (int i = 0; i < m_HandJoints.Count; i++)
             {

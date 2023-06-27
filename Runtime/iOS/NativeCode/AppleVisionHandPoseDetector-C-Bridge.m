@@ -7,11 +7,9 @@ void* HoloInteractiveHoloKit_AppleVisionHandPoseDetector_initWithARSession(Unity
 }
 
 void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks(void *self,
-                                                                          OnHandPose2DUpdatedCallback onHandPose2DUpdatedCallback,
-                                                                          OnHandPose3DUpdatedCallback onHandPose3DUpdatedCallback) {
+                                                                          OnHandPoseUpdatedCallback onHandPoseUpdatedCallback) {
     AppleVisionHandPoseDetector *detector = (__bridge AppleVisionHandPoseDetector *)self;
-    [detector setOnHandPose2DUpdatedCallback:onHandPose2DUpdatedCallback];
-    [detector setOnHandPose3DUpdatedCallback:onHandPose3DUpdatedCallback];
+    [detector setOnHandPoseUpdatedCallback:onHandPoseUpdatedCallback];
 }
 
 void HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D(void *self) {

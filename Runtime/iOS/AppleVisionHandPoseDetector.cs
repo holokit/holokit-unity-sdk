@@ -19,9 +19,17 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
     public class AppleVisionHandPoseDetector : IDisposable
     {
-        IntPtr m_Ptr;
+        public int HandCount => m_HandCount;
 
-        static Dictionary<IntPtr, AppleVisionHandPoseDetector> s_Detectors = new();
+        public List<Dictionary<JointName, Vector2>> HandPoses2D => m_HandPoses2D;
+
+        public List<Dictionary<JointName, Vector3>> HandPoses3D => m_HandPoses3D;
+
+        public event Action OnHandPoseUpdated;
+
+        public event Action OnHandPoseLost;
+
+        IntPtr m_Ptr;
 
         int m_HandCount;
 
@@ -29,17 +37,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         List<Dictionary<JointName, Vector3>> m_HandPoses3D;
 
-        public int HandCount => m_HandCount;
-
-        public List<Dictionary<JointName, Vector2>> HandPoses2D => m_HandPoses2D;
-
-        public List<Dictionary<JointName, Vector3>> HandPoses3D => m_HandPoses3D;
-
-        public event Action OnHandPose2DUpdated;
-
-        public event Action OnHandPose3DUpdated;
-
-        public event Action OnHandPoseLost;
+        static Dictionary<IntPtr, AppleVisionHandPoseDetector> s_Detectors = new();
 
         public AppleVisionHandPoseDetector(MaxHandCount maxHandCount)
         {
@@ -61,7 +59,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 m_HandPoses2D.Add(new Dictionary<JointName, Vector2>());
                 m_HandPoses3D.Add(new Dictionary<JointName, Vector3>());
             }
-            RegisterCallbacks(m_Ptr, OnHandPose2DUpdatedCallback, OnHandPose3DUpdatedCallback);
+            RegisterCallbacks(m_Ptr, OnHandPoseUpdatedCallback);
 
             s_Detectors[m_Ptr] = this;
         }
@@ -89,7 +87,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
-        static extern IntPtr RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr> onHandPose2DUpdatedCallback, Action<IntPtr, int, IntPtr> onHandPose3DUpdatedCallback);
+        static extern IntPtr RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);
@@ -97,8 +95,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
         static extern bool ProcessCurrentFrame3D(IntPtr self);
 
-        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr>))]
-        static void OnHandPose2DUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr resultsPtr)
+        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr>))]
+        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr)
         {
             if (s_Detectors.TryGetValue(detectorPtr, out AppleVisionHandPoseDetector detector))
             {
@@ -113,48 +111,35 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 }
                 detector.m_HandCount = handCount;
 
-                int length = 2 * 21 * handCount;
-                float[] results = new float[length];
-                Marshal.Copy(resultsPtr, results, 0, length);
-                Debug.Log("cici");
-                for (int i = 0; i < handCount; i++)
+                if (results2DPtr != IntPtr.Zero)
                 {
-                    for (int j = 0; j < 21; j++)
+                    int length = 2 * 21 * handCount;
+                    float[] results = new float[length];
+                    Marshal.Copy(results2DPtr, results, 0, length);
+                    for (int i = 0; i < handCount; i++)
                     {
-                        detector.m_HandPoses2D[i][(JointName)j] = new Vector2(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1]);
+                        for (int j = 0; j < 21; j++)
+                        {
+                            detector.m_HandPoses2D[i][(JointName)j] = new Vector3(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1], 0f);
+                        }
                     }
                 }
-                detector.OnHandPose2DUpdated?.Invoke();
-            }
-        }
 
-        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr>))]
-        static void OnHandPose3DUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr resultsPtr)
-        {
-            if (s_Detectors.TryGetValue(detectorPtr, out AppleVisionHandPoseDetector detector))
-            {
-                if (handCount == 0)
+                if (results3DPtr != IntPtr.Zero)
                 {
-                    if (detector.m_HandCount > 0)
+                    int length = 3 * 21 * handCount;
+                    float[] results = new float[length];
+                    Marshal.Copy(results3DPtr, results, 0, length);
+                    for (int i = 0; i < handCount; i++)
                     {
-                        detector.m_HandCount = handCount;
-                        detector.OnHandPoseLost?.Invoke();
-                    }
-                    return;
-                }
-                detector.m_HandCount = handCount;
-
-                int length = 3 * 21 * handCount;
-                float[] results = new float[length];
-                Marshal.Copy(resultsPtr, results, 0, length);
-                for (int i = 0; i < handCount; i++)
-                {
-                    for (int j = 0; j < 21; j++)
-                    {
-                        detector.m_HandPoses3D[i][(JointName)j] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                        for (int j = 0; j < 21; j++)
+                        {
+                            detector.m_HandPoses3D[i][(JointName)j] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                        }
                     }
                 }
-                detector.OnHandPose3DUpdated?.Invoke();
+                
+                detector.OnHandPoseUpdated?.Invoke();
             }
         }
     }
