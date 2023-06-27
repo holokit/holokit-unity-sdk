@@ -12,9 +12,15 @@ namespace HoloInteractive.XR.HoloKit.iOS
     {
         public AppleVisionHandPoseDetector HandPoseDetector => m_HandPoseDetector;
 
+        public int HandCount => m_HandPoseDetector.HandCount;
+
         AppleVisionHandPoseDetector m_HandPoseDetector;
 
+        [Tooltip("The maximum number of hands to be detected. We recommend to set this value to 1 to save energy if you don't need to detect both hands.")]
         [SerializeField] MaxHandCount m_MaxHandCount = MaxHandCount.One;
+
+        [Tooltip("Set this value to true to show the position of each hand joint. Set this value to false the hide hand joints.")]
+        [SerializeField] bool m_HandJointsVisibility = true;
 
         List<GameObject> m_Hands = new();
 
@@ -38,6 +44,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 for (int j = 0; j < 21; j++)
                 {
                     GameObject joint = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    if (!m_HandJointsVisibility)
+                        joint.GetComponent<MeshRenderer>().enabled = false;
                     joint.name = ((JointName)j).ToString();
                     joint.transform.localScale = new(0.01f, 0.01f, 0.01f);
                     joint.transform.SetParent(hand.transform);
@@ -117,6 +125,24 @@ namespace HoloInteractive.XR.HoloKit.iOS
             foreach (var hand in m_Hands)
             {
                 hand.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// Get the position of the specific hand joint of the given hand.
+        /// </summary>
+        /// <param name="handIndex">The index of the hand</param>
+        /// <param name="jointName">The hand joint name</param>
+        /// <returns>The position of the hand joint</returns>
+        public Vector3 GetHandJointPosition(int handIndex, JointName jointName)
+        {
+            if (handIndex < HandCount)
+            {
+                return m_HandPoseDetector.HandPoses3D[handIndex][jointName];
+            }
+            else
+            {
+                return Vector3.zero;
             }
         }
     }

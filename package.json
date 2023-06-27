@@ -1,7 +1,7 @@
 {
   "name": "com.holoi.xr.holokit",
   "displayName": "HoloKit Unity SDK",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "unity": "2021.3",
   "description": "HoloKit is an Augmented Reality(AR) headset that transforms your iPhone into a powerful stereoscopic AR device. With the HoloKit Unity SDK, developers can create immersive AR experiences in Unity, which can be viewed with HoloKit headset.\n\nThe SDK's key feature is stereoscopic rendering, allowing for the display of stereo images on the iPhone screen. By attaching your iPhone to the HoloKit, you can enjoy  a captivating AR experience.\n\nHoloKit Unity SDK is compatible with ARFoundation and other AR SDKs.",
   "keywords": [
