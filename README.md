@@ -92,7 +92,7 @@ To add the hand tracking functionality into your project, create an empty GameOb
 
 You can then build the project onto an iPhone to have the following result.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="500"/>
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="600"/>
 
 You can configure `HandTrackingManager` to make it track only one hand or both hands. Since the hand track algorithm is very energy consuming, if you don't need to track user's both hands, we recommend you to only track one hand to save energy. You can set `HandTrackingManager.MaxHandCount` in its inspector in Unity editor.
 
@@ -102,16 +102,26 @@ The hand tracking feature can only run on iOS 14.0 or higher devices equipped wi
 
 ### Hand Gesture Recognition
 
-`HandGestureRecognitionManager` recognizes the user's hand gesture, you can use the gesture transitions as inputs to trigger some operations in your project. There are three hand gestures available:
+The SDK can also recognizes user's hand gesture, which can be used as input trigger in your project. Currently there are only two hand gestures available, which are `HandGesture.None` and `HandGesture.Pinched`.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/0fe0010f-7854-41ad-b9b8-95ee8039fb4c" alt="Hand Gesture Recognition" width="600"/>
+
+To use hand gesture recognition, you need to add `HandGestureRecognitionManager` into the scene. The callback function `HandGestureRecognitionManager.OnHandGestureChanged` is invoked when the algorithm detects a transition of the user's hand gesture, you can register this callback to get notified. You can also get the user's current hand gesture via `HandGestureRecognitionManager.HandGesture`. The following code snippet is an example of how to capture user's hand gesture transition.
+
 ```
-public enum HandGesture
+[SerializeField] HandGestureRecognitionManager m_HandGestureRecognitionManager;
+
+private void Start()
 {
-    None = 0,
-    Pinched = 1,
-    Apart = 2
+    // Register the callback
+    m_HandGestureRecognitionManager.OnHandGestureChanged += OnHandGestureChanged;
+}
+
+private void OnHandGestureChanged(HandGesture handGesture)
+{
+    // Do whatever you want
 }
 ```
-To use hand gesture recognition, all you need to do is to add `HandGestureRecognitionManager` into the scene. The callback function `HandGestureRecognitionManager.OnHandGestureChanged` is invoked when the algorithm detects a transition of the user's hand gesture, you can register this callback to get notified. You can also get the user's current hand gesture via `HandGestureRecognitionManager.HandGesture`.
 
 The hand gesture recognition feature is only available on iOS 14.0 or higher devices.
 
