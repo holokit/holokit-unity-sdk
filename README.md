@@ -40,51 +40,65 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 ## How to Use HoloKit Unity SDK
 
-The SDK current provides three main features:
-- Stereoscopic Rendering: Renders two stereo images on the phone's screen which can be used together with HoloKit headset.
-- Hand Tracking: Tracks the 3D positions of the 21 hand joints of each hand.
-- Hand Gesture Recognition: Recognizes the hand gesture of the user's hand.
+### Project Setup
 
-For each feature, the SDK package provides a sample project showing how to use it. The Stereoscopic Rendering sample is a minimal use case of the SDK, you can use that sample as a basic template for your project. Please note that the hand tracking and hand gesture recognition features use Apple Vision framework to detect the user's hand poses, which can only be used on iOS devices. For detailed information of the algorithm, please see [Apple's document](https://developer.apple.com/documentation/vision/detecting_hand_poses_with_vision?language=objc).
+Before using HoloKit Unity SDK, you first need to setup a basic ARFoundation scene together with proper project settings. If ARFoundation is new to your, you can follow this [Unity official tutorial](https://learn.unity.com/tutorial/setting-up-ar-foundation#) to get started.
+
+### Samples
+
+The package provides samples for each key feature of the SDK. You can import the samples into your project and build them onto mobile devices to have a quick look of each feature. You can also use those samples as templates for your projects.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/d9c59958-81f6-4ae6-82de-e9683658c3db" alt="Add HoloKitCameraManager component" width="800"/>
 
 ### Stereoscopic Rendering
 
-Stereoscopic rendering is the most important feature of the SDK, which can easily upgrade an existing screen AR project to a stereoscopic one. In this section, we will show how to add stereoscopic rendering feature to your ARFoundation project.
+Stereoscopic rendering is the core feature of the SDK, your app needs the display of the stereo images on the screen so that it can be viewed with HoloKit headset.
 
-First, you need to setup an AR scene using ARFoundation. More specifically, you need to add `AR Session` and `AR Session Origin` components into the scene. After adding `AR Session Origin` into the scene, the GameObject will have an `AR Camera` child GameObject by default. Choose the child `AR Camera` GameObject and add component `HoloKit Camera Manager` onto the GameObject. By adding `HoloKit Camera Manager` component, the script will automatically add some necessary GameObjects under the camera.
-
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="HoloKitCameraManager" width="800"/>
-
-In HoloKit Unity SDK, there are two screen render modes, which are `ScreenRenderMode.Mono` and `ScreenRenderMode.Stereo`. In mono mode, the phone screen will render the camera background image together on top of which virtual content is rendered. In stereo mode, the phone screen will render two viewports with black background and you can put your phone onto HoloKit to have stereoscopic AR experience.
+There are two rendering modes provided by the SDK, which are mono mode and stereo mode. In mono mode, the background camera image is rendered together with virtual content on top of it, just as a normal ARFoundation project. In stereo mode, two stereo images with black background are rendered on the phone's screen, so that you can insert your phone onto HoloKit headset to have stereoscopic AR experience.
 
 | <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a9d048a0-b2b5-4f0e-a7f8-03ca782b9725" alt="ScreenRenderMode.Mono" width="450"/> | <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/01bf3231-41ec-4a29-9d94-a48dcebfeefb" alt="ScreenRenderMode.Stereo" width="450"/> |
 |:---:|:---:|
-| `ScreenRenderMode.Mono` | `ScreenRenderMode.Stereo` |
+| Mono rendering mode | Stereo rendering mode |
 
-`HoloKit Camera Manager` is responsible for switching between those two render modes.
+To add the stereoscopic rendering functionality into your project, you need `HoloKitCameraManager` component. By default, when you add an `ARSessionOrigin` object into the scene, it has a child object called `AR Camera`. Add `HoloKitCameraManager` component onto the `AR Camera` object and it will automatically setup all camera settings for you.
+
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="Add HoloKitCameraManager component" width="800"/>
+
+When you start the game, `HoloKitCameraManager` will first enter mono mode by default. If will need a UI button to switch the rendering mode. You can get and set the rendering mode with `HoloKitCameraManager`, the following code snippet gives an example of how to switch the rendering mode value.
+
 ```
 public void SwitchRenderMode()
 {
+    // We need a reference of the HoloKitCameraManager component
     var holokitCamera = FindObjectOfType<HoloKitCameraManager>();
+    // Get the current ScreenRenderMode value and set new value for it
     holokitCamera.ScreenRenderMode = holokitCamera.ScreenRenderMode == ScreenRenderMode.Mono ? ScreenRenderMode.Stereo : ScreenRenderMode.Mono;
 }
 ```
 
+When switching to the stereo mode, the SDK will spawn an alignment marker UI for you on the upper right corner of the screen, so that you can align your phone properly aftering inserting it onto HoloKit headset.
+
 ### Hand Tracking
 
-`HandTrackingManager` tracks the user's hand and provides the positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
+The SDK tracks the user's hand and provides the positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
 
-To use `HandTrackingManager`, you need to do is to create a new empty GameObject in the scene and add `HandTrackingManager` component onto it. The script will automatically setup the GameObject for you.
+To add the hand tracking functionality into your project, create an empty GameObject and add `HandTrackingManager` component onto it. The script will automatically setup all necessary objects as child GameObjects.
 
 <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
 
-Since the algorithm requires depth information to compute the 3D positions, we need to have an `AROcclusionManager` component in the scene. We add `AROcclusionManager` component onto the `HoloKit Camera` GameObject and configure the component as shown below.
+`HandTrackingManager` requires depth information to compute the 3D hand positions, we add `AROcclusionManager` component onto the `HoloKit Camera` GameObject and configure its settings as shown below.
 
 <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/322b66f7-dd66-436b-b77a-3385926690bf" alt="HandTrackingManager" width="800"/>
 
-That is all you need to do to setup the hand tracking. If you want to acquire the position of a specific hand joint in code, you should use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. The hand tracking algorithm cannot distinguish the handedness of the detected hands, so `handIndex` only represents the detection order. When there is only one hand being detected, the `handIndex` should always be 0. When there are 2 hands being detected, the `handIndex` can be either 0 or 1.
+You can then build the project onto an iPhone to have the following result.
 
-The hand tracking feature can only run on iOS devices equipped with LiDAR depth sensor.
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="500"/>
+
+You can configure `HandTrackingManager` to make it track only one hand or both hands. Since the hand track algorithm is very energy consuming, if you don't need to track user's both hands, we recommend you to only track one hand to save energy. You can set `HandTrackingManager.MaxHandCount` in its inspector in Unity editor.
+
+If you want to acquire the positions of specific hand joints in code, you should use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. The hand tracking algorithm cannot distinguish handedness, the parameter `handIndex` only represents the hand detection order. When there is only one hand being detected, `handIndex` should always be 0. When there are 2 hands being detected, `handIndex` can be either 0 or 1. You can get the number of detected hands via `HandTrackingManager.HandCount`.
+
+The hand tracking feature can only run on iOS 14.0 or higher devices equipped with LiDAR depth sensor.
 
 ### Hand Gesture Recognition
 
