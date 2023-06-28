@@ -48,32 +48,35 @@ API_AVAILABLE(ios(14.0))
             if (handCount == 0) {
                 if (self.onHandPoseUpdatedCallback != NULL) {
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
+                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL, NULL);
                     });
                 }
                 return;
             }
             
             float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
+            float *confidences = malloc(sizeof(float) * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
                     results2D[i * 2 * 21 + j * 2] = point.x;
                     results2D[i * 2 * 21 + j * 2 + 1] = point.y;
+                    confidences[i * 21 + j] = point.confidence;
                 }
             }
             
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, NULL);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, NULL, confidences);
                     free(results2D);
+                    free(confidences);
                 });
             }
         } else {
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL, NULL);
                 });
             }
         }
@@ -94,7 +97,7 @@ API_AVAILABLE(ios(14.0))
             if (handCount == 0) {
                 if (self.onHandPoseUpdatedCallback != NULL) {
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
+                        self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL, NULL);
                     });
                 }
                 return;
@@ -108,12 +111,14 @@ API_AVAILABLE(ios(14.0))
 
             float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
             float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
+            float *confidences = malloc(sizeof(float) * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
                     results2D[i * 2 * 21 + j * 2] = point.x;
                     results2D[i * 2 * 21 + j * 2 + 1] = point.y;
+                    confidences[i * 21 + j] = point.confidence;
                     
                     // Get the depth of the point
                     int depthX = point.x * depthBufferWidth;
@@ -129,15 +134,16 @@ API_AVAILABLE(ios(14.0))
 
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, results3D);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, results3D, confidences);
                     free(results2D);
                     free(results3D);
+                    free(confidences);
                 });
             }
         } else {
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, 0, NULL, NULL, NULL);
                 });
             }
         }

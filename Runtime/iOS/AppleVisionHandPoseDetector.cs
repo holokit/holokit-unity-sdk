@@ -14,7 +14,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
     public enum MaxHandCount
     {
         One = 1,
-        Two = 2
+        Both = 2
     }
 
     public class AppleVisionHandPoseDetector : IDisposable
@@ -24,6 +24,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         public List<Dictionary<JointName, Vector2>> HandPoses2D => m_HandPoses2D;
 
         public List<Dictionary<JointName, Vector3>> HandPoses3D => m_HandPoses3D;
+
+        public List<Dictionary<JointName, float>> HandPosesConfidence => m_HandPosesConfidence;
 
         public event Action OnHandPoseUpdated;
 
@@ -36,6 +38,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         List<Dictionary<JointName, Vector2>> m_HandPoses2D;
 
         List<Dictionary<JointName, Vector3>> m_HandPoses3D;
+
+        List<Dictionary<JointName, float>> m_HandPosesConfidence;
 
         static Dictionary<IntPtr, AppleVisionHandPoseDetector> s_Detectors = new();
 
@@ -54,10 +58,12 @@ namespace HoloInteractive.XR.HoloKit.iOS
             m_HandCount = 0;
             m_HandPoses2D = new();
             m_HandPoses3D = new();
+            m_HandPosesConfidence = new();
             for (int i = 0; i < 2; i++)
             {
                 m_HandPoses2D.Add(new Dictionary<JointName, Vector2>());
                 m_HandPoses3D.Add(new Dictionary<JointName, Vector3>());
+                m_HandPosesConfidence.Add(new Dictionary<JointName, float>());
             }
             RegisterCallbacks(m_Ptr, OnHandPoseUpdatedCallback);
 
@@ -87,7 +93,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
-        static extern IntPtr RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr> onHandPoseUpdatedCallback);
+        static extern IntPtr RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);
@@ -95,8 +101,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
         static extern bool ProcessCurrentFrame3D(IntPtr self);
 
-        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr>))]
-        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr)
+        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr, IntPtr>))]
+        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr, IntPtr confidencesPtr)
         {
             if (s_Detectors.TryGetValue(detectorPtr, out AppleVisionHandPoseDetector detector))
             {
@@ -135,6 +141,20 @@ namespace HoloInteractive.XR.HoloKit.iOS
                         for (int j = 0; j < 21; j++)
                         {
                             detector.m_HandPoses3D[i][(JointName)j] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                        }
+                    }
+                }
+
+                if (confidencesPtr != IntPtr.Zero)
+                {
+                    int length = 21 * handCount;
+                    float[] confidences = new float[length];
+                    Marshal.Copy(confidencesPtr, confidences, 0, length);
+                    for (int i = 0; i < handCount; i++)
+                    {
+                        for (int j = 0; j < 21; j++)
+                        {
+                            detector.m_HandPosesConfidence[i][(JointName)j] = confidences[i * 21 + j];
                         }
                     }
                 }

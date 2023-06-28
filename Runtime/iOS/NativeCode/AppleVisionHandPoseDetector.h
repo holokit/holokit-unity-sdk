@@ -6,7 +6,7 @@
 #import <ARKit/ARKit.h>
 #import "UnityXRInterface.h"
 
-typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, float * _Nullable, float * _Nullable);
+typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, float * _Nullable, float * _Nullable, float * _Nullable);
 
 @interface AppleVisionHandPoseDetector : NSObject
 
