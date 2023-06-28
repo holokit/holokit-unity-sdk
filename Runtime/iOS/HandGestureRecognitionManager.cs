@@ -11,8 +11,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
     public enum HandGesture
     {
         None = 0,
-        Pinched = 1,
-        Apart = 2
+        Pinched = 1
     }
 
     public class HandGestureRecognitionManager : MonoBehaviour
@@ -27,7 +26,13 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         HandGesture m_HandGesture = HandGesture.None;
 
-        private const float PINCH_THRESHOLD = 0.12f;
+        int m_PinchEvidenceCounter = 0;
+
+        int m_NoneEvidenceCounter = 0;
+
+        const float PINCH_THRESHOLD = 0.12f;
+
+        const int EVIDENCE_COUNTER_TRIGGER = 3;
 
         private void Start()
         {
@@ -73,15 +78,25 @@ namespace HoloInteractive.XR.HoloKit.iOS
             var handJoints = m_HandTrackingManager == null ? m_HandPoseDetector.HandPoses2D[0] : m_HandTrackingManager.HandPoseDetector.HandPoses2D[0];
             if (Vector2.Distance(handJoints[JointName.ThumbTip], handJoints[JointName.IndexTip]) < PINCH_THRESHOLD)
             {
-                handGesture = HandGesture.Pinched;
+                m_PinchEvidenceCounter++;
+                m_NoneEvidenceCounter = 0;
+                if (m_PinchEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
+                    handGesture = HandGesture.Pinched;
             }
-            else if (handJoints[JointName.ThumbTip].y > handJoints[JointName.ThumbIP].y && handJoints[JointName.ThumbIP].y > handJoints[JointName.ThumbMP].y && handJoints[JointName.ThumbMP].y > handJoints[JointName.ThumbCMC].y &&
-                     handJoints[JointName.IndexTip].y > handJoints[JointName.IndexDIP].y && handJoints[JointName.IndexDIP].y > handJoints[JointName.IndexPIP].y && handJoints[JointName.IndexPIP].y > handJoints[JointName.IndexMCP].y &&
-                     handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y &&
-                     handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y &&
-                     handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y)
+            //else if (handJoints[JointName.ThumbTip].y > handJoints[JointName.ThumbIP].y && handJoints[JointName.ThumbIP].y > handJoints[JointName.ThumbMP].y && handJoints[JointName.ThumbMP].y > handJoints[JointName.ThumbCMC].y &&
+            //         handJoints[JointName.IndexTip].y > handJoints[JointName.IndexDIP].y && handJoints[JointName.IndexDIP].y > handJoints[JointName.IndexPIP].y && handJoints[JointName.IndexPIP].y > handJoints[JointName.IndexMCP].y &&
+            //         handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y &&
+            //         handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y &&
+            //         handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y)
+            //{
+
+            //}
+            else
             {
-                handGesture = HandGesture.Apart;
+                m_NoneEvidenceCounter++;
+                m_PinchEvidenceCounter = 0;
+                if (m_NoneEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
+                    handGesture = HandGesture.None;
             }
 
             if (m_HandGesture != handGesture)
@@ -96,6 +111,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             if (m_HandGesture != HandGesture.None)
             {
                 m_HandGesture = HandGesture.None;
+                m_PinchEvidenceCounter = 0;
                 OnHandGestureChanged?.Invoke(m_HandGesture);
             }
         }
