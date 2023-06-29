@@ -126,6 +126,8 @@ private void OnHandGestureChanged(HandGesture handGesture)
 
 Please note, the hand gesture recognition feature is only available on iOS 14.0 or higher devices.
 
+You can use hand tracking and hand gesture recognition at the same time, simply add both `HandTrackingManager` and `HandGestureRecognitionManager` components to your scene.
+
 ## Community and Feedback
 
 If you encounter any issues, have queries, suggestions, or discover any bugs, we welcome you to join our [Discord](https://discord.gg/dkah5sWR) community or submit an issue. Your feedback is invaluable as we continually strive to update and improve the HoloKit Unity SDK.
