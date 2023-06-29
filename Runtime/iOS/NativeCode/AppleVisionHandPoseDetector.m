@@ -9,8 +9,13 @@ API_AVAILABLE(ios(14.0))
 
 @property (nonatomic, strong) VNDetectHumanHandPoseRequest *handPoseRequest;
 @property (nonatomic, strong) ARSession *arSession;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *previousWristPositions;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *previousHandJointDepths;
 
 @end
+
+const float MAX_HAND_DEPTH = 0.4;
+const float DEPTH_SMOOTH_FACTOR = 0.5;
 
 @implementation AppleVisionHandPoseDetector
 
@@ -21,6 +26,15 @@ API_AVAILABLE(ios(14.0))
             self.handPoseRequest.usesCPUOnly = false;
             self.handPoseRequest.maximumHandCount = maximumHandCount;
             self.arSession = arSession;
+            
+            self.previousWristPositions = [NSMutableArray arrayWithCapacity:2 * 2];
+            for (int i = 0; i < 2 * 2; i++) {
+                self.previousWristPositions[i] = [NSNumber numberWithFloat:0];
+            }
+            self.previousHandJointDepths = [NSMutableArray arrayWithCapacity:2 * 21];
+            for (int i = 0; i < 2 * 21; i++) {
+                self.previousHandJointDepths[i] = [NSNumber numberWithFloat:0];
+            }
         } else {
             NSLog(@"Apple Vision framework is only available on iOS 14.0 or higher");
         }
@@ -103,17 +117,34 @@ API_AVAILABLE(ios(14.0))
                 return;
             }
 
+            float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
+            float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
+            float *confidences = malloc(sizeof(float) * 21 * handCount);
+            
             // Get scene depth
             CVPixelBufferLockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
             size_t depthBufferWidth = CVPixelBufferGetWidth(self.arSession.currentFrame.sceneDepth.depthMap);
             size_t depthBufferHeight = CVPixelBufferGetHeight(self.arSession.currentFrame.sceneDepth.depthMap);
             Float32 *depthBufferBaseAddress = (Float32 *)CVPixelBufferGetBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap);
 
-            float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
-            float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
-            float *confidences = malloc(sizeof(float) * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
+                VNRecognizedPoint *wristPoint = [observation recognizedPointForJointName:VNHumanHandPoseObservationJointNameWrist error:nil];
+                
+                // Try to find the hand in the last frame
+                int foundHandIndex = -1;
+                for (int j = 0; j < 2; j++) {
+                    simd_float2 currentWristPosition = simd_make_float2(wristPoint.x, wristPoint.y);
+                    simd_float2 previousWristPosition = simd_make_float2([self.previousWristPositions[j * 2] floatValue], [self.previousWristPositions[j * 2 + 1] floatValue]);
+                    float dist = simd_distance(currentWristPosition, previousWristPosition);
+                    if (dist < 0.05) {
+                        foundHandIndex = j;
+                        break;
+                    }
+                }
+                self.previousWristPositions[i * 2] = [NSNumber numberWithFloat:wristPoint.x];
+                self.previousWristPositions[i * 2 + 1] = [NSNumber numberWithFloat:wristPoint.y];
+                
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
                     results2D[i * 2 * 21 + j * 2] = point.x;
@@ -124,6 +155,24 @@ API_AVAILABLE(ios(14.0))
                     int depthX = point.x * depthBufferWidth;
                     int depthY = (1 - point.y) * depthBufferHeight;
                     float depth = (float)depthBufferBaseAddress[depthY * depthBufferWidth + depthX];
+                    
+                    // Depth filtering
+                    if (foundHandIndex == -1) {
+                        // Hand is not found in the last frame
+                        if (j > 0 && depth > MAX_HAND_DEPTH) {
+                            int parentJointIndex = [AppleVisionHandPoseDetector getParentJointIndexWithJointIndex:j];
+                            depth = [self.previousHandJointDepths[i * 21 + parentJointIndex] floatValue];
+                        }
+                    } else {
+                        // Hand is found in the last frame
+                        if (depth > MAX_HAND_DEPTH) {
+                            depth = [self.previousHandJointDepths[foundHandIndex * 21 + j] floatValue];
+                        } else {
+                            // Smoothing
+                        }
+                    }
+                    self.previousHandJointDepths[i * 21 + j] = [NSNumber numberWithFloat:depth];
+
                     simd_float3 unprojectedPoint = [self unprojectScreenPointWithLocationX:point.x locationY:point.y depth:depth];
                     results3D[i * 3 * 21 + j * 3] = unprojectedPoint.x;
                     results3D[i * 3 * 21 + j * 3 + 1] = unprojectedPoint.y;
@@ -131,7 +180,7 @@ API_AVAILABLE(ios(14.0))
                 }
             }
             CVPixelBufferUnlockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
-
+            
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, results3D, confidences);
@@ -202,6 +251,55 @@ API_AVAILABLE(ios(14.0))
         }
     } else {
         return nil;
+    }
+}
+
++ (int)getParentJointIndexWithJointIndex:(int)jointIndex {
+    switch(jointIndex) {
+        case 0:
+            return 0;
+        case 1:
+            return 0;
+        case 2:
+            return 1;
+        case 3:
+            return 2;
+        case 4:
+            return 3;
+        case 5:
+            return 0;
+        case 6:
+            return 5;
+        case 7:
+            return 6;
+        case 8:
+            return 7;
+        case 9:
+            return 0;
+        case 10:
+            return 9;
+        case 11:
+            return 10;
+        case 12:
+            return 11;
+        case 13:
+            return 0;
+        case 14:
+            return 13;
+        case 15:
+            return 14;
+        case 16:
+            return 15;
+        case 17:
+            return 0;
+        case 18:
+            return 17;
+        case 19:
+            return 18;
+        case 20:
+            return 19;
+        default:
+            return 0;
     }
 }
 
