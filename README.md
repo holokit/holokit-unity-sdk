@@ -26,6 +26,20 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 "com.holoi.xr.holokit": "https://github.com/holoi/holokit-unity-sdk.git"
 ```
 
+## Supported Software Versions
+
+HoloKit Unity SDK has been tested and found compatible with the following software versions:
+
+### Unity
+- Unity 2021.3 LTS
+- Unity 2022.3 LTS
+
+### ARFoundation
+- ARFoundation 4.2
+- ARFoundation 5.1
+
+We aim to continually test and verify compatibility with newer versions of these softwares.
+
 ## Phone Compatibility
 
 ### iOS
