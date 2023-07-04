@@ -11,7 +11,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
     public enum HandGesture
     {
         None = 0,
-        Pinched = 1
+        Pinched = 1,
+        Five = 2
     }
 
     public class HandGestureRecognitionManager : MonoBehaviour
@@ -27,6 +28,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         HandGesture m_HandGesture = HandGesture.None;
 
         int m_PinchEvidenceCounter = 0;
+
+        int m_FiveEvidenceCounter = 0;
 
         int m_NoneEvidenceCounter = 0;
 
@@ -79,24 +82,34 @@ namespace HoloInteractive.XR.HoloKit.iOS
             if (Vector2.Distance(handJoints[JointName.ThumbTip], handJoints[JointName.IndexTip]) < PINCH_THRESHOLD)
             {
                 m_PinchEvidenceCounter++;
+                m_FiveEvidenceCounter = 0;
                 m_NoneEvidenceCounter = 0;
                 if (m_PinchEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
                     handGesture = HandGesture.Pinched;
             }
-            //else if (handJoints[JointName.ThumbTip].y > handJoints[JointName.ThumbIP].y && handJoints[JointName.ThumbIP].y > handJoints[JointName.ThumbMP].y && handJoints[JointName.ThumbMP].y > handJoints[JointName.ThumbCMC].y &&
-            //         handJoints[JointName.IndexTip].y > handJoints[JointName.IndexDIP].y && handJoints[JointName.IndexDIP].y > handJoints[JointName.IndexPIP].y && handJoints[JointName.IndexPIP].y > handJoints[JointName.IndexMCP].y &&
-            //         handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y &&
-            //         handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y &&
-            //         handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y)
-            //{
-
-            //}
             else
             {
-                m_NoneEvidenceCounter++;
-                m_PinchEvidenceCounter = 0;
-                if (m_NoneEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
-                    handGesture = HandGesture.None;
+                bool isThumbStraight = handJoints[JointName.ThumbTip].y > handJoints[JointName.ThumbIP].y && handJoints[JointName.ThumbIP].y > handJoints[JointName.ThumbMP].y && handJoints[JointName.ThumbMP].y > handJoints[JointName.ThumbCMC].y;
+                bool isIndexStraight = handJoints[JointName.IndexTip].y > handJoints[JointName.IndexDIP].y && handJoints[JointName.IndexDIP].y > handJoints[JointName.IndexPIP].y && handJoints[JointName.IndexPIP].y > handJoints[JointName.IndexMCP].y;
+                bool isMiddleStraight = handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y;
+                bool isRingStraight = handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y;
+                bool isLittleStraight = handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y;
+
+                if (isThumbStraight && isIndexStraight && isMiddleStraight && isRingStraight && isLittleStraight) // Five
+                {
+                    m_PinchEvidenceCounter = 0;
+                    m_FiveEvidenceCounter++;
+                    m_NoneEvidenceCounter = 0;
+                    if (m_FiveEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
+                        handGesture = HandGesture.Five;
+                }
+                else // None
+                {
+                    m_PinchEvidenceCounter = 0;
+                    m_NoneEvidenceCounter++;
+                    if (m_NoneEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
+                        handGesture = HandGesture.None;
+                }
             }
 
             if (m_HandGesture != handGesture)

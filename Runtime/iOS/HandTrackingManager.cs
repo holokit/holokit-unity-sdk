@@ -62,8 +62,6 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 for (int j = 0; j < 21; j++)
                 {
                     GameObject joint = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    if (!m_HandJointsVisibility)
-                        joint.GetComponent<MeshRenderer>().enabled = false;
                     joint.name = ((JointName)j).ToString();
                     joint.transform.localScale = new(0.01f, 0.01f, 0.01f);
                     joint.transform.SetParent(hand.transform);
@@ -97,6 +95,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 {
                     var joint = hand.GetChild(j);
                     m_HandJoints[i].Add((JointName)j, joint.gameObject);
+                    if (!m_HandJointsVisibility)
+                        joint.GetComponent<MeshRenderer>().enabled = false;
                 }
             }
 
