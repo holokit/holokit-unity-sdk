@@ -57,7 +57,7 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 Before using the HoloKit Unity SDK, ensure to adjust the project settings to meet ARFoundation's requirements. If you are already comfortable with ARFoundation, feel free to skip this section.
 
-Upon successfully installation of the SDK package, the ARFoundation package will be installed automatically. Please note that the HoloKit Unity SDK is only compatible with ARFoundation 5+. If you are using ARFoundation 4, please update to a more recent version. 
+Upon successfully installation of the SDK package, the ARFoundation package will be installed automatically. Please note that the HoloKit Unity SDK is only compatible with ARFoundation 5.+. If you are using ARFoundation 4.+, please update to a more recent version. 
 
 For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Android-targeted projects, the `Google ARCore XR Plugin` is required.
 
