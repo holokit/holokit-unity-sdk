@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
@@ -26,7 +29,22 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         List<Dictionary<JointName, GameObject>> m_HandJoints = new();
 
+#if UNITY_EDITOR
         private void OnValidate()
+        {
+            if (!Application.isPlaying)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    if (this != null && gameObject != null) // Check to make sure the object hasn't been destroyed in the meantime
+                    {
+                        InitializeInEditor();
+                    }
+                };
+            }
+        }
+
+        private void InitializeInEditor()
         {
             if (Application.isPlaying)
                 return;
@@ -52,6 +70,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 }
             }
         }
+#endif
 
         private void Awake()
         {

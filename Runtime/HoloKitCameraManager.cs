@@ -21,16 +21,15 @@ namespace HoloInteractive.XR.HoloKit
     [RequireComponent(typeof(LowLatencyTrackingManager))]
     public class HoloKitCameraManager : MonoBehaviour
     {
-        [Header("Cameras")]
         [SerializeField] Camera m_MonoCamera;
+
+        [SerializeField] Transform m_CenterEyePose;
+
+        [SerializeField] Camera m_BlackCamera;
 
         [SerializeField] Camera m_LeftEyeCamera;
 
         [SerializeField] Camera m_RightEyeCamera;
-
-        [SerializeField] Camera m_BlackCamera;
-
-        [SerializeField] Transform m_CenterEyePose;
 
         [Header("Settings")]
         [SerializeField] [Range(0.054f, 0.074f)] float m_Ipd = 0.064f;
@@ -108,6 +107,20 @@ namespace HoloInteractive.XR.HoloKit
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            if (!Application.isPlaying)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    if (this != null && gameObject != null) // Check to make sure the object hasn't been destroyed in the meantime
+                    {
+                        InitializeInEditor();
+                    }
+                };
+            }
+        }
+
+        private void InitializeInEditor()
+        {
             if (Application.isPlaying)
                 return;
 
@@ -152,9 +165,9 @@ namespace HoloInteractive.XR.HoloKit
             SetupCameraData();
 
             m_MonoCamera = GetComponent<Camera>();
+            m_BlackCamera.gameObject.SetActive(false);
             m_LeftEyeCamera.gameObject.SetActive(false);
             m_RightEyeCamera.gameObject.SetActive(false);
-            m_BlackCamera.gameObject.SetActive(false);
         }
 #endif
 
