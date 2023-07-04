@@ -22,17 +22,17 @@
   "samples": [
     {
       "displayName": "Stereoscopic Rendering",
-      "description": "Contains sample project of how to use the stereoscopic rendering feature of the SDK",
+      "description": "Provides a demonstration of the SDK's stereoscopic rendering feature",
       "path": "Samples~/StereoscopicRendering"
     },
     {
       "displayName": "Hand Tracking",
-      "description": "Contains sample project of how to use the hand tracking feature of the SDK",
+      "description": "Provides a demonstration of the SDK's hand tracking feature",
       "path": "Samples~/HandTracking"
     },
     {
       "displayName": "Hand Gesture Recognition",
-      "description": "Contains sample project of how to use the hand gesture recognition feature of the SDK",
+      "description": "Provides a demonstration of the SDK's hand gesture recognition feature",
       "path": "Samples~/HandGestureRecognition"
     }
   ]
