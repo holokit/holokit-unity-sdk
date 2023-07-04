@@ -53,7 +53,7 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 ## How to Use HoloKit Unity SDK
 
-### Setup Project Settings
+### Project Settings
 
 Before using the HoloKit Unity SDK, ensure to adjust the project settings to meet ARFoundation's requirements. If you are already comfortable with ARFoundation, feel free to skip this section.
 
@@ -71,9 +71,7 @@ Under `Project Settings->XR Plug-in Management->Plug-in Providers`, enable the `
 
 ### Samples
 
-The SDK package offers samples for each key feature. Import these samples into your project and deploy them to mobile devices for a quick overview of each function. These samples can also be used as templates for your projects.
-
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/d9c59958-81f6-4ae6-82de-e9683658c3db" alt="Add HoloKitCameraManager component" width="800"/>
+The SDK package offers samples for each key feature. Import these samples into your project and deploy them to mobile devices for a quick overview of each feature. These samples can also be used as templates for your projects.
 
 ### Stereoscopic Rendering
 
@@ -85,9 +83,9 @@ The SDK provides two rendering modes: mono and stereo. Mono mode renders the bac
 |:---:|:---:|
 | Mono rendering mode | Stereo rendering mode |
 
-To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. By default, adding an `ARSessionOrigin` objet to the scene includes a child object called `AR Camera`. Append the `HoloKitCameraManager` component to the `AR Camera` object for automatic camera setting configuration.
+To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. By default, adding an `XR Origin` object to the scene includes a grandchild object called `Main Camera`. Append the `HoloKitCameraManager` component to the `Main Camera` object for automatic camera setting configuration.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/064d5575-dd8a-4a1b-8c7a-669942a2c58c" alt="Add HoloKitCameraManager component" width="800"/>
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/92152b99-dec7-47fc-bb49-35a5f6711b8f" alt="Add HoloKitCameraManager component" width="700"/>
 
 When you start the game, `HoloKitCameraManager` initially enters mono mode. A UI button is required to transition between rendering modes. The current rendering mode can be retrieved and set with `HoloKitCameraManager`. The following code snippet illustrates how to switch the rendering mode.
 
@@ -114,7 +112,7 @@ To incorporate the hand tracking into your project, create an empty GameObject a
 
 `HandTrackingManager` requires depth information to calculate 3D hand positions, so add `AROcclusionManager` component to the `HoloKit Camera` GameObject and adjust its settings accordingly.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/322b66f7-dd66-436b-b77a-3385926690bf" alt="HandTrackingManager" width="800"/>
+<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/1c1d0144-004f-4528-a1e9-61af5c7ad600" alt="Add AROcclusionManager" width="700"/>
 
 You can now build the project onto an iPhone to view the results.
 
