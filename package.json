@@ -16,8 +16,7 @@
     "url": "https://holoi.com"
   },
   "dependencies": {
-    "com.unity.xr.arfoundation": "5.0.6",
-    "com.unity.xr.arkit": "5.0.6"
+    "com.unity.xr.arfoundation": "5.0.6"
   },
   "samples": [
     {
