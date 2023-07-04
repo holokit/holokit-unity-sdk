@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 091b242b5be804b89a9d287e6177cdf8
+guid: 64f1cad64913742bab8dce2b46ce500a
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -48,7 +48,7 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
   - first:
       Standalone: OSXUniversal
     second:
@@ -60,13 +60,13 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: x86
+        CPU: None
   - first:
       Standalone: Win64
     second:
       enabled: 0
       settings:
-        CPU: x86_64
+        CPU: None
   - first:
       iPhone: iOS
     second:
@@ -76,11 +76,6 @@ PluginImporter:
         CPU: AnyCPU
         CompileFlags: 
         FrameworkDependencies: 
-  - first:
-      tvOS: tvOS
-    second:
-      enabled: 1
-      settings: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

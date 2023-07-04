@@ -2,6 +2,7 @@
 // SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
 // SPDX-License-Identifier: MIT
 
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -17,6 +18,7 @@ namespace HoloInteractive.XR.HoloKit
         Stereo = 1
     }
 
+    [RequireComponent(typeof(LowLatencyTrackingManager))]
     public class HoloKitCameraManager : MonoBehaviour
     {
         [Header("Cameras")]
@@ -53,6 +55,9 @@ namespace HoloInteractive.XR.HoloKit
             get => m_ScreenRenderMode;
             set
             {
+                if (value == m_ScreenRenderMode)
+                    return;
+
                 if (value == ScreenRenderMode.Mono)
                 {
                     GetComponent<ARCameraBackground>().enabled = true;
@@ -84,8 +89,11 @@ namespace HoloInteractive.XR.HoloKit
 
                     SpawnAlignmentMarker();
                 }
+                OnScreenRenderModeChanged?.Invoke(m_ScreenRenderMode);
             }
         }
+
+        public event Action<ScreenRenderMode> OnScreenRenderModeChanged; 
 
         ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
 
