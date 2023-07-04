@@ -35,8 +35,7 @@ HoloKit Unity SDK has been tested and found compatible with the following softwa
 - Unity 2022.3 LTS
 
 ### ARFoundation
-- ARFoundation 4.2
-- ARFoundation 5.1
+- ARFoundation 5.0
 
 We aim to continually test and verify compatibility with newer versions of these softwares.
 
@@ -54,9 +53,21 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 ## How to Use HoloKit Unity SDK
 
-### Project Setup
+### Setup Project Settings
 
-Prior to use HoloKit Unity SDK, you must establish a basic ARFoundation scene and configure the appropriate project settings. If ARFoundation is unfamiliar to your, this [Unity official tutorial](https://learn.unity.com/tutorial/setting-up-ar-foundation#) will help you get started.
+Before using the HoloKit Unity SDK, ensure to adjust the project settings to meet ARFoundation's requirements. If you are already comfortable with ARFoundation, feel free to skip this section.
+
+Upon successfully installation of the SDK package, the ARFoundation package will be installed automatically. Please note that he HoloKit Unity SDK is only compatible with ARFoundation 5+. If you are using ARFoundation 4, please update to a more recent version. 
+
+For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Android-targeted projects, the `Google ARCore XR Plugin` is required.
+
+#### iOS Project Settings
+
+Set a user-friendly text for `Project Settings->Player->Other Settings->Configuration->Camera Usage Description`. This message will appear when the iPhone requests camera access.
+
+Under `Project Settings->XR Plug-in Management->Plug-in Providers`, enable the `Apple ARKit` option.
+
+#### Android Project Settings
 
 ### Samples
 
