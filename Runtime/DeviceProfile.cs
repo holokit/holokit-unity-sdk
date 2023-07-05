@@ -11,10 +11,10 @@ namespace HoloInteractive.XR.HoloKit
     [Serializable]
     public struct HoloKitModelSpecs
     {
-        // Distance beetween eyes
+        // Distance beetween the eyes
         public float OpticalAxisDistance;
 
-        // 3D offset from the center of bottomline of the holokit phone display to the center of two eyes
+        // 3D offset from the center of bottomline of the holokit phone display to the center of the two eyes
         public Vector3 MrOffset;
 
         // Eye view area width
@@ -48,15 +48,18 @@ namespace HoloInteractive.XR.HoloKit
     [Serializable]
     public struct PhoneModelSpecs
     {
-        //public float ScreenDpi;
-
-        // The 3D offset vector from center of the camera to the center of the display area's bottomline
+        [Tooltip("The 3D offset from the phone camera to the center of the phone screen bottom")]
         public Vector3 CameraOffset;
 
-        // The distance from the bottom of display area to the touching surface of the holokit phone holder
-        public float ScreenBottom;
+        [Tooltip("The width of the non-display area on the bottom side of the phone screen.")]
+        public float ScreenBottomBorder;
 
-        [Tooltip("Optional, in case the Unity provided value is not correct")]
+        public float ViewportBottomOffset;
+
+        [Tooltip("Custom screen resolution value in pixels. If 0, the program will default to Unity's screen resolution.")]
+        public Vector2 ScreenResolution;
+
+        [Tooltip("Custom DPI value. If 0, the program will default to Unity's DPI.")]
         public float ScreenDpi;
     }
 
@@ -94,13 +97,18 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
-        // We use iPhone 13 Pro's data as the default data
-        public static PhoneModelSpecs GetDefaultPhoneModelSpecs()
+        // We use iPhone 13 Pro's specs as the default specs
+        public static PhoneModel GetDefaultPhoneModel()
         {
-            return new PhoneModelSpecs
+            return new PhoneModel
             {
-                CameraOffset = new(0.042005f, -0.05809f, -0.00727f),
-                ScreenBottom = 0.00347f
+                ModelName = "iPhone14,2",
+                Description = "iPhone 13 Pro",
+                ModelSpecs = new PhoneModelSpecs
+                {
+                    CameraOffset = new(0.042005f, -0.05809f, -0.00727f),
+                    ScreenBottomBorder = 0.00347f
+                }
             };
         }
     }

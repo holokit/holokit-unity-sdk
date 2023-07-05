@@ -1,3 +1,4 @@
+#if UNITY_IOS
 namespace HoloInteractive.XR.HoloKit.iOS
 {
     // https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc
@@ -47,3 +48,4 @@ namespace HoloInteractive.XR.HoloKit.iOS
         LittleTip = 20
     }
 }
+#endif

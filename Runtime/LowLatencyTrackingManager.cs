@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
@@ -20,6 +19,7 @@ namespace HoloInteractive.XR.HoloKit
 
         IntPtr m_Ptr;
 
+#if UNITY_IOS && !UNITY_EDITOR
         private void Start()
         {
             var arCameraManager = GetComponent<ARCameraManager>();
@@ -55,12 +55,16 @@ namespace HoloInteractive.XR.HoloKit
             InitHeadTracker(m_Ptr);
             PauseHeadTracker(m_Ptr);
         }
+#endif
 
+#if UNITY_IOS && !UNITY_EDITOR
         private void OnDestroy()
         {
             Delete(m_Ptr);
         }
+#endif
 
+#if UNITY_IOS
         private void OnScreenRenderModeChanged(ScreenRenderMode renderMode)
         {
             if (renderMode == ScreenRenderMode.Stereo)
@@ -129,5 +133,6 @@ namespace HoloInteractive.XR.HoloKit
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_delete")]
         static extern void Delete(IntPtr self);
+#endif
     }
 }

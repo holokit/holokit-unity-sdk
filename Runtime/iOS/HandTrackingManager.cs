@@ -2,6 +2,7 @@
 // SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
 // SPDX-License-Identifier: MIT
 
+#if UNITY_IOS
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -166,3 +167,4 @@ namespace HoloInteractive.XR.HoloKit.iOS
         }
     }
 }
+#endif

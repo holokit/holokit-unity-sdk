@@ -21,32 +21,6 @@ namespace HoloInteractive.XR.HoloKit
     [RequireComponent(typeof(LowLatencyTrackingManager))]
     public class HoloKitCameraManager : MonoBehaviour
     {
-        [SerializeField] Camera m_MonoCamera;
-
-        [SerializeField] Transform m_CenterEyePose;
-
-        [SerializeField] Camera m_BlackCamera;
-
-        [SerializeField] Camera m_LeftEyeCamera;
-
-        [SerializeField] Camera m_RightEyeCamera;
-
-        [Header("Settings")]
-        [SerializeField] [Range(0.054f, 0.074f)] float m_Ipd = 0.064f;
-
-        [SerializeField] float m_FarClipPlane = 50f;
-
-        [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
-
-        [Header("Devices")]
-        [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
-
-        [SerializeField] PhoneModelList m_iOSPhoneModelList;
-
-        [SerializeField] PhoneModelList m_DefaultAndroidPhoneModelList;
-
-        [SerializeField] PhoneModelList m_CustomAndroidPhoneModelList;
-
         public Transform CenterEyePose => m_CenterEyePose;
 
         public ScreenRenderMode ScreenRenderMode
@@ -92,7 +66,46 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
-        public event Action<ScreenRenderMode> OnScreenRenderModeChanged; 
+        public PhoneModel PhoneModel
+        {
+            get => m_PhoneModel;
+            set
+            {
+                m_PhoneModel = value;
+                HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
+                SetupCameraData(holokitModelSpecs, m_PhoneModel.ModelSpecs);
+            }
+        }
+
+        public event Action<ScreenRenderMode> OnScreenRenderModeChanged;
+
+        [SerializeField] Camera m_MonoCamera;
+
+        [SerializeField] Transform m_CenterEyePose;
+
+        [SerializeField] Camera m_BlackCamera;
+
+        [SerializeField] Camera m_LeftEyeCamera;
+
+        [SerializeField] Camera m_RightEyeCamera;
+
+        [Header("Settings")]
+        [SerializeField] [Range(0.054f, 0.074f)] float m_Ipd = 0.064f;
+
+        [SerializeField] float m_FarClipPlane = 50f;
+
+        [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
+
+        [Header("Devices")]
+        [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
+
+        [SerializeField] PhoneModelList m_iOSPhoneModelList;
+
+        [SerializeField] PhoneModelList m_DefaultAndroidPhoneModelList;
+
+        [SerializeField] PhoneModelList m_CustomAndroidPhoneModelList;
+
+        PhoneModel m_PhoneModel;
 
         ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
 
@@ -157,10 +170,8 @@ namespace HoloInteractive.XR.HoloKit
             m_RightEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_RightEyeCamera.backgroundColor = Color.black;
 
-            PhoneModelList iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
-            m_iOSPhoneModelList = iOSPhoneModelList;
-            PhoneModelList defaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
-            m_DefaultAndroidPhoneModelList = defaultAndroidPhoneModelList;
+            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
+            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
 
             SetupCameraData();
 
@@ -171,7 +182,7 @@ namespace HoloInteractive.XR.HoloKit
         }
 #endif
 
-        private void Start()
+        private void Awake()
         {
 #if UNITY_IOS
             UnityEngine.iOS.Device.hideHomeButton = true;
@@ -195,7 +206,7 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
-        public void SetupCameraData()
+        private void SetupCameraData()
         {
             if (!DoesCurrentPhoneModelSupportStereoMode())
             {
@@ -204,23 +215,29 @@ namespace HoloInteractive.XR.HoloKit
             }
 
             HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
-            PhoneModelSpecs phoneModelSpecs = GetCurrentPhoneModelSpecs();
+            m_PhoneModel = GetCurrentPhoneModel();
+            SetupCameraData(holokitModelSpecs, m_PhoneModel.ModelSpecs);
+        }
 
-            float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
-            float screenWidthInMeters = Utils.GetScreenWidth() / screenDpi * Utils.INCH_TO_METER_RATIO;
-            float screenHeightInMeters = Utils.GetScreenHeight() / screenDpi * Utils.INCH_TO_METER_RATIO;
+        private void SetupCameraData(HoloKitModelSpecs holokitModelSpecs, PhoneModelSpecs phoneModelSpecs)
+        {
+            float screenDpi = phoneModelSpecs.ScreenDpi == 0f ? Screen.dpi : phoneModelSpecs.ScreenDpi;
+            float screenWidth = phoneModelSpecs.ScreenResolution == Vector2.zero ? Utils.GetScreenWidth() : phoneModelSpecs.ScreenResolution.x;
+            float screenHeight = phoneModelSpecs.ScreenResolution == Vector2.zero ? Utils.GetScreenHeight() : phoneModelSpecs.ScreenResolution.y;
+            float screenWidthInMeters = screenWidth / screenDpi * Utils.INCH_TO_METER_RATIO;
+            float screenHeightInMeters = screenHeight / screenDpi * Utils.INCH_TO_METER_RATIO;
 
             float viewportWidthInMeters = holokitModelSpecs.ViewportInner + holokitModelSpecs.ViewportOuter;
             float viewportHeightInMeters = holokitModelSpecs.ViewportTop + holokitModelSpecs.ViewportBottom;
             float nearClipPlane = holokitModelSpecs.LensToEye;
             float viewportsFullWidthInMeters = holokitModelSpecs.OpticalAxisDistance + 2f * holokitModelSpecs.ViewportOuter;
-            float gap = viewportsFullWidthInMeters - viewportWidthInMeters * 2f;
+            float viewportWidthGap = viewportsFullWidthInMeters - viewportWidthInMeters * 2f;
 
             // Calculate projection matrices
             Matrix4x4 leftProjMat = Matrix4x4.zero;
             leftProjMat[0, 0] = 2f * nearClipPlane / viewportWidthInMeters;
             leftProjMat[1, 1] = 2f * nearClipPlane / viewportHeightInMeters;
-            leftProjMat[0, 2] = (m_Ipd - viewportWidthInMeters - gap) / viewportWidthInMeters;
+            leftProjMat[0, 2] = (m_Ipd - viewportWidthInMeters - viewportWidthGap) / viewportWidthInMeters;
             leftProjMat[2, 2] = (-m_FarClipPlane - nearClipPlane) / (m_FarClipPlane - nearClipPlane);
             leftProjMat[2, 3] = -2f * m_FarClipPlane * nearClipPlane / (m_FarClipPlane - nearClipPlane);
             leftProjMat[3, 2] = -1f;
@@ -230,11 +247,13 @@ namespace HoloInteractive.XR.HoloKit
             rightProjMat[0, 2] = -leftProjMat[0, 2];
 
             // Calculate viewport rects
-            float centerX = 0.5f;
-            float centerY = (holokitModelSpecs.AxisToBottom - phoneModelSpecs.ScreenBottom) / screenHeightInMeters;
             float fullWidth = viewportsFullWidthInMeters / screenWidthInMeters;
             float width = viewportWidthInMeters / screenWidthInMeters;
             float height = viewportHeightInMeters / screenHeightInMeters;
+            float centerX = 0.5f;
+            float centerY = ((phoneModelSpecs.ViewportBottomOffset != 0f) || phoneModelSpecs.ScreenBottomBorder == 0f) ?
+                (phoneModelSpecs.ViewportBottomOffset + viewportHeightInMeters / 2f) / screenHeightInMeters :
+                (holokitModelSpecs.AxisToBottom - phoneModelSpecs.ScreenBottomBorder) / screenHeightInMeters;
 
             float xMinLeft = centerX - fullWidth / 2f;
             float xMaxLeft = xMinLeft + width;
@@ -306,34 +325,34 @@ namespace HoloInteractive.XR.HoloKit
 #endif
         }
 
-        private PhoneModelSpecs GetCurrentPhoneModelSpecs()
+        private PhoneModel GetCurrentPhoneModel()
         {
 #if UNITY_EDITOR
-            return DeviceProfile.GetDefaultPhoneModelSpecs();
+            return DeviceProfile.GetDefaultPhoneModel();
 #elif UNITY_IOS
             string modelName = SystemInfo.deviceModel;
             foreach (PhoneModel phoneModel in m_iOSPhoneModelList.PhoneModels)
             {
                 if (modelName.Equals(phoneModel.ModelName))
-                    return phoneModel.ModelSpecs;
+                    return phoneModel;
             }
-            return DeviceProfile.GetDefaultPhoneModelSpecs();
+            return DeviceProfile.GetDefaultPhoneModel();
 #elif UNITY_ANDROID
             string modelName = SystemInfo.deviceModel;
             foreach (PhoneModel phoneModel in m_DefaultAndroidPhoneModelList.PhoneModels)
             {
                 if (modelName.Equals(phoneModel.ModelName))
-                    return phoneModel.ModelSpecs;
+                    return phoneModel;
             }
             if (m_CustomAndroidPhoneModelList != null)
             {
                 foreach (PhoneModel phoneModel in m_CustomAndroidPhoneModelList.PhoneModels)
                 {
                     if (modelName.Equals(phoneModel.ModelName))
-                        return phoneModel.ModelSpecs;
+                        return phoneModel;
                 }
             }
-            return DeviceProfile.GetDefaultPhoneModelSpecs();     
+            return DeviceProfile.GetDefaultPhoneModel();     
 #endif
         }
 
@@ -363,7 +382,7 @@ namespace HoloInteractive.XR.HoloKit
             rectTransform.anchorMax = new(0.5f, 1f);
             // Calculate anchored position X
             var holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
-            var phoneModelSpecs = GetCurrentPhoneModelSpecs();
+            var phoneModelSpecs = GetCurrentPhoneModel().ModelSpecs;
             float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
             float posX = holokitModelSpecs.AlignmentMarkerOffset * Utils.METER_TO_INCH_RATIO * screenDpi;
             rectTransform.anchoredPosition = new(posX, 0f);
