@@ -63,11 +63,31 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 #### iOS Project Settings
 
-Set a user-friendly text for `Project Settings->Player->Other Settings->Configuration->Camera Usage Description`. This message will appear when the iPhone requests camera access.
+1. **Set Camera Usage Description**: Navigate to `Project Settings > Player > Other Settings > Configuration` and provide a user-friendly text for `Camera Usage Description`. This message will be displayed when the iPhone requests access to the camera.
 
-Under `Project Settings->XR Plug-in Management->Plug-in Providers`, enable the `Apple ARKit` option.
+<img width="500" alt="Set Camera Usage Description" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/c81d6b6f-91ef-419e-bc62-080312f19a4d">
+
+2. **Enable Apple ARKit**: Under `Project Settings > XR Plug-in Management > Plug-in Providers`, enable the `Apple ARKit` option.
+
+<img width="600" alt="Enable Apple ARKit" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/ab5f3554-9530-464d-a336-12957a857192">
 
 #### Android Project Settings
+
+1. **Disable Auto Graphics API**: Navigate to `Project Settings > Player > Other Settings > Rendering` and disable `Auto Graphics API`. In the `Graphics APIs` list, remove `Vulkan` and ensure only `OpenGLES3` is listed.
+
+<img width="500" alt="Graphics APIs" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/4f66611d-d912-4fe8-b4d9-ca1a08e15a5d">
+
+2. **Set Minimum API Level**: Proceed to `Project Settings > Player > Other Settings > Identification` and set `Minimum API Level` to `Android 7.0 'Nougat' (API level 24)` or higher.
+
+<img width="500" alt="Minimum API Level" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/fb16a187-651c-4ace-b266-77f2e18f67dc">
+
+3. **Configure Scripting Backend**: In `Project Settings > Player > Other Settings > Configuration`, set `Scripting Backend` to `IL2CPP`. Under `Target Architectures`, uncheck `ARMv7` and check `ARM64`.
+
+<img width="500" alt="Configuration" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/049fc7a9-e8a2-4b21-8e1c-cf241df6aa3c">
+
+4. **Enable Google ARCore**: Under `Project Settings > XR Plug-in Management > Plug-in Providers`, enable the `Google ARCore` option.
+
+<img width="600" alt="Enable Google ARCore" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/daccfe62-c90e-4ed3-8fcc-218bcae59a31">
 
 ### Samples
 
