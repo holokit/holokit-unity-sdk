@@ -16,8 +16,8 @@ MonoBehaviour:
   - ModelName: samsung SM-G9910
     Description: Samsung Galaxy S21
     ModelSpecs:
-      CameraOffset: {x: 0.04005, y: -0.05655, z: -0.005}
+      CameraOffset: {x: 0, y: 0, z: 0}
       ScreenBottomBorder: 0
-      ViewportBottomOffset: 0
+      ViewportBottomOffset: 0.0021
       ScreenResolution: {x: 0, y: 0}
       ScreenDpi: 421

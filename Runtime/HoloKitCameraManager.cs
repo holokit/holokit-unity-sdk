@@ -292,6 +292,8 @@ namespace HoloInteractive.XR.HoloKit
 #endif
 
             m_CameraToCenterEyeOffset = cameraToCenterEyeOffset;
+            if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
+                m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset;
         }
 
         private bool DoesCurrentPhoneModelSupportStereoMode()

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - HoloKit Unity SDK now supports Android devices
-- Added sample PhoneModelSpecsCalibration
+- Added PhoneModelSpecsCalibration sample
 
 ## [0.3.1] - 2023.7.4
 

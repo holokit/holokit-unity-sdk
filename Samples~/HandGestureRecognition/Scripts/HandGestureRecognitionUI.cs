@@ -2,6 +2,7 @@
 // SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
 // SPDX-License-Identifier: MIT
 
+#if UNITY_IOS
 using UnityEngine;
 using UnityEngine.UI;
 using HoloInteractive.XR.HoloKit.iOS;
@@ -36,3 +37,4 @@ namespace HoloInteractive.XR.HoloKit.Samples.HandGestureRecognition
         }
     }
 }
+#endif
