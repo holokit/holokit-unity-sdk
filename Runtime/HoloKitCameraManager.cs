@@ -197,11 +197,18 @@ namespace HoloInteractive.XR.HoloKit
         {
             if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
             {
-                // Set screen brightness
-
                 if (Screen.orientation != ScreenOrientation.LandscapeLeft)
                 {
                     Screen.orientation = ScreenOrientation.LandscapeLeft;
+                }
+
+                // Set screen brightness to 1.0
+                if (Screen.brightness < 1.0f)
+                {
+                    // If we don't do this, the screen brightness cannot be set to 1.0
+                    // after we manually decrease the screen brightness
+                    Screen.brightness += 0.005f;
+                    Screen.brightness = 1.0f;
                 }
             }
         }

@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2023.7.23
+
 ### Added
 
 - HoloKit Unity SDK now supports Android devices
 - Added PhoneModelSpecsCalibration sample
+- Force screen brightness to 1.0 under Stereo mode on iOS
 
 ## [0.3.1] - 2023.7.4
 
