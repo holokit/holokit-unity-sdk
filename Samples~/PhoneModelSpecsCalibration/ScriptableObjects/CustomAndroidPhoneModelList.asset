@@ -12,4 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba3d76a6d8fc4ccfbdca918b25bfbbb, type: 3}
   m_Name: CustomAndroidPhoneModelList
   m_EditorClassIdentifier: 
-  PhoneModels: []
+  PhoneModels:
+  - ModelName: samsung SM-G9910
+    Description: Samsung Galaxy S21
+    ModelSpecs:
+      ScreenResolution: {x: 2400, y: 1080}
+      ScreenDpi: 421
+      ViewportBottomOffset: 0.0021
+      CameraOffset: {x: 0.05, y: -0.055, z: -0.0079}
+      ScreenBottomBorder: 0

@@ -30,10 +30,10 @@ namespace HoloInteractive.XR.HoloKit
         public float ViewportBottom;
 
         // Fresnel lens focal length
-        public float FocalLength;
+        //public float FocalLength;
 
         // Screen To Fresnel distance
-        public float ScreenToLens;
+        //public float ScreenToLens;
 
         // Fresnel To eye distance
         public float LensToEye;
@@ -48,19 +48,21 @@ namespace HoloInteractive.XR.HoloKit
     [Serializable]
     public struct PhoneModelSpecs
     {
-        [Tooltip("The 3D offset from the phone camera to the center of the phone screen bottom")]
-        public Vector3 CameraOffset;
-
-        [Tooltip("The width of the non-display area on the bottom side of the phone screen.")]
-        public float ScreenBottomBorder;
-
-        public float ViewportBottomOffset;
-
         [Tooltip("Custom screen resolution value in pixels. If 0, the program will default to Unity's screen resolution.")]
         public Vector2 ScreenResolution;
 
         [Tooltip("Custom DPI value. If 0, the program will default to Unity's DPI.")]
         public float ScreenDpi;
+
+        [Tooltip("The offset from the bottom of the phone screen to the bottom of the viewport.")]
+        public float ViewportBottomOffset;
+
+        [Tooltip("The 3D offset from the phone camera to the bottom center of the phone screen.")]
+        public Vector3 CameraOffset;
+
+        [Tooltip("The width of the non-display area on the bottom side of the phone screen. This value is deprecated.")]
+        [Header("Deprecated")]
+        public float ScreenBottomBorder;
     }
 
     [Serializable]
@@ -88,8 +90,8 @@ namespace HoloInteractive.XR.HoloKit
                         ViewportOuter = 0.0292f,
                         ViewportTop = 0.02386f,
                         ViewportBottom = 0.02386f,
-                        FocalLength = 0.065f,
-                        ScreenToLens = 0.02715f + 0.03136f + 0.002f,
+                        //FocalLength = 0.065f,
+                        //ScreenToLens = 0.02715f + 0.03136f + 0.002f,
                         LensToEye = 0.02497f + 0.03898f,
                         AxisToBottom = 0.02990f,
                         AlignmentMarkerOffset = 0.05075f

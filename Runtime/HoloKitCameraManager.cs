@@ -184,11 +184,11 @@ namespace HoloInteractive.XR.HoloKit
 
         private void Awake()
         {
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
 #if UNITY_IOS
             UnityEngine.iOS.Device.hideHomeButton = true;
-            Screen.sleepTimeout = SleepTimeout.NeverSleep;
 #elif UNITY_ANDROID
-            
+
 #endif
             SetupCameraData();
         }
