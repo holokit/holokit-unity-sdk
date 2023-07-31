@@ -92,6 +92,8 @@ A complete calibration result for an Android phone encompasses the model name, s
 
 In your project, generate your own `PhoneModelList` ScriptableObject, add an entry for your phone model, and drag the ScriptableObject into the `CustomAndroidPhoneModelList` field of the `HoloKitCameraManager` component present in your scene. This will enable the `HoloKitCameraManager` to identify your Android model's specs when rendering stereo images.
 
+<img width="400" alt="reference" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/80e3bee1-1379-4afc-a9c8-163ed4aa3430">
+
 ## Share your calibration result with us
 
 We sincerely appreciate your effort in completing this calibration task -- it's no small feat!
