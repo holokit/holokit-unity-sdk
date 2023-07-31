@@ -49,7 +49,7 @@ HoloKit was primarily built for iOS devices. Please see the [Supported iOS Devic
 
 HoloKit currently only supports a limited number of Android phones. Please see the [Supported Android Devices](Supported_Android_Devices.md) for more details.
 
-If your Android phone is not supported, we also provide a calibration method to let you figure out the specs of your Android phone yourself. You can then enter your Android phone specs to the SDK to have your device rendering stereo images. Please see [Phone Model Specs Calibration], which is a step-by-step guide on how to figure out the specs of your phone model.
+If your Android phone is not supported, we also provide a calibration method to let you figure out the specs of your Android phone yourself. You can then enter your Android phone specs to the SDK to have your device rendering stereo images. Please see [Phone Calibration Guide](Phone_Calibration_Guide.md), which is a step-by-step guide on how to figure out the specs of your phone model.
 
 ## How to Use HoloKit Unity SDK
 
