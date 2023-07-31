@@ -46,4 +46,37 @@ You can adjust the `ViewportBottomOffset` using the up and down buttons located 
 
 Once you've identified a suitable value for `ViewportBottomOffset`, input this value into the `CustomAndroidPhoneModelList` and rebuild the sample. Having the correct `ViewportBottomOffset` value is essential for proceeding to the next step.
 
+<img width="400" alt="update entry" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/b87ea2e0-439f-4679-82bb-23057df1d0e0">
+
 ## Step 3: Determine `CameraOffset`
+
+`CameraOffset` refers to the 3D vector offset from the center of the device's AR camera to the bottom center of the phone screen.
+
+To determine the `CameraOffset`, we first need to identity the AR camera. You can figure out this by launching any AR app and subsequently blocking each camera to discern which one functions as the AR camera.
+
+<img width="450" alt="starting point" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/68b51122-8447-40ab-9cb7-ec17f81efbd8">
+
+<img width="450" alt="end point" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/fd252170-36ab-436a-a913-3028f19ada3c">
+
+As demonstrated in the above images, `CameraOffset` is a vector spanning from the starting point to the end point. We utilize a right-handed coordinate system, as depicted below.
+
+<img width="500" alt="right-handedness" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/d95b6274-8fcd-471f-90c8-86d952d22b1e">
+
+Consequently, `CameraOffset.x` should always be positive, while `CameraOffset.y` and `CameraOffset.z` should always be negative.
+
+There are three methods to determine the accurate `CameraOffset` value.
+
+The first and ideal method involves calculating the value using the official product design diagram. We used this approach for all iPhone models, but sourcing the product design diagram may prove challenging.
+
+The second method encourages physical measurement of your phone using a ruler. A relatively precise result suffices, eliminating the need for extreme accuracy.
+
+Lastly, you can utilize the calibration tool provided in the third scene of our `PhoneModelSpecsCalibration` sample. This tool not only aids in identifying the `CameraOffset` value but also serves as a verification instrument for the calibration results if you opted for the previous methods. We recommend the first two methods as this one is somewhat complicated and challenging to execute.
+
+The subsequent section will guide you on how to utilize the calibration tool to both determine and verify the `CameraOffset` value.
+
+Press the `CameraOffset` button on your phone to access the scene. In this scene, we employ image tracking to track a QR Code image. Once the phone identifies the QR Code, it will render a virtual cube on top of it. If both the `ViewportBottomOffset` value and the `CameraOffset` value are accurate, the virtual cube will be rendered directly above the QR Code. As we've already determined the correct value for `ViewportBottomOffset` ealier, we only need to find the `CameraOffset` value.
+
+Start by navigating to `Assets->Samples->PhoneModelSpecsCalibration->Textures->T_TrackingQRCode.png` and open it on your computer. Ensure that the QR Code image displayed on your computer measures 10cm in both width and height, as the correct size of the image is crucial for tracking. [An online ruler](https://www.ginifab.com/feeds/cm_to_inch/actual_size_ruler.html) can be helpful for measuring the actual size of an image on the screen.
+
+<img width="500" alt="online ruler" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/73e5793f-9147-4ec6-b572-92d536ee3831">
+
