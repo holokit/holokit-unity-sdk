@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2023.8.10
+
+### Added
+
+- Now you can add HoloKit XROrigin in the Unity Editor's Hierarchy Window
+
 ## [0.3.2] - 2023.7.23
 
 ### Added
