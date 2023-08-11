@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace HoloInteractive.XR.HoloKit.Editor
 {
-    static class HoloKitCreateUtil
+    static class HoloKitCreateUtils
     {
         [MenuItem("GameObject/XR/HoloKit/XR Origin")]
         static void CreateHoloKitXROrigin(MenuCommand menuCommand)
