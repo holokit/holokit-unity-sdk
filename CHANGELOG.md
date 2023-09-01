@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2023.9.1
+
+### Added
+
+- Added 3DoF tracking mode for LowLatencyTrackingManager. This is only for internal use.
+- Now when you create a HoloKitDefaultUICanvas, if there is no EventSystem in the scene, the SDK will create one for you.
+
 ## [0.3.4] - 2023.8.11
 
 ### Added

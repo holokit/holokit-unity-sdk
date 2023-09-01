@@ -10,6 +10,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace HoloInteractive.XR.HoloKit.Editor
 {
@@ -141,6 +142,17 @@ namespace HoloInteractive.XR.HoloKit.Editor
             defaultUICanavs.ButtonText = buttonText;
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "Create HoloKit Default UI Canvas");
+
+            // Check for EventSystem
+            EventSystem eventSystem = Object.FindObjectOfType<EventSystem>();
+            if (eventSystem == null)
+            {
+                // Create new EventSystem
+                var eventSystemGameObject = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+                // Register it for undo
+                Undo.RegisterCreatedObjectUndo(eventSystemGameObject, "Create EventSystem");
+            }
+
             return canvas;
         }
     }

@@ -14,6 +14,9 @@ namespace HoloInteractive.XR.HoloKit
 {
     public class LowLatencyTrackingManager : MonoBehaviour
     {
+        [Tooltip("This option is for internal use, please don't enable it.")]
+        [SerializeField] bool m_3DOFTracking = false;
+
         TrackedPoseDriver m_TrackedPoseDriver;
 
         InputDevice m_InputDevice;
@@ -48,13 +51,16 @@ namespace HoloInteractive.XR.HoloKit
             }
 
             var holokitCameraManager = GetComponent<HoloKitCameraManager>();
-            holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
+            if (!m_3DOFTracking) {
+                holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
+                arCameraManager.frameReceived += OnFrameReceived;
+            }
 
-            arCameraManager.frameReceived += OnFrameReceived;
             Application.onBeforeRender += OnBeforeRender;
             m_Ptr = Init();
             InitHeadTracker(m_Ptr);
-            PauseHeadTracker(m_Ptr);
+            if (!m_3DOFTracking)
+                PauseHeadTracker(m_Ptr);
         }
 #endif
 
@@ -64,6 +70,8 @@ namespace HoloInteractive.XR.HoloKit
             Delete(m_Ptr);
         }
 #endif
+
+        private void Update() {}
 
 #if UNITY_IOS
         private void OnScreenRenderModeChanged(ScreenRenderMode renderMode)
@@ -98,7 +106,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void OnBeforeRender()
         {
-            if (!m_TrackedPoseDriver.enabled)
+            if (!m_TrackedPoseDriver.enabled || m_3DOFTracking)
                 UpdateHeadTrackerPose();
         }
 
@@ -111,7 +119,9 @@ namespace HoloInteractive.XR.HoloKit
             Vector3 position = new(positionArr[0], positionArr[1], positionArr[2]);
             Quaternion rotation = new(rotationArr[0], rotationArr[1], rotationArr[2], rotationArr[3]);
 
-            transform.SetPositionAndRotation(position, rotation);
+            if (!m_3DOFTracking)
+                transform.position = position;
+            transform.rotation = rotation;
         }
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_init")]
