@@ -15,8 +15,6 @@ namespace HoloInteractive.XR.HoloKit.UI
 
         private void Start()
         {
-            // Lock screen orientation for convenience. This is not necessary.
-            Screen.orientation = ScreenOrientation.LandscapeLeft;
             m_HoloKitCameraManager = FindObjectOfType<HoloKitCameraManager>();
         }
 
