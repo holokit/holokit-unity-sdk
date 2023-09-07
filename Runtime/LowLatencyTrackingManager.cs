@@ -19,6 +19,8 @@ namespace HoloInteractive.XR.HoloKit
 
         TrackedPoseDriver m_TrackedPoseDriver;
 
+        ARPoseDriver m_ARPoseDriver;
+
         InputDevice m_InputDevice;
 
         IntPtr m_Ptr;
@@ -36,8 +38,12 @@ namespace HoloInteractive.XR.HoloKit
             m_TrackedPoseDriver = GetComponent<TrackedPoseDriver>();
             if (m_TrackedPoseDriver == null)
             {
-                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find TrackedPoseDriver");
-                return;
+                m_ARPoseDriver = GetComponent<ARPoseDriver>();
+                if (m_ARPoseDriver == null)
+                {
+                    Debug.LogWarning("[LowLatencyTrackingManager] Failed to find TrackedPoseDriver");
+                    return;
+                }
             }
 
             List<InputDevice> devices = new();
@@ -78,19 +84,25 @@ namespace HoloInteractive.XR.HoloKit
         {
             if (renderMode == ScreenRenderMode.Stereo)
             {
-                m_TrackedPoseDriver.enabled = false;
+                if (m_TrackedPoseDriver != null)
+                    m_TrackedPoseDriver.enabled = false;
+                else
+                    m_ARPoseDriver.enabled = false;
                 ResumeHeadTracker(m_Ptr);
             }
             else
             {
-                m_TrackedPoseDriver.enabled = true;
+                if (m_TrackedPoseDriver != null)
+                    m_TrackedPoseDriver.enabled = true;
+                else
+                    m_ARPoseDriver.enabled = false;
                 PauseHeadTracker(m_Ptr);
             }
         }
 
         private void OnFrameReceived(ARCameraFrameEventArgs args)
         {
-            if (m_TrackedPoseDriver.enabled)
+            if ((m_TrackedPoseDriver != null && m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && m_ARPoseDriver.enabled))
                 return;
 
             bool isPositionValid = m_InputDevice.TryGetFeatureValue(CommonUsages.centerEyePosition, out Vector3 position) || m_InputDevice.TryGetFeatureValue(CommonUsages.colorCameraPosition, out position);
@@ -106,7 +118,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void OnBeforeRender()
         {
-            if (!m_TrackedPoseDriver.enabled || m_3DOFTracking)
+            if ((m_TrackedPoseDriver != null && !m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && !m_ARPoseDriver.enabled) || m_3DOFTracking)
                 UpdateHeadTrackerPose();
         }
 
