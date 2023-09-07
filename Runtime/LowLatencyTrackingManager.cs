@@ -95,7 +95,7 @@ namespace HoloInteractive.XR.HoloKit
                 if (m_TrackedPoseDriver != null)
                     m_TrackedPoseDriver.enabled = true;
                 else
-                    m_ARPoseDriver.enabled = false;
+                    m_ARPoseDriver.enabled = true;
                 PauseHeadTracker(m_Ptr);
             }
         }
