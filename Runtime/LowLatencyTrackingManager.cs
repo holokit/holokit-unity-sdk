@@ -14,9 +14,6 @@ namespace HoloInteractive.XR.HoloKit
 {
     public class LowLatencyTrackingManager : MonoBehaviour
     {
-        [Tooltip("This option is for internal use, please don't enable it.")]
-        [SerializeField] bool m_3DOFTracking = false;
-
         TrackedPoseDriver m_TrackedPoseDriver;
 
         ARPoseDriver m_ARPoseDriver;
@@ -57,16 +54,13 @@ namespace HoloInteractive.XR.HoloKit
             }
 
             var holokitCameraManager = GetComponent<HoloKitCameraManager>();
-            if (!m_3DOFTracking) {
-                holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
-                arCameraManager.frameReceived += OnFrameReceived;
-            }
+            holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
+            arCameraManager.frameReceived += OnFrameReceived;
 
             Application.onBeforeRender += OnBeforeRender;
             m_Ptr = Init();
             InitHeadTracker(m_Ptr);
-            if (!m_3DOFTracking)
-                PauseHeadTracker(m_Ptr);
+            PauseHeadTracker(m_Ptr);
         }
 #endif
 
@@ -118,7 +112,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void OnBeforeRender()
         {
-            if ((m_TrackedPoseDriver != null && !m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && !m_ARPoseDriver.enabled) || m_3DOFTracking)
+            if ((m_TrackedPoseDriver != null && !m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && !m_ARPoseDriver.enabled))
                 UpdateHeadTrackerPose();
         }
 
@@ -131,8 +125,7 @@ namespace HoloInteractive.XR.HoloKit
             Vector3 position = new(positionArr[0], positionArr[1], positionArr[2]);
             Quaternion rotation = new(rotationArr[0], rotationArr[1], rotationArr[2], rotationArr[3]);
 
-            if (!m_3DOFTracking)
-                transform.position = position;
+            transform.position = position;
             transform.rotation = rotation;
         }
 
