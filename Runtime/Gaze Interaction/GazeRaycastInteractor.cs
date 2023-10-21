@@ -6,53 +6,55 @@ using UnityEngine;
 
 namespace HoloInteractive.XR.HoloKit
 {
-    public class GazeRaycaster : MonoBehaviour
+    public class GazeRaycastInteractor : MonoBehaviour
     {
-        private Transform centerEyePose;
+        public IGazeRaycastInteractable Target => m_Target;
 
-        private IGazeRaycastInteractable target;
+        private Transform m_CenterEyePose;
+
+        private IGazeRaycastInteractable m_Target;
 
         private void Start()
         {
             var holokitCameraManager = FindObjectOfType<HoloKitCameraManager>();
-            centerEyePose = holokitCameraManager.CenterEyePose;
+            m_CenterEyePose = holokitCameraManager.CenterEyePose;
         }
 
         private void Update()
         {
-            Ray ray = new Ray(centerEyePose.position, centerEyePose.forward);
+            Ray ray = new Ray(m_CenterEyePose.position, m_CenterEyePose.forward);
             if (Physics.Raycast(ray, out RaycastHit hitInfo))
             {
                 if (hitInfo.transform.TryGetComponent<IGazeRaycastInteractable>(out var interactable))
                 {
                     // A new target is selected
-                    if (target == null)
+                    if (m_Target == null)
                     {
-                        target = interactable;
-                        target.OnSelectionEntered();
-                        target.OnSelected(Time.deltaTime);
+                        m_Target = interactable;
+                        m_Target.OnSelectionEntered();
+                        m_Target.OnSelected(Time.deltaTime);
                     }
                     // Still selecting the old target
-                    else if (target == interactable)
+                    else if (m_Target == interactable)
                     {
-                        target.OnSelected(Time.deltaTime);
+                        m_Target.OnSelected(Time.deltaTime);
                     }
                     // Target switched in the last frame
-                    else if (target != interactable)
+                    else if (m_Target != interactable)
                     {
-                        target.OnSelectionExited();
-                        target = interactable;
-                        target.OnSelectionEntered();
-                        target.OnSelected(Time.deltaTime);
+                        m_Target.OnSelectionExited();
+                        m_Target = interactable;
+                        m_Target.OnSelectionEntered();
+                        m_Target.OnSelected(Time.deltaTime);
                     }
                 }
             }
             else
             {
-                if (target != null)
+                if (m_Target != null)
                 {
-                    target.OnSelectionExited();
-                    target = null;
+                    m_Target.OnSelectionExited();
+                    m_Target = null;
                 }
             }
         }
