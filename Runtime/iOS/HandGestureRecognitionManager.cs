@@ -95,7 +95,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 bool isMiddleStraight = handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y;
                 bool isRingStraight = handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y;
                 bool isLittleStraight = handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y;
-
+                
                 if (isThumbStraight && isIndexStraight && isMiddleStraight && isRingStraight && isLittleStraight) // Five
                 {
                     m_PinchEvidenceCounter = 0;
@@ -107,6 +107,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
                 else // None
                 {
                     m_PinchEvidenceCounter = 0;
+                    m_FiveEvidenceCounter = 0;
                     m_NoneEvidenceCounter++;
                     if (m_NoneEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
                         handGesture = HandGesture.None;
@@ -126,6 +127,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
             {
                 m_HandGesture = HandGesture.None;
                 m_PinchEvidenceCounter = 0;
+                m_FiveEvidenceCounter = 0;
+                m_NoneEvidenceCounter = EVIDENCE_COUNTER_TRIGGER;
                 OnHandGestureChanged?.Invoke(m_HandGesture);
             }
         }
