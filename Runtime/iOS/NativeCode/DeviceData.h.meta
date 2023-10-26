@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ab5d33524ab254d5f8a04634455eadc8
+guid: 52dbe9b9f37464da78becc15026148ea
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -49,7 +49,7 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
   - first:
       Standalone: OSXUniversal
     second:
@@ -61,13 +61,13 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: x86
+        CPU: None
   - first:
       Standalone: Win64
     second:
       enabled: 0
       settings:
-        CPU: x86_64
+        CPU: None
   - first:
       VisionOS: VisionOS
     second:
@@ -85,12 +85,7 @@ PluginImporter:
         AddToEmbeddedBinaries: false
         CPU: AnyCPU
         CompileFlags: 
-        FrameworkDependencies: 
-  - first:
-      tvOS: tvOS
-    second:
-      enabled: 1
-      settings: {}
+        FrameworkDependencies: ARKit;
   userData: 
   assetBundleName: 
   assetBundleVariant: 

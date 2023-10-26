@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ab5d33524ab254d5f8a04634455eadc8
+guid: 92ce782ceb7cd4414b6f129309bc5f0d
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -55,19 +55,19 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        CPU: None
+        CPU: AnyCPU
   - first:
       Standalone: Win
     second:
       enabled: 0
       settings:
-        CPU: x86
+        CPU: AnyCPU
   - first:
       Standalone: Win64
     second:
       enabled: 0
       settings:
-        CPU: x86_64
+        CPU: AnyCPU
   - first:
       VisionOS: VisionOS
     second:
@@ -85,7 +85,7 @@ PluginImporter:
         AddToEmbeddedBinaries: false
         CPU: AnyCPU
         CompileFlags: 
-        FrameworkDependencies: 
+        FrameworkDependencies: CryptoTokenKit;
   - first:
       tvOS: tvOS
     second:
