@@ -85,6 +85,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         {
             if (m_Ptr != IntPtr.Zero)
             {
+                s_Detectors.Remove(m_Ptr);
                 NativeApi.CFRelease(ref m_Ptr);
                 m_Ptr = IntPtr.Zero;
             }
@@ -94,7 +95,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
-        static extern IntPtr RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
+        static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);

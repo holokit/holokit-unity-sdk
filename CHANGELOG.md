@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.11] - 2023.10.27
+
+### Added
+
+- Added AppleNativeProvider for getting iOS thermal state and SystemUptime.
+- Added package dependency for ARKit.
+
+### Changed
+
+- Changed ARFoundation package dependency version from 5.0.6 to 5.1.0.
+
 ## [0.3.10] - 2023.10.26
 
 ### Added
