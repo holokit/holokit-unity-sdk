@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 using System;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -16,6 +17,15 @@ namespace HoloInteractive.XR.HoloKit
     {
         Mono = 0,
         Stereo = 1
+    }
+
+    [Flags]
+    public enum MonoScreenOrientation
+    {
+        Portrait = 1, // 000001
+        PortraitUpsideDown = 2, // 000010
+        LandscapeRight = 4, // 000100
+        LandscapeLeft = 8 // 001000
     }
 
     [RequireComponent(typeof(LowLatencyTrackingManager))]
@@ -43,6 +53,25 @@ namespace HoloInteractive.XR.HoloKit
 
                     if (m_AlignmentMarkerCanvas)
                         m_AlignmentMarkerCanvas.SetActive(false);
+
+                    // Screen orientations
+                    Screen.orientation = ScreenOrientation.AutoRotation;
+                    if ((m_SupportedMonoScreenOrientations & MonoScreenOrientation.Portrait) != 0)
+                    {
+                        Screen.autorotateToPortrait = true;
+                    }
+                    if ((m_SupportedMonoScreenOrientations & MonoScreenOrientation.PortraitUpsideDown) != 0)
+                    {
+                        Screen.autorotateToPortraitUpsideDown = true;
+                    }
+                    if ((m_SupportedMonoScreenOrientations & MonoScreenOrientation.LandscapeRight) != 0)
+                    {
+                        Screen.autorotateToLandscapeRight = true;
+                    }
+                    if ((m_SupportedMonoScreenOrientations & MonoScreenOrientation.LandscapeLeft) != 0)
+                    {
+                        Screen.autorotateToLandscapeLeft = true;
+                    }
                 }
                 else // Stereo
                 {
@@ -96,6 +125,8 @@ namespace HoloInteractive.XR.HoloKit
 
         [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
 
+        [SerializeField] MonoScreenOrientation m_SupportedMonoScreenOrientations = MonoScreenOrientation.Portrait | MonoScreenOrientation.LandscapeLeft;
+
         [Header("Devices")]
         [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
 
@@ -112,6 +143,8 @@ namespace HoloInteractive.XR.HoloKit
         Vector3 m_CameraToCenterEyeOffset;
 
         GameObject m_AlignmentMarkerCanvas;
+
+        private List<ScreenOrientation> m_SupportedScreenOrientations;
 
         const float ALIGNMENT_MARKER_THICKNESS = 6f; // In pixels
 

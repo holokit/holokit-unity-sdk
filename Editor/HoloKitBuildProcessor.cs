@@ -28,6 +28,7 @@ namespace HoloInteractive.XR.HoloKit.Editor
                 project.SetBuildProperty(mainTargetGuid, "ENABLE_BITCODE", "NO");
                 project.SetBuildProperty(unityFrameworkTargetGuid, "ENABLE_BITCODE", "NO");
                 project.SetBuildProperty(unityFrameworkTargetGuid, "GCC_ENABLE_OBJC_EXCEPTIONS", "YES");
+                project.AddBuildProperty(unityFrameworkTargetGuid, "OTHER_LDFLAGS", "-ld64");
 
                 project.WriteToFile(projectPath);
             }
