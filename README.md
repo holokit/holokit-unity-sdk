@@ -1,6 +1,6 @@
 # HoloKit Unity SDK
 
-[HoloKit](https://holokit.io/) is an Augmented Reality(AR) headset that transforms your iPhone into a powerful stereoscopic AR device. With the HoloKit Unity SDK, developers can create immersive AR experiences in Unity, which can be viewed with HoloKit headset.
+[HoloKit](https://holokit.io/) is an optical see-through mixed reality headset that transforms your iPhone into a powerful stereoscopic AR device. With the HoloKit Unity SDK, developers can create immersive AR experiences in Unity, which can be viewed with HoloKit headset.
 
 The SDK currently provides three core features:
 
@@ -35,7 +35,7 @@ HoloKit Unity SDK has been tested and found compatible with the following softwa
 - Unity 2022.3 LTS
 
 ### ARFoundation
-- ARFoundation 5.0
+- ARFoundation 5.1
 
 We aim to continually test and verify compatibility with newer versions of these softwares.
 
