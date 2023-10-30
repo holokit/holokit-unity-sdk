@@ -7,6 +7,7 @@ The following iPhone models are supported by HoloKit:
 - iPhone 12 / 12 Pro / 12 Pro Max
 - iPhone 13 / 13 Pro / 13 Pro Max
 - iPhone 14 / 14 Plus / 14 Pro / 14 Pro Max
+- iPhone 15 / 15 Plus / 15 Pro / 15 Pro Max
 
 HoloKit's support starts from the iPhone XS and onwards. This is due to the high computational requirements of AR applications which earlier iPhone models may not efficiently handle.
 
