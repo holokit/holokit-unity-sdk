@@ -18,5 +18,7 @@ All iPhone models are listed in SDK's `Assets/ScriptableObjects/iOSPhoneModelLis
 
 - The `Screen DPI` property is the screen DPI (Dots Per Inch) of the iPhone, which can alos be found on Apple's official website. Please note that the name DPI and PPI (Pixels Per Inch) can be used interchangeably.
 
-- The `Viewport Bottom Offset` property is the offset between the iPhone's screen bottom and the bottom of the rendered viewport. This property is measured by meters. The mechanism of this property is explained in detail in [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-2-determine-viewportbottomoffset).
+- The `Viewport Bottom Offset` property is the offset between the iPhone's screen bottom and the bottom of the rendered viewport. This property is measured by meters. The mechanism of this property is explained in detail in [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-2-determine-viewportbottomoffset). However, you can only measure this property by manual configuration. You can leave this value to 0 and use `Screen Bottom Border` instead.
+
+- The `Camera Offset` property 
 
