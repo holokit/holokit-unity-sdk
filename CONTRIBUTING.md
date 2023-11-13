@@ -30,7 +30,7 @@ The [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/
 
 ## How HoloKit Unity SDK Works
 
-The HoloKit Unity SDK primarily focuses on two functionalities: stereoscopic rendering and hand tracking. This section delves into the intricacies of these systems.
+The HoloKit Unity SDK primarily focuses on two functionalities: stereoscopic rendering and hand pose detection. This section delves into the intricacies of these systems.
 
 ### Stereoscopic Rendering
 
@@ -67,3 +67,7 @@ Key Components:
 - `Default Android Phone Model List`: Specs for supported Android devices.
 
 - `Custom Android Phone Model List`: Custom list for unsupported Android models. Refer to the [Phone Calibration Guide](./Phone_Calibration_Guide.md) for custom model specifications.
+
+### Hand Pose Detection
+
+HoloKit Unity SDK provides two hand detection related functionalities, which are hand tracking and hand gesture recognition. Both of these functionalities relies on [Apple Vision's hand pose detection algorithm](https://developer.apple.com/documentation/vision/detecting_hand_poses_with_vision). Apple Vision's hand pose detection algorithm is a 2D algorithm, which can detect the 2D coordinates of the 21 joints of the user's hands. 2D coordinates are sufficient for hand gesture recognition, but is not enough for 3D hand tracking, whose objecive is to track the 3D positions of the 21 hand joints of the user's hands. In order to get the depth of the user's hand joints, we use Apple Vision hand pose detection algorithm together with iPhone's LiDAR sensor. More specifically, we first get the 2D coordinate of the 21 hand joints of the user's hands, then we find the corresponding depth value for each hand joint with the depth map provided by the LiDAR sensor.
