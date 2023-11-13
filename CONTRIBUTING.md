@@ -20,5 +20,5 @@ All iPhone models are listed in SDK's `Assets/ScriptableObjects/iOSPhoneModelLis
 
 - The `Viewport Bottom Offset` property is the offset between the iPhone's screen bottom and the bottom of the rendered viewport. This property is measured by meters. The mechanism of this property is explained in detail in [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-2-determine-viewportbottomoffset). However, you can only measure this property by manual configuration. You can leave this value to 0 and use `Screen Bottom Border` instead.
 
-- The `Camera Offset` property is the 3D offset from the iPhone's main camera to the center of the screen bottom. This property is measured by meters. The mechanism of this proerty is explained in detail in [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-3-dtermine-cameraoffset).
+- The `Camera Offset` property is the 3D offset from the iPhone's main camera to the center of the screen bottom. This property is measured by meters. The mechanism of this proerty is explained in detail in [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-3-determine-cameraoffset).
 
