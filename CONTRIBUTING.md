@@ -1,8 +1,8 @@
-# How to Contribute HoloKit Unity SDK
+# Contributing to HoloKit Unity SDK
 
 This guide outlines how to enhance and introduce new features to the HoloKit Unity SDK.
 
-## How to Add New iPhone Models
+## Adding New iPhone Models
 
 HoloKit Unity SDK optimizes render parameters based on iPhone hardware specifications, ensuring accurate viewport positioning and sizing.
 
@@ -27,5 +27,7 @@ To add a new iPhone model to the `Assets/ScriptableObjects/iOSPhoneModelList` as
 The [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/accessories/Accessory-Design-Guidelines.pdf) provide precise specifications for Apple devices, crucial for accurately calculating `Camera Offset` and `Screen Bottom Border`.
 
 <img width="1050" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/f6807def-4a59-4155-8f82-eee438e7d76b">
+
+## How HoloKit Unity SDK Works
 
 
