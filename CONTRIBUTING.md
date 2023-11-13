@@ -30,36 +30,40 @@ The [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/
 
 ## How HoloKit Unity SDK Works
 
-HoloKit Unity SDK provides two main functionalities: stereoscopic rendering and hand tracking. This section will explain the mechanism of those two systems in detail.
+The HoloKit Unity SDK primarily focuses on two functionalities: stereoscopic rendering and hand tracking. This section delves into the intricacies of these systems.
 
 ### Stereoscopic Rendering
 
-There are two screen render mode provided by the SDK, which are `Mono` mode and `Stereo` mode. In `Mono` mode, the app is just a normal ARFoundation app with `ARCameraBackground`. In `Stereo` mode, the SDK renders two viewports on the iPhone screen with two cameras with black background. This is the single most important feature of the SDK. The core script responsible for stereoscopic rendering is `HoloKitCameraManager`, which is attached to the `Main Camera` GameObject to transform an ARFoundation camera to a HoloKit camera. 
+The SDK offers two rendering modes: `Mono` and `Stereo`.
+
+- `Mono` Mode: Operates as a standard ARFoundation app, utilizing `ARCameraBackground`.
+
+- `Stereo` Mode: The SDK's key feature, it renders two separate viewports on the iPhone screen using dual cameras against a black background. `HoloKitCameraManager`, attached to the `Main Camera` GameObject, transforms an ARFoundation camera into a HoloKit camera.
 
 <img width="582" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/668880de-71da-457f-a3b2-c0300f07668e">
 
-- `Mono Camera` is the camera used in `Mono` mode.
+Key Components:
 
-- `Center Eye Pose` is the transform representing the center point between the user's eyes. This is set to the iPhone camera's position in `Mono` mode.
+- `Mono Camera`: Used in `Mono` mode.
 
-- `Black Camera` is reponsible for rendering a black background behind the two viewports.
+- `Center Eye Pose`: Represents the midpoint between the user's eyes in `Stereo` mode, aligning with the iPhone camera in `Mono` mode.
 
-- `Left Eye Camera` renders the left viewport in `Stereo` mode.
+- `Black Camera`: Renders the black background in `Stereo` mode.
 
-- `Right Eye Camera` renders the right viewport in `Stereo` mode.
+- `Left/Right Eye Camera`: Render the respective viewports in `Stereo` mode.
+  
+- `IPD`: stands for inter-pupillary distance, the distance between the user's two eyes.
 
-- `IPD` stands for inter-pupillary distance, which is the distance between the user's two eyes.
+- `Far Clip Plane`: Sets the farthest visible boundary for the stereo cameras.
 
-- `Far Clip Plane` defines the far clip plane of the two stereo cameras.
+- `Show Alignment Marker In Stereo Mode`: An optional feature to display an alignment marker in the top-right corner in `Stereo` mode.
 
-- `Show Alignment Marker In Stereo Mode` indicates whether the SDK will automatically render the alignment marker of the top right corner of the screen under `Stereo` mode.
+- `Supported Mono Screen Orientations`: The list of supported screen orientations in `Mono` mode. Since the screen orientation is locked to `LandscapeLeft` under `Stereo` mode, when switching back to `Mono` mode, the SDK needs to know which screen orientations are supported.
 
-- `Supported Mono Screen Orientations` indicates the supported screen orientations in `Mono` mode. Since the screen orientation is locked to `LandscapeLeft` under `Stereo` mode, when switching back to `Mono` mode, the SDK needs to know which screen orientations are supported.
+- `HoloKit Generation`: Specifies the model of HoloKit being used.
 
-- `HoloKit Generation` indicates the HoloKit model we want to use. Currently we only have one HoloKit model.
+- `iOS Phone Model List`: Specs for supported iOS devices.
 
-- `iOS Phone Model List` stores the specs of all supported iPhone models.
+- `Default Android Phone Model List`: Specs for supported Android devices.
 
-- `Default Android Phone Model List` stores the specs of all supported Android models.
-
-- `Custom Android Phone Model List` is for developers to support their own Android models which are currently not supported by default. For calculating the specs of the device, see [Phone Calibration Guide](./Phone_Calibration_Guide.md).
+- `Custom Android Phone Model List`: Custom list for unsupported Android models. Refer to the [Phone Calibration Guide](./Phone_Calibration_Guide.md) for custom model specifications.
