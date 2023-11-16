@@ -83,3 +83,7 @@ The `Runtime/iOS/NativeCode` folder houses all the native Objective-C code for t
 <img width="1263" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/f465e9d1-99f7-4a6c-acdd-0e4314a83eba">
 
 `AppleVisionHandPoseDetector` offers the flexibility to process video frame images in either 2D or 3D mode. The `HandGestureRecognitionManager` requires only 2D hand poses, while the `HandTrackingManager` necessitates 3D hand poses. Consequently, when using `HandGestureRecognitionManager` alone, 2D hand poses can be obtained without activating the LiDAR sensor. In contrast, `HandTrackingManager` usage mandates turning on the LiDAR sensor to capture the user's 3D hand poses. Both managers rely on `AppleVisionHandPoseDetector` to access hand data from native code. When operated concurrently, they share the same `AppleVisionHandPoseDetector` instance, optimizing efficiency.
+
+### Low Latency Tracking
+
+See [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking) for detailed explanation.
