@@ -87,3 +87,11 @@ The `Runtime/iOS/NativeCode` folder houses all the native Objective-C code for t
 ### Low Latency Tracking
 
 See [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking) for detailed explanation.
+
+## How To Change The SDK
+
+## Potential Future Improvements
+
+### Enhancing the Smoothness of 3D Hand Tracking
+
+The inherent limitation of using Apple Vision's natively 2D hand pose detection algorithm for 3D hand tracking introduces certain inaccuracies. A notable issue arises from the misalignment between hand pose detection and the depth map. Often, fingertips are incorrectly mapped to the background of the depth map, resulting in exaggerated depth values. Currently, we employ a basic method of using the second fingertip to correct these anomalies, but this leads to occasional glitches. A more effective solution would involve interpolating the movement of each hand joint between frames to achieve smoother results. Although this correction is presently handled in the Objective-C code, it could potentially be implemented either there or on the C# side for improved performance.
