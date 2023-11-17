@@ -99,3 +99,5 @@ The inherent limitation of using Apple Vision's natively 2D hand pose detection 
 ### Enhancing Robustness and Variety in Hand Gesture Recognition
 
 At present, our system recognizes only two hand gestures: Pinched and Five. Theoretically, it's feasible to expand this range to include gestures like One, Two, Three, and others. However, the main challenge lies in the potential conflicts that may arise when `HandGestureRecognitionManager` supports a broader array of gestures simultaneously. For instance, distinguishing between gestures like Pinched and Four can be particularly difficult. This area calls for further research and development to improve accuracy and ensure that the system can robustly recognize a wider variety of gestures without confusion.
+
+### Enhancing Low Latency Tracking
