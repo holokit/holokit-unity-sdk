@@ -28,7 +28,7 @@ The [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/
 
 <img width="1050" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/f6807def-4a59-4155-8f82-eee438e7d76b">
 
-## How HoloKit Unity SDK Works
+## How The SDK Works
 
 The HoloKit Unity SDK primarily focuses on two functionalities: stereoscopic rendering and hand pose detection. This section delves into the intricacies of these systems.
 
@@ -88,7 +88,11 @@ The `Runtime/iOS/NativeCode` folder houses all the native Objective-C code for t
 
 See [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking) for detailed explanation.
 
-## How To Change The SDK
+## How To Work With The SDK
+
+This SDK, being a Unity package, requires a carrier Unity project for development and testing. If you want to contribute or modify the SDK, start by cloning [the carrier project](https://github.com/holoi/holokit-unity-sdk-project). This repository includes the SDK as a git submodule. Within the carrier project, the SDK is integrated as a local folder, allowing for direct modifications and testing.
+
+In the `Assets/Samples` folder of the carrier project, you'll find multiple SDK samples. To update existing samples or create new ones, simply copy the desired sample folder into the SDK's `Samples~` folder. After making changes or additions, don't forget to update the `package.json` file in the SDK to reflect these modifications. This process ensures that your contributions are properly integrated and accessible within the SDK structure.
 
 ## Potential Future Improvements
 
