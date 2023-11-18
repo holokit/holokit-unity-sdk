@@ -1,13 +1,23 @@
+// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-License-Identifier: MIT
+
 using System;
 using UnityEngine;
 
 namespace HoloInteractive.XR.HoloKit
 {
+    /// <summary>
+    /// You can add new HoloKit model here.
+    /// </summary>
     public enum HoloKitGeneration
     {
         HoloKitX = 0
     }
 
+    /// <summary>
+    /// The HoloKit model specs needed for rendering parameter calculation.
+    /// </summary>
     [Serializable]
     public struct HoloKitModelSpecs
     {
@@ -29,12 +39,6 @@ namespace HoloInteractive.XR.HoloKit
         // Eye view area spillter width
         public float ViewportBottom;
 
-        // Fresnel lens focal length
-        //public float FocalLength;
-
-        // Screen To Fresnel distance
-        //public float ScreenToLens;
-
         // Fresnel To eye distance
         public float LensToEye;
 
@@ -45,6 +49,9 @@ namespace HoloInteractive.XR.HoloKit
         public float AlignmentMarkerOffset;
     }
 
+    /// <summary>
+    /// The phone model specs needed for rendering parameter calculation.
+    /// </summary>
     [Serializable]
     public struct PhoneModelSpecs
     {
@@ -68,8 +75,10 @@ namespace HoloInteractive.XR.HoloKit
     [Serializable]
     public struct PhoneModel
     {
+        [Tooltip("Apple's identifier for each device.")]
         public string ModelName;
 
+        [Tooltip("Provides clarity for internal developers, supplementing the less descriptive Model Name")]
         public string Description;
 
         public PhoneModelSpecs ModelSpecs;
@@ -77,6 +86,11 @@ namespace HoloInteractive.XR.HoloKit
 
     public static class DeviceProfile
     {
+        /// <summary>
+        /// Get the hardware specs necessary for rendering parameter calculation for the given HoloKit model.
+        /// </summary>
+        /// <param name="generation">The HoloKit model generation</param>
+        /// <returns>The hardware specs of the given HoloKit model</returns>
         public static HoloKitModelSpecs GetHoloKitModelSpecs(HoloKitGeneration generation)
         {
             switch (generation)
@@ -98,8 +112,8 @@ namespace HoloInteractive.XR.HoloKit
                     };
             }
         }
-
-        // We use iPhone 13 Pro's specs as the default specs
+        
+        // We use iPhone 13 Pro's specs as the default specs for testing purpose.
         public static PhoneModel GetDefaultPhoneModel()
         {
             return new PhoneModel

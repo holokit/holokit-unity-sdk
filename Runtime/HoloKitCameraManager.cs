@@ -13,12 +13,18 @@ using UnityEngine.UI;
 
 namespace HoloInteractive.XR.HoloKit
 {
+    /// <summary>
+    /// Mono mode for ARFoundation screen AR and Stereo mode for HoloKit.
+    /// </summary>
     public enum ScreenRenderMode
     {
         Mono = 0,
         Stereo = 1
     }
 
+    /// <summary>
+    /// The list of supported screen orientations under Mono mode.
+    /// </summary>
     [Flags]
     public enum MonoScreenOrientation
     {
@@ -28,11 +34,21 @@ namespace HoloInteractive.XR.HoloKit
         LandscapeLeft = 8 // 001000
     }
 
+    /// <summary>
+    /// The core script of the SDK responsible for the rendering of the two viewports on the phone's screen.
+    /// </summary>
     [RequireComponent(typeof(LowLatencyTrackingManager))]
     public class HoloKitCameraManager : MonoBehaviour
     {
+        /// <summary>
+        /// The transform of the middle point between the user's eyes under Stereo mode.
+        /// The transform of the phone's camera under Mono mode.
+        /// </summary>
         public Transform CenterEyePose => m_CenterEyePose;
 
+        /// <summary>
+        /// Get and set the current screen render mode.
+        /// </summary>
         public ScreenRenderMode ScreenRenderMode
         {
             get => m_ScreenRenderMode;
@@ -43,18 +59,19 @@ namespace HoloInteractive.XR.HoloKit
 
                 if (value == ScreenRenderMode.Mono)
                 {
-                    GetComponent<ARCameraBackground>().enabled = true;
+                    GetComponent<ARCameraBackground>().enabled = true; // Turn on the ARCameraBackground
                     m_MonoCamera.enabled = true;
                     m_LeftEyeCamera.gameObject.SetActive(false);
                     m_RightEyeCamera.gameObject.SetActive(false);
                     m_BlackCamera.gameObject.SetActive(false);
-                    m_CenterEyePose.localPosition = Vector3.zero;
+                    m_CenterEyePose.localPosition = Vector3.zero; // Reset the CenterEyePose to the phone's camera position
                     m_ScreenRenderMode = ScreenRenderMode.Mono;
 
+                    // Deactivate the alignment marker UI
                     if (m_AlignmentMarkerCanvas)
                         m_AlignmentMarkerCanvas.SetActive(false);
 
-                    // Screen orientations
+                    // Re-enable supported screen orientations for Mono mode
                     Screen.orientation = ScreenOrientation.AutoRotation;
                     if ((m_SupportedMonoScreenOrientations & MonoScreenOrientation.Portrait) != 0)
                     {
@@ -81,14 +98,15 @@ namespace HoloInteractive.XR.HoloKit
                         return;
                     }
 
-                    GetComponent<ARCameraBackground>().enabled = false;
+                    GetComponent<ARCameraBackground>().enabled = false; // Turn off the ARCameraBackground
                     m_MonoCamera.enabled = false;
                     m_LeftEyeCamera.gameObject.SetActive(true);
                     m_RightEyeCamera.gameObject.SetActive(true);
                     m_BlackCamera.gameObject.SetActive(true);
-                    m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset;
+                    m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset; // Set the CenterEyePose to the middle point between the user's eyes
                     m_ScreenRenderMode = ScreenRenderMode.Stereo;
 
+                    // Activate the alignment marker UI
                     SpawnAlignmentMarker();
                 }
                 OnScreenRenderModeChanged?.Invoke(m_ScreenRenderMode);
@@ -106,25 +124,36 @@ namespace HoloInteractive.XR.HoloKit
             }
         }
 
+        /// <summary>
+        /// Invoked when the screen render mode changed.
+        /// </summary>
         public event Action<ScreenRenderMode> OnScreenRenderModeChanged;
 
+        [Tooltip("The ARCamera used in Mono mode.")]
         [SerializeField] Camera m_MonoCamera;
 
         [SerializeField] Transform m_CenterEyePose;
 
+        [Tooltip("The background camera in Stereo mode for rendering the black ground image behind the two viewports.")]
         [SerializeField] Camera m_BlackCamera;
 
+        [Tooltip("The camera rendering the left viewport in Stereo mode.")]
         [SerializeField] Camera m_LeftEyeCamera;
 
+        [Tooltip("The camera rendering the right viewport in Stereo mode.")]
         [SerializeField] Camera m_RightEyeCamera;
 
         [Header("Settings")]
+        [Tooltip("The Interpupillary distance value used to calculate the rendering parameters.")]
         [SerializeField] [Range(0.054f, 0.074f)] float m_Ipd = 0.064f;
 
+        [Tooltip("The far clip plane of two viewport cameras in Stereo mode.")]
         [SerializeField] float m_FarClipPlane = 50f;
 
+        [Tooltip("Whether to show the alignment marker UI in stereo mode?")]
         [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
 
+        [Tooltip("The list of supported screen orientations under Mono mode.")]
         [SerializeField] MonoScreenOrientation m_SupportedMonoScreenOrientations = MonoScreenOrientation.Portrait | MonoScreenOrientation.LandscapeLeft;
 
         [Header("Devices")]
@@ -134,6 +163,7 @@ namespace HoloInteractive.XR.HoloKit
 
         [SerializeField] PhoneModelList m_DefaultAndroidPhoneModelList;
 
+        [Tooltip("Developer's custom phone model list for officially unsupported devices.")]
         [SerializeField] PhoneModelList m_CustomAndroidPhoneModelList;
 
         PhoneModel m_PhoneModel;
@@ -175,11 +205,13 @@ namespace HoloInteractive.XR.HoloKit
 
             gameObject.name = "HoloKit Camera";
 
+            // Setup the CenterEyePose GameObject
             GameObject centerEyePoseGo = new();
             centerEyePoseGo.name = "Center Eye Pose";
             centerEyePoseGo.transform.SetParent(transform);
             m_CenterEyePose = centerEyePoseGo.transform;
 
+            // Setup the BlackCamera GameObject
             GameObject blackCameraGo = new();
             blackCameraGo.name = "Black Camera";
             blackCameraGo.transform.SetParent(centerEyePoseGo.transform);
@@ -189,6 +221,7 @@ namespace HoloInteractive.XR.HoloKit
             m_BlackCamera.cullingMask = 0;
             m_BlackCamera.depth = -1;
 
+            // Setup the LeftEyeCamera GameObject
             GameObject leftEyeCameraGo = new();
             leftEyeCameraGo.name = "Left Eye Camera";
             leftEyeCameraGo.transform.SetParent(centerEyePoseGo.transform);
@@ -196,6 +229,7 @@ namespace HoloInteractive.XR.HoloKit
             m_LeftEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_LeftEyeCamera.backgroundColor = Color.black;
 
+            // Setup the RightEyeCamera GameObject
             GameObject rightEyeCameraGo = new();
             rightEyeCameraGo.name = "Right Eye Camera";
             rightEyeCameraGo.transform.SetParent(centerEyePoseGo.transform);
@@ -203,7 +237,9 @@ namespace HoloInteractive.XR.HoloKit
             m_RightEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_RightEyeCamera.backgroundColor = Color.black;
 
+            // Load the iOS phone model list in the SDK
             m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
+            // Load the default Android phone model list in the SDK
             m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
 
             SetupCameraData();
@@ -230,6 +266,7 @@ namespace HoloInteractive.XR.HoloKit
         {
             if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
             {
+                // In Stereo mode, ensure the screen orientation is always LeftScapeLeft
                 if (Screen.orientation != ScreenOrientation.LandscapeLeft)
                 {
                     Screen.orientation = ScreenOrientation.LandscapeLeft;
@@ -238,14 +275,16 @@ namespace HoloInteractive.XR.HoloKit
                 // Set screen brightness to 1.0
                 if (Screen.brightness < 1.0f)
                 {
-                    // If we don't do this, the screen brightness cannot be set to 1.0
-                    // after we manually decrease the screen brightness
+                    // If we don't do this, the screen brightness cannot be directly set to 1.0.
                     Screen.brightness += 0.005f;
                     Screen.brightness = 1.0f;
                 }
             }
         }
 
+        /// <summary>
+        /// Setup the camera rendering data for Stereo mode based on the current HoloKit model and phone model.
+        /// </summary>
         private void SetupCameraData()
         {
             if (!DoesCurrentPhoneModelSupportStereoMode())
@@ -259,6 +298,11 @@ namespace HoloInteractive.XR.HoloKit
             SetupCameraData(holokitModelSpecs, m_PhoneModel.ModelSpecs);
         }
 
+        /// <summary>
+        /// Setup the camera rendering data for Stereo mode based on the given Holokit model and phone model.
+        /// </summary>
+        /// <param name="holokitModelSpecs">The given HoloKit model specs</param>
+        /// <param name="phoneModelSpecs">The given phone model specs</param>
         private void SetupCameraData(HoloKitModelSpecs holokitModelSpecs, PhoneModelSpecs phoneModelSpecs)
         {
             float screenDpi = phoneModelSpecs.ScreenDpi == 0f ? Screen.dpi : phoneModelSpecs.ScreenDpi;
@@ -336,6 +380,10 @@ namespace HoloInteractive.XR.HoloKit
                 m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset;
         }
 
+        /// <summary>
+        /// Check if the current phone model supports Stereo mode.
+        /// </summary>
+        /// <returns>True if the curent phone model supports Stereo mode</returns>
         private bool DoesCurrentPhoneModelSupportStereoMode()
         {
 #if UNITY_EDITOR
@@ -367,6 +415,10 @@ namespace HoloInteractive.XR.HoloKit
 #endif
         }
 
+        /// <summary>
+        /// Get the current phone model spces if the device is supported.
+        /// </summary>
+        /// <returns>The current phone model spces</returns>
         private PhoneModel GetCurrentPhoneModel()
         {
 #if UNITY_EDITOR
@@ -398,6 +450,9 @@ namespace HoloInteractive.XR.HoloKit
 #endif
         }
 
+        /// <summary>
+        /// Spawn the alignment marker UI at the appropriate position.
+        /// </summary>
         private void SpawnAlignmentMarker()
         {
             if (!m_ShowAlignmentMarkerInStereoMode)

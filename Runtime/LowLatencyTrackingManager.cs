@@ -12,14 +12,24 @@ using UnityEngine.InputSystem.XR;
 
 namespace HoloInteractive.XR.HoloKit
 {
+    /// <summary>
+    /// The script responsible for the low latency tracking feature, which communicates with
+    /// the native low latency tracking system and updates the camera pose accordingly.
+    /// </summary>
     public class LowLatencyTrackingManager : MonoBehaviour
     {
         TrackedPoseDriver m_TrackedPoseDriver;
 
+        /// <summary>
+        /// For ARFoundation version lower than 5.0.0
+        /// </summary>
         ARPoseDriver m_ARPoseDriver;
 
         InputDevice m_InputDevice;
 
+        /// <summary>
+        /// The native pointer of the native low latency tracking system instance.
+        /// </summary>
         IntPtr m_Ptr;
 
 #if UNITY_IOS && !UNITY_EDITOR
