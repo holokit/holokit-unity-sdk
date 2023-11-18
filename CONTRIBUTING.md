@@ -100,4 +100,6 @@ The inherent limitation of using Apple Vision's natively 2D hand pose detection 
 
 At present, our system recognizes only two hand gestures: Pinched and Five. Theoretically, it's feasible to expand this range to include gestures like One, Two, Three, and others. However, the main challenge lies in the potential conflicts that may arise when `HandGestureRecognitionManager` supports a broader array of gestures simultaneously. For instance, distinguishing between gestures like Pinched and Four can be particularly difficult. This area calls for further research and development to improve accuracy and ensure that the system can robustly recognize a wider variety of gestures without confusion.
 
-### Enhancing Low Latency Tracking
+### Advancing Low Latency Tracking Performance
+
+There is a continuous need for further optimization in our low latency tracking system. This involves refining the system's responsiveness and accuracy to minimize latency even further. For detailed information and specific areas of focus, please refer to the [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking).
