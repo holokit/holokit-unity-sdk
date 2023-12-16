@@ -1,8 +1,8 @@
 {
   "name": "com.holoi.xr.holokit",
   "displayName": "HoloKit Unity SDK",
-  "version": "0.3.12",
-  "unity": "2021.3",
+  "version": "0.4.0",
+  "unity": "2022.3",
   "description": "HoloKit is an Augmented Reality(AR) headset that transforms your iPhone into a powerful stereoscopic AR device. With the HoloKit Unity SDK, developers can create immersive AR experiences in Unity, which can be viewed with HoloKit headset.\n\nThe SDK currently provides three core features:\n\n- Stereoscopic Rendering\n- Hand Tracking\n- Hand Gesture Recognition\n\nStereoscopic rendering is the central feature of the SDK, allowing for the display of stereo images on the iPhone screen. By attaching your iPhone to the HoloKit, you can enjoy a captivating AR experience. Utilizing Apple Vision framework, the SDK detects user hand poses. Together with LiDAR depth sensor, it allows your iPhone to track the 3D positions of the user's hands. Furthermore, the SDK can recognize hand gestures such as pinching, serving as a trigger for specific operations in your project.\n\nHoloKit Unity SDK, built on the foundation of ARFoundation, is compatible with most ARFoundation features such as image tracking and plane detection. Upgrading your ARFoundation project to a stereoscopic AR project is straightforward with the HoloKit Unity SDK.",
   "keywords": [
     "holokit",
@@ -12,7 +12,7 @@
   ],
   "author": {
     "name": "Holo Interactive",
-    "email": "yuchen@holoi.com",
+    "email": "yuchenz27@outlook.com",
     "url": "https://holoi.com"
   },
   "dependencies": {
@@ -44,6 +44,21 @@
       "displayName": "3DoF Tracking",
       "description": "Provides a demonstration of the SDK's 3DoF tracking feature for internal testing",
       "path": "Samples~/3DoFTracking"
+    },
+    {
+      "displayName": "Gaze Interaction",
+      "description": "Provides a demonstration of using gaze to interact with UI elements in the scene",
+      "path": "Samples~/GazeInteraction"
+    },
+    {
+      "displayName": "Gaze Gesture Interaction",
+      "description": "Provides a demonstration of using gaze and hand gesture to interact with objects in the scene",
+      "path": "Samples~/GazeGestureInteraction"
+    },
+    {
+      "displayName": "Glowing Orbs",
+      "description": "Provides a demonstration of using hand tracking and hand gesture recognition at the same time to spawn glowing orbs",
+      "path": "Samples~/GlowingOrbs"
     }
   ]
 }
