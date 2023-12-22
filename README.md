@@ -173,4 +173,4 @@ You can use hand tracking and hand gesture recognition at the same time, simply 
 
 ## Community and Feedback
 
-If you encounter any issues, have queries, suggestions, or discover any bugs, we welcome you to join our [Discord](https://discord.gg/dkah5sWR) community or submit an issue. Your feedback is invaluable as we continually strive to update and improve the HoloKit Unity SDK.
+If you encounter any issues, have queries, suggestions, or discover any bugs, we welcome you to join our [Discord](https://discord.gg/9Stseyje) community or submit an issue. Your feedback is invaluable as we continually strive to update and improve the HoloKit Unity SDK.
