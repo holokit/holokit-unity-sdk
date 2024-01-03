@@ -89,9 +89,9 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 <img width="600" alt="Enable Google ARCore" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/daccfe62-c90e-4ed3-8fcc-218bcae59a31">
 
-## Samples
+## Core Samples
 
-The SDK package offers samples for each key feature. Import these samples into your project and deploy them to mobile devices for a quick overview of each feature. These samples can also be used as templates for your projects.
+The SDK package offers a samples for each of the three key features: stereoscopic rendering, hand tracking, and hand gesture recognition. Import these samples into your project and deploy them to mobile devices for a quick overview of each feature. These samples can also be used as templates for your projects.
 
 ### Stereoscopic Rendering
 
@@ -194,6 +194,16 @@ The default canvas also has a button for controlling video recording.
 <img width="374" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/6daa7737-49e6-4403-9f95-a1eedd88506d">
 
 After setting up the `AR Session`, `HoloKit XROrigin`, and UI components, you can add any 3D object to the scene, such as a cube. When you build your project onto an iPhone, you'll be able to view your object in both screen AR mode and stereoscopic rendering mode with a HoloKit headset.
+
+## Advanced Features
+
+### Reset World Origin
+
+The SDK enables resetting the ARKit `ARSession` world origin to a specified position and rotation. Import the `Reset World Origin` package sample for how to use this feature in code.
+
+### AR Background Video Enhancement
+
+
 
 ## Community and Feedback
 
