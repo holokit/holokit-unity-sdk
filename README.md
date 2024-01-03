@@ -10,6 +10,8 @@ The SDK currently provides three core features:
 
 Stereoscopic rendering is the central feature of the SDK, allowing for the display of stereo images on the iPhone screen. By attaching your iPhone to the HoloKit, you can enjoy a captivating AR experience. Utilizing [Apple Vision framework](https://developer.apple.com/documentation/vision?language=objc), the SDK detects user hand poses. Together with LiDAR depth sensor, it allows your iPhone to track the 3D positions of the user's hands. Furthermore, the SDK can recognize hand gestures such as pinching, serving as a trigger for specific operations in your project.
 
+The SDK offers a built-in video recording feature which allows the user to record videos under both screen AR mode and stereoscopic mode.
+
 HoloKit Unity SDK, built on the foundation of ARFoundation, is compatible with most ARFoundation features such as image tracking and plane detection. Upgrading your ARFoundation project to a stereoscopic AR project is straightforward with the HoloKit Unity SDK.
 
 ## How to Install
@@ -51,9 +53,7 @@ HoloKit currently only supports a limited number of Android phones. Please see t
 
 If your Android phone is not supported, we also provide a calibration method to let you figure out the specs of your Android phone yourself. You can then enter your Android phone specs to the SDK to have your device rendering stereo images. Please see [Phone Calibration Guide](Phone_Calibration_Guide.md), which is a step-by-step guide on how to figure out the specs of your phone model.
 
-## How to Use HoloKit Unity SDK
-
-### Project Settings
+## Project Environment Setup
 
 Before using the HoloKit Unity SDK, ensure to adjust the project settings to meet ARFoundation's requirements. If you are already comfortable with ARFoundation, feel free to skip this section.
 
@@ -61,7 +61,7 @@ Upon successfully installation of the SDK package, the ARFoundation package will
 
 For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Android-targeted projects, the `Google ARCore XR Plugin` is required.
 
-#### iOS Project Settings
+### iOS Project Settings
 
 1. **Set Camera and Microphone Usage Descriptions**: Navigate to `Project Settings > Player > Other Settings > Configuration` and provide a user-friendly text for `Camera Usage Description` and `Microphone usage description`. The `Camera Usage Description` will pop up when the iPhone requests access to the camera. The `Microphone usage description` is required because the video recording feature of the SDK will access the microphone to record audio.
 
@@ -71,7 +71,7 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 <img width="600" alt="Enable Apple ARKit" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/ab5f3554-9530-464d-a336-12957a857192">
 
-#### Android Project Settings
+### Android Project Settings
 
 1. **Disable Auto Graphics API**: Navigate to `Project Settings > Player > Other Settings > Rendering` and disable `Auto Graphics API`. In the `Graphics APIs` list, remove `Vulkan` and ensure only `OpenGLES3` is listed.
 
@@ -89,11 +89,11 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 <img width="600" alt="Enable Google ARCore" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/daccfe62-c90e-4ed3-8fcc-218bcae59a31">
 
-### Samples
+## Samples
 
 The SDK package offers samples for each key feature. Import these samples into your project and deploy them to mobile devices for a quick overview of each feature. These samples can also be used as templates for your projects.
 
-#### Stereoscopic Rendering
+### Stereoscopic Rendering
 
 Stereoscopic rendering is the core feature of the SDK, your app needs to display stereo images on the phone screen so that it can be viewed with the HoloKit headset.
 
@@ -122,7 +122,7 @@ public void SwitchRenderMode()
 
 When the stereo mode is activated, the SDK spawns an alignment marker UI on the screen's upper right corner, enabling you to align your phone accurately once attached to the HoloKit headset.
 
-#### Hand Tracking
+### Hand Tracking
 
 The SDK tracks the user's hand, providing the 3D positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
 
@@ -170,6 +170,30 @@ private void OnHandGestureChanged(HandGesture handGesture)
 Please note, the hand gesture recognition feature is only available on iOS 14.0 or higher devices.
 
 You can use hand tracking and hand gesture recognition at the same time, simply add both `HandTrackingManager` and `HandGestureRecognitionManager` components to your scene.
+
+## Quick Scene Setup
+
+HoloKit Unity SDK is based on ARFoundation. For a minimal ARFoundation scene requires two primary objects: an `AR Session` object and an `XR Origin` object with the Main Camera Object as its child.
+
+<img width="377" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/feeb658f-ec65-4461-bf5a-e42fc423cafa">
+
+To enable stereoscopic rendering, we need to upgrade the default Main Camera to a HoloKit Camera. To create an `XR Origin` with a HoloKit Camera as its child, right-click in the Unity Editor and select `XR/HoloKit/HoloKit XR Origin` to create a `HoloKit XR Origin`.
+
+<img width="660" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/ad56a592-147f-4969-9942-d3445bf038f6">
+
+The `HoloKit XR Orign` object includes a HoloKit Camera capable of both screen AR and stereoscopic rendering.
+
+<img width="377" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/9ca668c8-729e-4bde-8dda-8f83410411da">
+
+To switch between the rendering modes, a UI button is necessary. To create a default UI panel which includes this mode-switching button, right-click and navigate to `UI/HoloKit/HoloKit Default UI Canvas`.
+
+<img width="690" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/d3c5a561-43c2-48b4-9f24-cbb770b3e773">
+
+The default canvas also has a button for controlling video recording.
+
+<img width="374" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/6daa7737-49e6-4403-9f95-a1eedd88506d">
+
+After setting up the `AR Session`, `HoloKit XROrigin`, and UI components, you can add any 3D object to the scene, such as a cube. When you build your project onto an iPhone, you'll be able to view your object in both screen AR mode and stereoscopic rendering mode with a HoloKit headset.
 
 ## Community and Feedback
 
