@@ -63,9 +63,9 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 #### iOS Project Settings
 
-1. **Set Camera Usage Description**: Navigate to `Project Settings > Player > Other Settings > Configuration` and provide a user-friendly text for `Camera Usage Description`. This message will be displayed when the iPhone requests access to the camera.
+1. **Set Camera and Microphone Usage Descriptions**: Navigate to `Project Settings > Player > Other Settings > Configuration` and provide a user-friendly text for `Camera Usage Description` and `Microphone usage description`. The `Camera Usage Description` will pop up when the iPhone requests access to the camera. The `Microphone usage description` is required because the video recording feature of the SDK will access the microphone to record audio.
 
-<img width="500" alt="Set Camera Usage Description" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/c81d6b6f-91ef-419e-bc62-080312f19a4d">
+<img width="722" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/848a1bf3-b877-48a0-8430-92d2d448c7a5">
 
 2. **Enable Apple ARKit**: Under `Project Settings > XR Plug-in Management > Plug-in Providers`, enable the `Apple ARKit` option.
 
@@ -93,7 +93,7 @@ For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Andr
 
 The SDK package offers samples for each key feature. Import these samples into your project and deploy them to mobile devices for a quick overview of each feature. These samples can also be used as templates for your projects.
 
-### Stereoscopic Rendering
+#### Stereoscopic Rendering
 
 Stereoscopic rendering is the core feature of the SDK, your app needs to display stereo images on the phone screen so that it can be viewed with the HoloKit headset.
 
@@ -122,7 +122,7 @@ public void SwitchRenderMode()
 
 When the stereo mode is activated, the SDK spawns an alignment marker UI on the screen's upper right corner, enabling you to align your phone accurately once attached to the HoloKit headset.
 
-### Hand Tracking
+#### Hand Tracking
 
 The SDK tracks the user's hand, providing the 3D positions of the [21 hand joints](https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc) of each hand.
 
