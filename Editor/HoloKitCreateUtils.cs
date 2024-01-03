@@ -72,6 +72,7 @@ namespace HoloInteractive.XR.HoloKit.Editor
             camera.backgroundColor = Color.black;
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 20f;
+            camera.depth = -2f;
 
             var trackedPoseDriver = cameraGo.GetComponent<TrackedPoseDriver>();
 
@@ -105,41 +106,80 @@ namespace HoloInteractive.XR.HoloKit.Editor
             _ = canvasGo.AddComponent<GraphicRaycaster>();
             var defaultUICanavs = canvasGo.AddComponent<UI.HoloKitDefaultUICanvas>();
 
-            var buttonGo = ObjectFactory.CreateGameObject("Switch Render Mode Button", typeof(RectTransform));
-            CreateUtils.Place(buttonGo, canvasGo.transform);
-            var buttonRectTransform = buttonGo.GetComponent<RectTransform>();
-            buttonRectTransform.anchorMin = new(1f, 1f);
-            buttonRectTransform.anchorMax = new(1f, 1f);
-            buttonRectTransform.anchoredPosition = new(-100f, -40f);
-            buttonRectTransform.sizeDelta = new(200f, 100f);
-            buttonRectTransform.pivot = new(1f, 1f);
-            _ = buttonGo.AddComponent<CanvasRenderer>();
-            var buttonImage = buttonGo.AddComponent<Image>();
-            buttonImage.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            buttonImage.type = Image.Type.Sliced;
-            var button = buttonGo.AddComponent<Button>();
+            // Render mode button
+            var renderModeButtonGo = ObjectFactory.CreateGameObject("Switch Render Mode Button", typeof(RectTransform));
+            CreateUtils.Place(renderModeButtonGo, canvasGo.transform);
+            var renderModeButtonRectTransform = renderModeButtonGo.GetComponent<RectTransform>();
+            renderModeButtonRectTransform.anchorMin = new(1f, 1f);
+            renderModeButtonRectTransform.anchorMax = new(1f, 1f);
+            renderModeButtonRectTransform.anchoredPosition = new(-100f, -40f);
+            renderModeButtonRectTransform.sizeDelta = new(200f, 100f);
+            renderModeButtonRectTransform.pivot = new(1f, 1f);
+            _ = renderModeButtonGo.AddComponent<CanvasRenderer>();
+            var renderModeButtonImage = renderModeButtonGo.AddComponent<Image>();
+            renderModeButtonImage.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            renderModeButtonImage.type = Image.Type.Sliced;
+            var renderModeButton = renderModeButtonGo.AddComponent<Button>();
             //button.onClick.AddListener(defaultUICanavs.SwitchRenderMode);
-            SerializedObject serializedButton = new SerializedObject(button);
-            SerializedProperty onClickProp = serializedButton.FindProperty("m_OnClick");
-            int numListeners = onClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").arraySize;
-            onClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").InsertArrayElementAtIndex(numListeners);
-            SerializedProperty addedElement = onClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").GetArrayElementAtIndex(numListeners);
-            addedElement.FindPropertyRelative("m_Target").objectReferenceValue = defaultUICanavs;
-            addedElement.FindPropertyRelative("m_MethodName").stringValue = "SwitchRenderMode";
+            SerializedObject renderModeSerializedButton = new SerializedObject(renderModeButton);
+            SerializedProperty renderModeOnClickProp = renderModeSerializedButton.FindProperty("m_OnClick");
+            int renderModeNumListeners = renderModeOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").arraySize;
+            renderModeOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").InsertArrayElementAtIndex(renderModeNumListeners);
+            SerializedProperty renderModeAddedElement = renderModeOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").GetArrayElementAtIndex(renderModeNumListeners);
+            renderModeAddedElement.FindPropertyRelative("m_Target").objectReferenceValue = defaultUICanavs;
+            renderModeAddedElement.FindPropertyRelative("m_MethodName").stringValue = "SwitchRenderMode";
             //addedElement.FindPropertyRelative("m_Mode").enumValueIndex = 1;
-            addedElement.FindPropertyRelative("m_CallState").enumValueIndex = 2;
-            serializedButton.ApplyModifiedProperties();
+            renderModeAddedElement.FindPropertyRelative("m_CallState").enumValueIndex = 2;
+            renderModeSerializedButton.ApplyModifiedProperties();
 
-            var buttonTextGo = ObjectFactory.CreateGameObject("Text (Legacy)", typeof(RectTransform));
-            CreateUtils.Place(buttonTextGo, buttonGo.transform);
-            _ = buttonTextGo.AddComponent<CanvasRenderer>();
-            var buttonText = buttonTextGo.AddComponent<Text>();
-            buttonText.text = "Stereo";
-            buttonText.fontStyle = FontStyle.Bold;
-            buttonText.fontSize = 36;
-            buttonText.alignment = TextAnchor.MiddleCenter;
-            buttonText.color = Color.black;
-            defaultUICanavs.ButtonText = buttonText;
+            var renderModeButtonTextGo = ObjectFactory.CreateGameObject("Text (Legacy)", typeof(RectTransform));
+            CreateUtils.Place(renderModeButtonTextGo, renderModeButtonGo.transform);
+            _ = renderModeButtonTextGo.AddComponent<CanvasRenderer>();
+            var renderModeButtonText = renderModeButtonTextGo.AddComponent<Text>();
+            renderModeButtonText.text = "Stereo";
+            renderModeButtonText.fontStyle = FontStyle.Bold;
+            renderModeButtonText.fontSize = 36;
+            renderModeButtonText.alignment = TextAnchor.MiddleCenter;
+            renderModeButtonText.color = Color.black;
+            defaultUICanavs.RenderModeButtonText = renderModeButtonText;
+
+#if UNITY_IOS
+            // Record button
+            var recordButtonGo = ObjectFactory.CreateGameObject("Record Button", typeof(RectTransform));
+            CreateUtils.Place(recordButtonGo, canvasGo.transform);
+            var recordButtonRectTransform = recordButtonGo.GetComponent<RectTransform>();
+            recordButtonRectTransform.anchorMin = new(0f, 1f);
+            recordButtonRectTransform.anchorMax = new(0f, 1f);
+            recordButtonRectTransform.anchoredPosition = new(100f, -40f);
+            recordButtonRectTransform.sizeDelta = new(300f, 100f);
+            recordButtonRectTransform.pivot = new(0f, 1f);
+            _ = recordButtonGo.AddComponent<CanvasRenderer>();
+            var recordButtonImage = recordButtonGo.AddComponent<Image>();
+            recordButtonImage.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            recordButtonImage.type = Image.Type.Sliced;
+            var recordButton = recordButtonGo.AddComponent<Button>();
+            SerializedObject recordSerializedButton = new SerializedObject(recordButton);
+            SerializedProperty recordOnClickProp = recordSerializedButton.FindProperty("m_OnClick");
+            int recordNumListeners = recordOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").arraySize;
+            recordOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").InsertArrayElementAtIndex(recordNumListeners);
+            SerializedProperty recordAddedElement = recordOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").GetArrayElementAtIndex(recordNumListeners);
+            recordAddedElement.FindPropertyRelative("m_Target").objectReferenceValue = defaultUICanavs;
+            recordAddedElement.FindPropertyRelative("m_MethodName").stringValue = "ToggleRecording";
+            //addedElement.FindPropertyRelative("m_Mode").enumValueIndex = 1;
+            recordAddedElement.FindPropertyRelative("m_CallState").enumValueIndex = 2;
+            recordSerializedButton.ApplyModifiedProperties();
+
+            var recordButtonTextGo = ObjectFactory.CreateGameObject("Text (Legacy)", typeof(RectTransform));
+            CreateUtils.Place(recordButtonTextGo, recordButtonGo.transform);
+            _ = recordButtonTextGo.AddComponent<CanvasRenderer>();
+            var recordButtonText = recordButtonTextGo.AddComponent<Text>();
+            recordButtonText.text = "Start Recording";
+            recordButtonText.fontStyle = FontStyle.Bold;
+            recordButtonText.fontSize = 36;
+            recordButtonText.alignment = TextAnchor.MiddleCenter;
+            recordButtonText.color = Color.black;
+            defaultUICanavs.RecordButtonText = recordButtonText;
+#endif
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "Create HoloKit Default UI Canvas");
 

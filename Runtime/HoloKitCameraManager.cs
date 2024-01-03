@@ -38,6 +38,7 @@ namespace HoloInteractive.XR.HoloKit
     /// The core script of the SDK responsible for the rendering of the two viewports on the phone's screen.
     /// </summary>
     [RequireComponent(typeof(LowLatencyTrackingManager))]
+    [RequireComponent(typeof(iOS.HoloKitVideoRecorder))]
     public class HoloKitCameraManager : MonoBehaviour
     {
         /// <summary>
