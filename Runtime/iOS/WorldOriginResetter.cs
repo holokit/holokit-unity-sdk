@@ -9,6 +9,15 @@ namespace HoloInteractive.XR.HoloKit.iOS
 {
     public class WorldOriginResetter : MonoBehaviour
     {
+        private void Start()
+        {
+            if (HoloKitARKitManager.Instance == null)
+            {
+                Debug.LogWarning("[ARBackgroundVideoEnhancementManager] Failed to find HoloKitARKitManager instance in the scene.");
+                return;
+            }
+        }
+
         public void ResetWorldOrigin(Vector3 position, Quaternion rotation)
         {
             HoloKitARKitManager.Instance.ARKitNativeProvider.ResetWorldOrigin(position, rotation);

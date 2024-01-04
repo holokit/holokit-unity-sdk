@@ -35,7 +35,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
         {
             if (HoloKitARKitManager.Instance == null)
             {
-                Debug.Log("[ARBackgroundVideoEnhancementManager] Failed to find HoloKitARKitManager instance in the scene.");
+                Debug.LogWarning("[ARBackgroundVideoEnhancementManager] Failed to find HoloKitARKitManager instance in the scene.");
                 return;
             }
 
