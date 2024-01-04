@@ -199,11 +199,13 @@ After setting up the `AR Session`, `HoloKit XROrigin`, and UI components, you ca
 
 ### Reset World Origin
 
-The SDK enables resetting the ARKit `ARSession`'s world origin to a specified position and rotation by using the `WorldOriginResetter` script. Import the `Reset World Origin` package sample for how to use this feature.
+The SDK enables resetting the ARKit `ARSession`'s world origin to a specified position and rotation by using the `WorldOriginResetter` script. Please notice that there must be a `HoloKitARKitManager` component in the scene, which is used by the `WorldOriginResetter` script.
+
+Import the `Reset World Origin` package sample for how to use this feature.
 
 ### AR Background Video Enhancement
 
-The 4K HDR (High Dynamic Range) AR background video is a feature of ARKit 6, available on iOS 16 and later. This enhancement improves the quality of ARBackground video, leading to better video recording quality. To enable the 4K HDR option, use the `ARBackgroundVideoEnhancementManager` component.
+The 4K HDR (High Dynamic Range) AR background video is a feature of ARKit 6, available on iOS 16 and later. This enhancement improves the quality of ARBackground video, leading to better video recording quality. To enable the 4K HDR option, use the `ARBackgroundVideoEnhancementManager` component. Please notice that there must be a `HoloKitARKitManager` component in the scene, which is used by the `ARBackgroundVideoEnhancementManager` script.
 
 <img width="675" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/24c9274f-d30c-47e3-acb3-10b7d0bce816">
 
