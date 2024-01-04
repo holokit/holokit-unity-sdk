@@ -16,7 +16,7 @@ namespace HoloInteractive.XR.HoloKit.Editor
 {
     static class HoloKitCreateUtils
     {
-        [MenuItem("GameObject/XR/HoloKit/XR Origin")]
+        [MenuItem("GameObject/XR/HoloKit/HoloKit XR Origin")]
         static void CreateHoloKitXROrigin(MenuCommand menuCommand)
         {
             var context = menuCommand.context as GameObject;
@@ -86,7 +86,7 @@ namespace HoloInteractive.XR.HoloKit.Editor
             return camera;
         }
 
-        [MenuItem("GameObject/UI/HoloKit/Default UI Canvas")]
+        [MenuItem("GameObject/UI/HoloKit/HoloKit Default UI Canvas")]
         static void CreateHoloKitDefaultUICanvas(MenuCommand menuCommand)
         {
             var context = menuCommand.context as GameObject;

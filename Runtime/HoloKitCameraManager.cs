@@ -210,6 +210,8 @@ namespace HoloInteractive.XR.HoloKit
             GameObject centerEyePoseGo = new();
             centerEyePoseGo.name = "Center Eye Pose";
             centerEyePoseGo.transform.SetParent(transform);
+            centerEyePoseGo.transform.localPosition = Vector3.zero;
+            centerEyePoseGo.transform.localRotation = Quaternion.identity;
             m_CenterEyePose = centerEyePoseGo.transform;
 
             // Setup the BlackCamera GameObject
