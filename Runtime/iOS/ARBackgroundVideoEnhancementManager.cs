@@ -18,7 +18,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             {
                 if (value != m_IsEnabled)
                 {
-                    m_ARKitNativeProvider.SetVideoEnhancement(value);
+                    HoloKitARKitManager.Instance.ARKitNativeProvider.SetVideoEnhancement(value);
                     m_IsEnabled = value;
                 }
             }
@@ -29,22 +29,19 @@ namespace HoloInteractive.XR.HoloKit.iOS
         [Tooltip("Whether to disable video enhancement in stereo mode to save energy.")]
         [SerializeField] private bool m_DisableVideoEnhancementInStereoMode = true;
 
-        private HoloKitARKitNativeProvider m_ARKitNativeProvider;
-
         private bool m_FirstFrame = true;
 
         private void Start()
         {
-            m_ARKitNativeProvider = new();
+            if (HoloKitARKitManager.Instance == null)
+            {
+                Debug.Log("[ARBackgroundVideoEnhancementManager] Failed to find HoloKitARKitManager instance in the scene.");
+                return;
+            }
 
             var holokitCameraManager = FindFirstObjectByType<HoloKitCameraManager>();
             holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
             holokitCameraManager.GetComponent<ARCameraManager>().frameReceived += OnFrameReceived;
-        }
-
-        private void OnDestroy()
-        {
-            m_ARKitNativeProvider.Dispose();
         }
 
         private void OnFrameReceived(ARCameraFrameEventArgs obj)
@@ -52,7 +49,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             if (m_FirstFrame)
             {
                 m_FirstFrame = false;
-                m_ARKitNativeProvider.SetVideoEnhancement(m_IsEnabled);
+                HoloKitARKitManager.Instance.ARKitNativeProvider.SetVideoEnhancement(m_IsEnabled);
             }
         }
 
@@ -60,11 +57,11 @@ namespace HoloInteractive.XR.HoloKit.iOS
         {
             if (renderMode == ScreenRenderMode.Mono)
             {
-                m_ARKitNativeProvider.SetVideoEnhancement(m_IsEnabled);
+                HoloKitARKitManager.Instance.ARKitNativeProvider.SetVideoEnhancement(m_IsEnabled);
             }
             else
             {
-                m_ARKitNativeProvider.SetVideoEnhancement(!m_DisableVideoEnhancementInStereoMode);
+                HoloKitARKitManager.Instance.ARKitNativeProvider.SetVideoEnhancement(!m_DisableVideoEnhancementInStereoMode);
             }
         }
     }

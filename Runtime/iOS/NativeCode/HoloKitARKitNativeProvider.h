@@ -11,9 +11,13 @@ typedef struct UnityXRNativeSession
     void* sessionPtr;
 } UnityXRNativeSession;
 
+typedef void (*OnARSessionUpdatedFrame)(void * _Nonnull, double, const float *);
+
 @interface HoloKitARKitNativeProvider : NSObject
 
 @property (nonatomic, strong, nullable) ARSession *session;
+@property (nonatomic, weak, nullable) id<ARSessionDelegate> unityARSessionDelegate;
+@property (nonatomic, assign, nullable) OnARSessionUpdatedFrame onARSessionUpdatedFrame;
 
 + (simd_float4x4)getSimdFloat4x4WithPosition:(float [3])position rotation:(float [4])rotation;
 

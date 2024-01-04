@@ -1082,6 +1082,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 996747701}
+  - component: {fileID: 996747703}
   - component: {fileID: 996747702}
   m_Layer: 0
   m_Name: WorldOriginResetter
@@ -1115,6 +1116,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4dca0714d0b554e8c8254fe188658f73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &996747703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996747699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4509cdc0e71f45998cecc9a8576b59a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1405260579

@@ -9,15 +9,36 @@ void* HoloInteractiveHoloKit_HoloKitARKitNativeProvider_init() {
     return (__bridge_retained void *)provider;
 }
 
-void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_setARSessionPtr(void *self, UnityXRNativeSession *nativeARSessionPtr) {
+void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_registerCallbacks(void *self,
+                                                                         OnARSessionUpdatedFrame onARSessionUpdatedFrame) {
+    HoloKitARKitNativeProvider *provider = (__bridge HoloKitARKitNativeProvider *)self;
+    [provider setOnARSessionUpdatedFrame:onARSessionUpdatedFrame];
+}
+
+void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_interceptUnityARSessionDelegate(void *self, UnityXRNativeSession *nativeARSessionPtr) {
     if (nativeARSessionPtr == NULL) {
-        NSLog(@"[HoloKitARKitNativeProvider] nativeARSessionPtr is NULL");
         return;
     }
     
     HoloKitARKitNativeProvider *provider = (__bridge HoloKitARKitNativeProvider *)self;
     ARSession *session = (__bridge ARSession *)nativeARSessionPtr->sessionPtr;
+    [provider setUnityARSessionDelegate:session.delegate];
     [provider setSession:session];
+    if (session.delegate != provider) {
+        [session setDelegate:provider];
+    }
+}
+
+void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_restoreUnityARSessionDelegate(void *self, UnityXRNativeSession *nativeARSessionPtr) {
+    if (nativeARSessionPtr == NULL) {
+        return;
+    }
+    
+    HoloKitARKitNativeProvider *provider = (__bridge HoloKitARKitNativeProvider *)self;
+    ARSession *session = (__bridge ARSession *)nativeARSessionPtr->sessionPtr;
+    if (session.delegate == provider) {
+        [session setDelegate:provider.unityARSessionDelegate];
+    }
 }
 
 void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_resetOrigin(void *self, float position[3], float rotation[4]) {
