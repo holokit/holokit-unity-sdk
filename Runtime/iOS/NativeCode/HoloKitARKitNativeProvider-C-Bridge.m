@@ -9,6 +9,18 @@ void* HoloInteractiveHoloKit_HoloKitARKitNativeProvider_init() {
     return (__bridge_retained void *)provider;
 }
 
+void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_setARSessionPtr(void *self, UnityXRNativeSession *nativeARSessionPtr) {
+    if (nativeARSessionPtr == NULL) {
+        NSLog(@"[HoloKitARKitNativeProvider] nativeARSessionPtr is NULL");
+        return;
+    }
+    
+    HoloKitARKitNativeProvider *provider = (__bridge HoloKitARKitNativeProvider *)self;
+    ARSession *session = (__bridge ARSession *)nativeARSessionPtr->sessionPtr;
+    [provider setSession:session];
+}
+
+
 void HoloInteractiveHoloKit_HoloKitARKitNativeProvider_registerCallbacks(void *self,
                                                                          OnARSessionUpdatedFrame onARSessionUpdatedFrame) {
     HoloKitARKitNativeProvider *provider = (__bridge HoloKitARKitNativeProvider *)self;

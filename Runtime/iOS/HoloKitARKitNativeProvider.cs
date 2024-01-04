@@ -15,6 +15,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
     {
         IntPtr m_Ptr;
 
+        private bool m_ARSessionDelegateIntercepted;
+
         static Dictionary<IntPtr, HoloKitARKitNativeProvider> s_Providers = new();
 
         public HoloKitARKitNativeProvider()
@@ -22,14 +24,20 @@ namespace HoloInteractive.XR.HoloKit.iOS
             m_Ptr = Init_Native();
             s_Providers[m_Ptr] = this;
             RegisterCallbacks();
-            InterceptUnityARSessionDelegate();
+
+            var xrSessionSubsystem = GetLoadedXRSessionSubsystem();
+            if (xrSessionSubsystem != null)
+            {
+                SetARSessionPtr_Native(m_Ptr, xrSessionSubsystem.nativePtr);
+            }
         }
 
         public void Dispose()
         {
             if (m_Ptr != IntPtr.Zero)
             {
-                RestoreUnityARSessionDelegate();
+                if (m_ARSessionDelegateIntercepted)
+                    RestoreUnityARSessionDelegate();
                 s_Providers.Remove(m_Ptr);
                 NativeApi.CFRelease(ref m_Ptr);
                 m_Ptr = IntPtr.Zero;
@@ -41,21 +49,23 @@ namespace HoloInteractive.XR.HoloKit.iOS
             RegisterCallbacks_Native(m_Ptr, OnARSessionUpdatedFrameDelegate);
         }
 
-        private void InterceptUnityARSessionDelegate()
+        public void InterceptUnityARSessionDelegate()
         {
             var xrSessionSubsystem = GetLoadedXRSessionSubsystem();
             if (xrSessionSubsystem != null)
             {
                 InterceptUnityARSessionDelegate_Native(m_Ptr, xrSessionSubsystem.nativePtr);
+                m_ARSessionDelegateIntercepted = true;
             }
         }
 
-        private void RestoreUnityARSessionDelegate()
+        public void RestoreUnityARSessionDelegate()
         {
             var xrSessionSubsystem = GetLoadedXRSessionSubsystem();
             if (xrSessionSubsystem != null)
             {
                 RestoreUnityARSessionDelegate_Native(m_Ptr, xrSessionSubsystem.nativePtr);
+                m_ARSessionDelegateIntercepted = false;
             }
         }
 
@@ -90,6 +100,9 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_init")]
         private static extern IntPtr Init_Native();
+
+        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_setARSessionPtr")]
+        private static extern IntPtr SetARSessionPtr_Native(IntPtr self, IntPtr sessionPtr);
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_registerCallbacks")]
         private static extern void RegisterCallbacks_Native(IntPtr self, Action<IntPtr, double, IntPtr> onARSessionUpdatedFrame);
