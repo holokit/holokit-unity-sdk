@@ -23,8 +23,8 @@ namespace HoloInteractive.XR.HoloKit.iOS
         {
             m_Ptr = Init_Native();
             s_Providers[m_Ptr] = this;
-            RegisterCallbacks();
 
+            RegisterCallbacks();
             var xrSessionSubsystem = GetLoadedXRSessionSubsystem();
             if (xrSessionSubsystem != null)
             {
@@ -38,6 +38,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             {
                 if (m_ARSessionDelegateIntercepted)
                     RestoreUnityARSessionDelegate();
+
                 s_Providers.Remove(m_Ptr);
                 NativeApi.CFRelease(ref m_Ptr);
                 m_Ptr = IntPtr.Zero;
