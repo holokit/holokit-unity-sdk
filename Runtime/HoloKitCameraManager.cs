@@ -37,10 +37,6 @@ namespace HoloInteractive.XR.HoloKit
     /// <summary>
     /// The core script of the SDK responsible for the rendering of the two viewports on the phone's screen.
     /// </summary>
-#if UNITY_IOS
-    [RequireComponent(typeof(LowLatencyTrackingManager))]
-    [RequireComponent(typeof(iOS.HoloKitVideoRecorder))]
-#endif
     public class HoloKitCameraManager : MonoBehaviour
     {
         /// <summary>
@@ -62,7 +58,7 @@ namespace HoloInteractive.XR.HoloKit
 
                 if (value == ScreenRenderMode.Mono)
                 {
-                    GetComponent<ARCameraBackground>().enabled = true; // Turn on the ARCameraBackground
+                    m_ARCameraBackground.enabled = true; // Turn on the ARCameraBackground
                     m_MonoCamera.enabled = true;
                     m_LeftEyeCamera.gameObject.SetActive(false);
                     m_RightEyeCamera.gameObject.SetActive(false);
@@ -101,7 +97,7 @@ namespace HoloInteractive.XR.HoloKit
                         return;
                     }
 
-                    GetComponent<ARCameraBackground>().enabled = false; // Turn off the ARCameraBackground
+                    m_ARCameraBackground.enabled = false; // Turn off the ARCameraBackground
                     m_MonoCamera.enabled = false;
                     m_LeftEyeCamera.gameObject.SetActive(true);
                     m_RightEyeCamera.gameObject.SetActive(true);
@@ -173,11 +169,13 @@ namespace HoloInteractive.XR.HoloKit
 
         ScreenRenderMode m_ScreenRenderMode = ScreenRenderMode.Mono;
 
+        ARCameraBackground m_ARCameraBackground;
+
         Vector3 m_CameraToCenterEyeOffset;
 
         GameObject m_AlignmentMarkerCanvas;
 
-        private List<ScreenOrientation> m_SupportedScreenOrientations;
+        List<ScreenOrientation> m_SupportedScreenOrientations;
 
         const float ALIGNMENT_MARKER_THICKNESS = 6f; // In pixels
 
@@ -203,23 +201,33 @@ namespace HoloInteractive.XR.HoloKit
             if (Application.isPlaying)
                 return;
 
-            if (transform.childCount > 0)
+            if (transform.childCount > 1)
                 return;
 
             gameObject.name = "HoloKit Camera";
 
+            // Setup the main camera reference
+            m_MonoCamera = GetComponentInChildren<Camera>();
+            m_MonoCamera.gameObject.AddComponent<iOS.HoloKitVideoRecorder>();
+
+            // Setup the StereoTrackedPose GameObject
+            GameObject stereoTrackedPoseGo = new();
+            stereoTrackedPoseGo.name = "Stereo Tracked Pose";
+            stereoTrackedPoseGo.transform.SetParent(transform);
+            stereoTrackedPoseGo.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
             // Setup the CenterEyePose GameObject
             GameObject centerEyePoseGo = new();
             centerEyePoseGo.name = "Center Eye Pose";
-            centerEyePoseGo.transform.SetParent(transform);
-            centerEyePoseGo.transform.localPosition = Vector3.zero;
-            centerEyePoseGo.transform.localRotation = Quaternion.identity;
+            centerEyePoseGo.transform.SetParent(stereoTrackedPoseGo.transform);
+            centerEyePoseGo.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             m_CenterEyePose = centerEyePoseGo.transform;
 
             // Setup the BlackCamera GameObject
             GameObject blackCameraGo = new();
             blackCameraGo.name = "Black Camera";
             blackCameraGo.transform.SetParent(centerEyePoseGo.transform);
+            blackCameraGo.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             m_BlackCamera = blackCameraGo.AddComponent<Camera>();
             m_BlackCamera.clearFlags = CameraClearFlags.SolidColor;
             m_BlackCamera.backgroundColor = Color.black;
@@ -249,10 +257,14 @@ namespace HoloInteractive.XR.HoloKit
 
             SetupCameraData();
 
-            m_MonoCamera = GetComponent<Camera>();
             m_BlackCamera.gameObject.SetActive(false);
             m_LeftEyeCamera.gameObject.SetActive(false);
             m_RightEyeCamera.gameObject.SetActive(false);
+
+            stereoTrackedPoseGo.AddComponent<LowLatencyTrackingManager>();
+
+            var xrOrigin = GetComponentInParent<Unity.XR.CoreUtils.XROrigin>();
+            xrOrigin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         }
 #endif
 
@@ -265,6 +277,7 @@ namespace HoloInteractive.XR.HoloKit
 
 #endif
             SetupCameraData();
+            m_ARCameraBackground = GetComponentInChildren<ARCameraBackground>();
         }
 
         private void Update()

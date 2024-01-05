@@ -18,13 +18,6 @@ namespace HoloInteractive.XR.HoloKit
     /// </summary>
     public class LowLatencyTrackingManager : MonoBehaviour
     {
-        TrackedPoseDriver m_TrackedPoseDriver;
-
-        /// <summary>
-        /// For ARFoundation version lower than 5.0.0
-        /// </summary>
-        ARPoseDriver m_ARPoseDriver;
-
         InputDevice m_InputDevice;
 
         /// <summary>
@@ -32,25 +25,16 @@ namespace HoloInteractive.XR.HoloKit
         /// </summary>
         IntPtr m_Ptr;
 
+        private ARCameraManager m_ARCameraManager;
+
 #if UNITY_IOS && !UNITY_EDITOR
         private void Start()
         {
-            var arCameraManager = GetComponent<ARCameraManager>();
-            if (arCameraManager == null)
+            m_ARCameraManager = FindFirstObjectByType<ARCameraManager>();
+            if (m_ARCameraManager == null)
             {
-                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find ARCameraManager");
+                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find ARCameraManager in the scene.");
                 return;
-            }
-
-            m_TrackedPoseDriver = GetComponent<TrackedPoseDriver>();
-            if (m_TrackedPoseDriver == null)
-            {
-                m_ARPoseDriver = GetComponent<ARPoseDriver>();
-                if (m_ARPoseDriver == null)
-                {
-                    Debug.LogWarning("[LowLatencyTrackingManager] Failed to find TrackedPoseDriver");
-                    return;
-                }
             }
 
             List<InputDevice> devices = new();
@@ -59,15 +43,19 @@ namespace HoloInteractive.XR.HoloKit
                 m_InputDevice = devices[0];
             if (m_InputDevice == null)
             {
-                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find InputDevice");
+                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find InputDevice.");
                 return;
             }
 
-            var holokitCameraManager = GetComponent<HoloKitCameraManager>();
-            holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
-            arCameraManager.frameReceived += OnFrameReceived;
+            var holoKitCameraManager = FindFirstObjectByType<HoloKitCameraManager>();
+            if (holoKitCameraManager == null)
+            {
+                Debug.LogWarning("[LowLatencyTrackingManager] Failed to find HoloKitCameraManager in the scene.");
+                return;
+            }
 
-            Application.onBeforeRender += OnBeforeRender;
+            holoKitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
+
             m_Ptr = Init();
             InitHeadTracker(m_Ptr);
             PauseHeadTracker(m_Ptr);
@@ -88,27 +76,20 @@ namespace HoloInteractive.XR.HoloKit
         {
             if (renderMode == ScreenRenderMode.Stereo)
             {
-                if (m_TrackedPoseDriver != null)
-                    m_TrackedPoseDriver.enabled = false;
-                else
-                    m_ARPoseDriver.enabled = false;
+                m_ARCameraManager.frameReceived += OnFrameReceived;
+                Application.onBeforeRender += OnBeforeRender;
                 ResumeHeadTracker(m_Ptr);
             }
             else
             {
-                if (m_TrackedPoseDriver != null)
-                    m_TrackedPoseDriver.enabled = true;
-                else
-                    m_ARPoseDriver.enabled = true;
+                m_ARCameraManager.frameReceived -= OnFrameReceived;
+                Application.onBeforeRender -= OnBeforeRender;
                 PauseHeadTracker(m_Ptr);
             }
         }
 
         private void OnFrameReceived(ARCameraFrameEventArgs args)
         {
-            if ((m_TrackedPoseDriver != null && m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && m_ARPoseDriver.enabled))
-                return;
-
             bool isPositionValid = m_InputDevice.TryGetFeatureValue(CommonUsages.centerEyePosition, out Vector3 position) || m_InputDevice.TryGetFeatureValue(CommonUsages.colorCameraPosition, out position);
             bool isRotationValid = m_InputDevice.TryGetFeatureValue(CommonUsages.centerEyeRotation, out Quaternion rotation) || m_InputDevice.TryGetFeatureValue(CommonUsages.colorCameraRotation, out rotation);
 
@@ -122,8 +103,7 @@ namespace HoloInteractive.XR.HoloKit
 
         private void OnBeforeRender()
         {
-            if ((m_TrackedPoseDriver != null && !m_TrackedPoseDriver.enabled) || (m_ARPoseDriver != null && !m_ARPoseDriver.enabled))
-                UpdateHeadTrackerPose();
+            UpdateHeadTrackerPose();
         }
 
         private void UpdateHeadTrackerPose()
@@ -135,8 +115,7 @@ namespace HoloInteractive.XR.HoloKit
             Vector3 position = new(positionArr[0], positionArr[1], positionArr[2]);
             Quaternion rotation = new(rotationArr[0], rotationArr[1], rotationArr[2], rotationArr[3]);
 
-            transform.position = position;
-            transform.rotation = rotation;
+            transform.SetPositionAndRotation(position, rotation);
         }
 
         [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_init")]

@@ -179,12 +179,6 @@ namespace HoloInteractive.XR.HoloKit.iOS
         #endregion
     }
 
-
-
-    [RequireComponent(typeof(ARCameraBackground))]
-    [RequireComponent(typeof(Camera))]
-    [RequireComponent(typeof(HoloKitCameraManager))]
-    [RequireComponent(typeof(ARCameraManager))]
     [DisallowMultipleComponent]
     public sealed class HoloKitVideoRecorder : MonoBehaviour
     {
@@ -224,7 +218,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
             _recordingCamera = GetComponent<Camera>();
             _audioListener = GetComponent<AudioListener>();
 
-            _holokitCameraManager = GetComponent<HoloKitCameraManager>();
+            _holokitCameraManager = GetComponentInParent<HoloKitCameraManager>();
             _holokitCameraManager.OnScreenRenderModeChanged += OnHoloKitRenderModeChanged;
 
             if (_recordMicrophone && Microphone.devices != null)

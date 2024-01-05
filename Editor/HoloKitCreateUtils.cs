@@ -33,14 +33,17 @@ namespace HoloInteractive.XR.HoloKit.Editor
             var offsetGo = ObjectFactory.CreateGameObject("Camera Offset");
             CreateUtils.Place(offsetGo, originGo.transform);
 
-            var arCamera = CreateARMainCamera();
-            CreateUtils.Place(arCamera.gameObject, offsetGo.transform);
+            var holokitCameraGo = ObjectFactory.CreateGameObject("HoloKit Camera");
+            CreateUtils.Place(holokitCameraGo, offsetGo.transform);
 
-            arCamera.gameObject.AddComponent<HoloKitCameraManager>();
+            var arCamera = CreateARMainCamera();
+            CreateUtils.Place(arCamera.gameObject, holokitCameraGo.transform);
 
             var origin = originGo.GetComponent<XROrigin>();
             origin.CameraFloorOffsetObject = offsetGo;
             origin.Camera = arCamera;
+
+            holokitCameraGo.AddComponent<HoloKitCameraManager>();
 
             Undo.RegisterCreatedObjectUndo(originGo, "Create HoloKit XR Origin");
             return origin;

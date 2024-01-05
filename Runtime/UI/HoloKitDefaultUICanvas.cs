@@ -26,7 +26,7 @@ namespace HoloInteractive.XR.HoloKit.UI
         {
             m_HoloKitCameraManager = FindObjectOfType<HoloKitCameraManager>();
 #if UNITY_IOS
-            m_VideoRecorder = m_HoloKitCameraManager.GetComponent<HoloKitVideoRecorder>();
+            m_VideoRecorder = m_HoloKitCameraManager.GetComponentInChildren<HoloKitVideoRecorder>();
 #endif
         }
 
