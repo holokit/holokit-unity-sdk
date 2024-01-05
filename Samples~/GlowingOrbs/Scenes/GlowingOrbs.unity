@@ -5287,6 +5287,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1931415272}
   - component: {fileID: 1931415273}
+  - component: {fileID: 1931415274}
   m_Layer: 0
   m_Name: HoloKit Camera
   m_TagString: Untagged
@@ -5336,6 +5337,23 @@ MonoBehaviour:
   m_iOSPhoneModelList: {fileID: 11400000, guid: 97e080f80a8ae49d78e255ae53b17e11, type: 2}
   m_DefaultAndroidPhoneModelList: {fileID: 11400000, guid: f192a44dbc7c041758df0ca7a4e8befe, type: 2}
   m_CustomAndroidPhoneModelList: {fileID: 0}
+--- !u!114 &1931415274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931415271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b15f82cc229284894964d2d30806969d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HumanSegmentationStencilMode: 0
+  m_HumanSegmentationDepthMode: 0
+  m_EnvironmentDepthMode: 1
+  m_EnvironmentDepthTemporalSmoothing: 0
+  m_OcclusionPreferenceMode: 0
 --- !u!1 &1952170822
 GameObject:
   m_ObjectHideFlags: 0
