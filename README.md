@@ -103,7 +103,7 @@ The SDK provides two rendering modes: mono and stereo. Mono mode renders the bac
 |:---:|:---:|
 | Mono rendering mode | Stereo rendering mode |
 
-To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. Instead of add a default ARFoundation `XR Origin` object, we add a `HoloKit XR Origin` object into the scene by right-clicking in Unity Editor's hierarchy window and selecting `XR/HoloKit/HoloKit XR Origin`. The `HoloKit XR Origin` contains a `HoloKit Camera` object with the `HoloKitCameraManager` script, which enables both mono and stereo rendering modes.
+To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. Instead of adding a default ARFoundation `XR Origin` object, we add a `HoloKit XR Origin` object into the scene by right-clicking in Unity Editor's hierarchy window and selecting `XR/HoloKit/HoloKit XR Origin`. The `HoloKit XR Origin` contains a `HoloKit Camera` object with the `HoloKitCameraManager` script, which enables both mono and stereo rendering modes.
 
 <img width="903" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a5d5a3d8-c600-405f-8743-a5266d024368">
 
@@ -132,7 +132,7 @@ To incorporate the hand tracking into your project, create an empty GameObject a
 
 `HandTrackingManager` requires depth information to calculate 3D hand positions, so add `AROcclusionManager` component to the `HoloKit Camera` GameObject and adjust its settings accordingly.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/1c1d0144-004f-4528-a1e9-61af5c7ad600" alt="Add AROcclusionManager" width="700"/>
+<img width="903" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/e38f3c36-a673-46ec-a41c-339572fc11a5">
 
 You can now build the project onto an iPhone to view the results.
 
