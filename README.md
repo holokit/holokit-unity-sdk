@@ -103,9 +103,9 @@ The SDK provides two rendering modes: mono and stereo. Mono mode renders the bac
 |:---:|:---:|
 | Mono rendering mode | Stereo rendering mode |
 
-To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. By default, adding an `XR Origin` object to the scene includes a grandchild object called `Main Camera`. Append the `HoloKitCameraManager` component to the `Main Camera` object for automatic camera setting configuration.
+To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. Instead of add a default ARFoundation `XR Origin` object, we add a `HoloKit XR Origin` object into the scene by right-clicking in Unity Editor's hierarchy window and selecting `XR/HoloKit/HoloKit XR Origin`. The `HoloKit XR Origin` contains a `HoloKit Camera` object with the `HoloKitCameraManager` script, which enables both mono and stereo rendering modes.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/92152b99-dec7-47fc-bb49-35a5f6711b8f" alt="Add HoloKitCameraManager component" width="700"/>
+<img width="903" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a5d5a3d8-c600-405f-8743-a5266d024368">
 
 When you start the game, `HoloKitCameraManager` initially enters mono mode. A UI button is required to transition between rendering modes. The current rendering mode can be retrieved and set with `HoloKitCameraManager`. The following code snippet illustrates how to switch the rendering mode.
 
@@ -183,7 +183,7 @@ To enable stereoscopic rendering, we need to upgrade the default Main Camera to 
 
 The `HoloKit XR Orign` object includes a HoloKit Camera capable of both screen AR and stereoscopic rendering.
 
-<img width="377" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/9ca668c8-729e-4bde-8dda-8f83410411da">
+<img width="355" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/cdd3b0fa-6d69-45eb-9a8b-f129ce14df2a">
 
 To switch between the rendering modes, a UI button is necessary. To create a default UI panel which includes this mode-switching button, right-click and navigate to `UI/HoloKit/HoloKit Default UI Canvas`.
 
