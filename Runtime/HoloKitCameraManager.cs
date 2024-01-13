@@ -208,7 +208,9 @@ namespace HoloInteractive.XR.HoloKit
 
             // Setup the main camera reference
             m_MonoCamera = GetComponentInChildren<Camera>();
+            #if UNITY_IOS
             m_MonoCamera.gameObject.AddComponent<iOS.HoloKitVideoRecorder>();
+            #endif
 
             // Setup the StereoTrackedPose GameObject
             GameObject stereoTrackedPoseGo = new();
