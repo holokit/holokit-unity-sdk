@@ -41,7 +41,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
             var holokitCameraManager = FindFirstObjectByType<HoloKitCameraManager>();
             holokitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
-            holokitCameraManager.GetComponent<ARCameraManager>().frameReceived += OnFrameReceived;
+            holokitCameraManager.GetComponentInChildren<ARCameraManager>().frameReceived += OnFrameReceived;
         }
 
         private void OnFrameReceived(ARCameraFrameEventArgs obj)
