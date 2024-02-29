@@ -1,14 +1,16 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
 // SPDX-FileCopyrightText: Copyright 2020 Unity Technologies ApS
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
-// SPDX-License-Identifier: MIT AND LicenseRef-Unity-Companion-License
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
+// SPDX-FileContributor: Botao Amber Hu <botao.a.hu@gmail.com>
+// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: LicenseRef-Unity-Companion-License
 
 using System;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEditor;
 
-namespace HoloInteractive.XR.HoloKit.Editor
+namespace HoloKit.Editor
 {
     static class CreateUtils
     {

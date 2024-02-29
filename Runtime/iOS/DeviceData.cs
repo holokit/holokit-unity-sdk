@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
 using System.Runtime.InteropServices;
 
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     public static class DeviceData
     {
@@ -18,7 +18,7 @@ namespace HoloInteractive.XR.HoloKit.iOS
 #endif
         }
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_DeviceData_supportLiDAR")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_DeviceData_supportLiDAR")]
         static extern bool SupportLiDAR_Native();
     }
 }

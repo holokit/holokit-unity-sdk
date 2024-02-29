@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
@@ -7,7 +7,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     [Serializable]
     public enum AppleThermalState
@@ -53,16 +53,16 @@ namespace HoloInteractive.XR.HoloKit.iOS
             }
         }
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleNativeProvider_init")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleNativeProvider_init")]
         static extern IntPtr Init();
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleNativeProvider_registerCallbacks")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleNativeProvider_registerCallbacks")]
         static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int> onThermalStateChangedCallback);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleNativeProvider_getThermalState")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleNativeProvider_getThermalState")]
         static extern int GetThermalState_Native(IntPtr self);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleNativeProvider_getSystemUptime")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleNativeProvider_getSystemUptime")]
         static extern double GetSystemUptime_Native(IntPtr self);
 
         [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int>))]

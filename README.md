@@ -25,7 +25,7 @@ https://github.com/holokit/holokit-unity-sdk.git
 
 or by directly adding the following line to the `Packages/manifest.json` file.
 ```
-"com.holoi.xr.holokit": "https://github.com/holokit/holokit-unity-sdk.git"
+"io.holokit.unity": "https://github.com/holokit/holokit-unity-sdk.git"
 ```
 
 ## Supported Software Versions
@@ -186,7 +186,7 @@ The `HoloKit XR Orign` object includes a HoloKit Camera capable of both screen A
 
 To switch between the rendering modes, a UI button is necessary. To create a default UI panel which includes this mode-switching button, right-click and navigate to `UI/HoloKit/HoloKit Default UI Canvas`.
 
-<img width="690" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/d3c5a561-43c2-48b4-9f24-cbb770b3e773">
+<img width="690" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/d3c5a561-43c2-48b4-9f24-cbb770b3e773">
 
 The default canvas also has a button for controlling video recording.
 

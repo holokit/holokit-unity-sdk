@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HoloInteractive.XR.HoloKit
+namespace HoloKit
 {
     public static class Utils
     {

@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Sizheng Hao <sizheng@holoi.com>
 // SPDX-License-Identifier: MIT
 
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HoloInteractive.XR.HoloKit.Samples.GazeInteraction
+namespace HoloKit.Samples.GazeInteraction
 {
     public class GazeAndDwellButtonController : MonoBehaviour, IGazeRaycastInteractable
     {

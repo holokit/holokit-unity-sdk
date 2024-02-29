@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 using UnityEngine;
-using HoloInteractive.XR.HoloKit.iOS;
+using HoloKit.iOS;
 
-namespace HoloInteractive.XR.HoloKit.Samples.ResetWorldOrigin
+namespace HoloKit.Samples.ResetWorldOrigin
 {
     public class ResetWorldOriginUIController : MonoBehaviour
     {

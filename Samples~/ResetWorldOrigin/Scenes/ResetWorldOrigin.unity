@@ -1092,7 +1092,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1714000726}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.ResetWorldOrigin.ResetWorldOriginUIController,
+        m_TargetAssemblyTypeName: HoloKit.Samples.ResetWorldOrigin.ResetWorldOriginUIController,
           Assembly-CSharp
         m_MethodName: ResetWorldOriginToCurrentLocation
         m_Mode: 1

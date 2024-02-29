@@ -1,5 +1,5 @@
 #if UNITY_IOS
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     // https://developer.apple.com/documentation/vision/vnhumanhandposeobservationjointname?language=objc
     public enum JointName

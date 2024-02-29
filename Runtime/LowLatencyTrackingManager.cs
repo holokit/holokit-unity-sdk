@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 using System;
@@ -10,7 +10,7 @@ using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.InputSystem.XR;
 
-namespace HoloInteractive.XR.HoloKit
+namespace HoloKit
 {
     /// <summary>
     /// The script responsible for the low latency tracking feature, which communicates with
@@ -118,25 +118,25 @@ namespace HoloInteractive.XR.HoloKit
             transform.SetPositionAndRotation(position, rotation);
         }
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_init")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_init")]
         static extern IntPtr Init();
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_initHeadTracker")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_initHeadTracker")]
         static extern void InitHeadTracker(IntPtr self);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_pauseHeadTracker")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_pauseHeadTracker")]
         static extern void PauseHeadTracker(IntPtr self);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_resumeHeadTracker")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_resumeHeadTracker")]
         static extern void ResumeHeadTracker(IntPtr self);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_addSixDoFData")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_addSixDoFData")]
         static extern void AddSixDoFData(IntPtr self, long timestamp, [In] float[] position, [In] float[] orientation);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_getHeadTrackerPose")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_getHeadTrackerPose")]
         static extern void GetHeadTrackerPose(IntPtr self, [Out] float[] position, [Out] float[] orientation);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_LowLatencyTracking_delete")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_LowLatencyTracking_delete")]
         static extern void Delete(IntPtr self);
 #endif
     }

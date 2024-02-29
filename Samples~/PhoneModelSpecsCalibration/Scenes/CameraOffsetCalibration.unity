@@ -403,7 +403,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnDecreaseBtnPressed
         m_Mode: 1
@@ -682,7 +682,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnIncreaseBtnPressed
         m_Mode: 1
@@ -1297,7 +1297,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnReturnBtnPressed
         m_Mode: 1
@@ -1618,7 +1618,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnToggledAxis
         m_Mode: 3
@@ -1879,7 +1879,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnToggledAxis
         m_Mode: 3
@@ -2569,7 +2569,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 900002548}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.CameraOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnToggledAxis
         m_Mode: 3

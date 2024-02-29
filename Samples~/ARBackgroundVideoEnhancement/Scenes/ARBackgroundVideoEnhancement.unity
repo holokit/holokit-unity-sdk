@@ -816,7 +816,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1426946205}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.ARBackgroundVideoEnhancement.ARBackgroundVideoEnhancementUIController,
+        m_TargetAssemblyTypeName: HoloKit.Samples.ARBackgroundVideoEnhancement.ARBackgroundVideoEnhancementUIController,
           Assembly-CSharp
         m_MethodName: ToggleVideoEnhancement
         m_Mode: 1

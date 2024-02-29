@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
 
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     [Serializable]
     public enum MaxHandCount
@@ -91,16 +91,16 @@ namespace HoloInteractive.XR.HoloKit.iOS
             }
         }
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_initWithARSession")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_initWithARSession")]
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
         static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
         static extern bool ProcessCurrentFrame3D(IntPtr self);
 
         [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr, IntPtr>))]

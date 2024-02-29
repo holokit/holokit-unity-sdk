@@ -1,12 +1,12 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     // Enable ARKit's 4K HDR background video.
     public class ARBackgroundVideoEnhancementManager : MonoBehaviour

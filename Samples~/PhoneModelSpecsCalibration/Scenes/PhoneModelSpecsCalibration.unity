@@ -735,7 +735,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1620139473}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.PhoneModelSpecsCalibrationUI,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.PhoneModelSpecsCalibrationUI,
           Assembly-CSharp
         m_MethodName: LoadViewportBottomOffsetCalibrationScene
         m_Mode: 1
@@ -1071,7 +1071,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1620139473}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.PhoneModelSpecsCalibrationUI,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.PhoneModelSpecsCalibrationUI,
           Assembly-CSharp
         m_MethodName: LoadCameraOffsetCalibrationScene
         m_Mode: 1

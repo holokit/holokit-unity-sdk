@@ -1,12 +1,12 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Sizheng Hao <sizheng@holoi.com>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
 using UnityEngine;
-using HoloInteractive.XR.HoloKit.iOS;
+using HoloKit.iOS;
 
-namespace HoloInteractive.XR.HoloKit.Samples.GlowingOrbs
+namespace HoloKit.Samples.GlowingOrbs
 {
     public class OrbSpawner : MonoBehaviour
     {

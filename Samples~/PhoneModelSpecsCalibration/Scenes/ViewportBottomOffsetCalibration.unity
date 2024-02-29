@@ -475,7 +475,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1017743807}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnDownBtnPressed
         m_Mode: 1
@@ -948,7 +948,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1017743807}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnReturnBtnPressed
         m_Mode: 1
@@ -1729,7 +1729,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1017743807}
-        m_TargetAssemblyTypeName: HoloInteractive.XR.HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
+        m_TargetAssemblyTypeName: HoloKit.Samples.PhoneModelSpecsCalibration.ViewportBottomOffsetCalibrationManager,
           Assembly-CSharp
         m_MethodName: OnUpBtnPressed
         m_Mode: 1

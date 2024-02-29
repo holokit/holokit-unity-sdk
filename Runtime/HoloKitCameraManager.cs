@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 using System;
@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.UI;
 
-namespace HoloInteractive.XR.HoloKit
+namespace HoloKit
 {
     /// <summary>
     /// Mono mode for ARFoundation screen AR and Stereo mode for HoloKit.
@@ -253,9 +253,9 @@ namespace HoloInteractive.XR.HoloKit
             m_RightEyeCamera.backgroundColor = Color.black;
 
             // Load the iOS phone model list in the SDK
-            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
+            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
             // Load the default Android phone model list in the SDK
-            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holoi.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
+            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
 
             SetupCameraData();
 

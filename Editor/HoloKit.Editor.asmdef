@@ -1,6 +1,6 @@
 {
-    "name": "HoloInteractive.XR.HoloKit.Editor",
-    "rootNamespace": "HoloInteractive.XR.HoloKit.Editor",
+    "name": "HoloKit.Editor",
+    "rootNamespace": "HoloKit.Editor",
     "references": [
         "GUID:a9420e37d7990b54abdef6688edbe313",
         "GUID:92703082f92b41ba80f0d6912de66115",

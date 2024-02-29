@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
 
-namespace HoloInteractive.XR.HoloKit.iOS
+namespace HoloKit.iOS
 {
     public class HoloKitARKitNativeProvider: IDisposable
     {
@@ -99,25 +99,25 @@ namespace HoloInteractive.XR.HoloKit.iOS
 
         public event Action<double, Matrix4x4> OnARSessionUpdatedFrame;
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_init")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_init")]
         private static extern IntPtr Init_Native();
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_setARSessionPtr")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_setARSessionPtr")]
         private static extern IntPtr SetARSessionPtr_Native(IntPtr self, IntPtr sessionPtr);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_registerCallbacks")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_registerCallbacks")]
         private static extern void RegisterCallbacks_Native(IntPtr self, Action<IntPtr, double, IntPtr> onARSessionUpdatedFrame);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_interceptUnityARSessionDelegate")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_interceptUnityARSessionDelegate")]
         private static extern void InterceptUnityARSessionDelegate_Native(IntPtr self, IntPtr sessionPtr);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_restoreUnityARSessionDelegate")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_restoreUnityARSessionDelegate")]
         private static extern void RestoreUnityARSessionDelegate_Native(IntPtr self, IntPtr sessionPtr);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_resetOrigin")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_resetOrigin")]
         private static extern void ResetOrigin_Native(IntPtr self, float[] position, float[] rotation);
 
-        [DllImport("__Internal", EntryPoint = "HoloInteractiveHoloKit_HoloKitARKitNativeProvider_setVideoEnhancement")]
+        [DllImport("__Internal", EntryPoint = "HoloKit_HoloKitARKitNativeProvider_setVideoEnhancement")]
         private static extern IntPtr SetVideoEnhancement_Native(IntPtr self, bool enabled);
 
         [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, double, IntPtr>))]

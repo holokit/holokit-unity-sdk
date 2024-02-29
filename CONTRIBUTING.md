@@ -8,7 +8,7 @@ HoloKit Unity SDK optimizes render parameters based on iPhone hardware specifica
 
 To add a new iPhone model to the `Assets/ScriptableObjects/iOSPhoneModelList` asset:
 
-<img width="548" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/269828f1-22f6-4067-b4f5-a921c0b9060c">
+<img width="548" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/269828f1-22f6-4067-b4f5-a921c0b9060c">
 
 - `Model Name`: This is Apple's identifier for each device. Locate the model name [here](https://github.com/pluwen/apple-device-model-list).
    
@@ -26,7 +26,7 @@ To add a new iPhone model to the `Assets/ScriptableObjects/iOSPhoneModelList` as
 
 The [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/accessories/Accessory-Design-Guidelines.pdf) provide precise specifications for Apple devices, crucial for accurately calculating `Camera Offset` and `Screen Bottom Border`.
 
-<img width="1050" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/f6807def-4a59-4155-8f82-eee438e7d76b">
+<img width="1050" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/f6807def-4a59-4155-8f82-eee438e7d76b">
 
 ## How The SDK Works
 
@@ -40,7 +40,7 @@ The SDK offers two rendering modes: `Mono` and `Stereo`.
 
 - `Stereo` Mode: The SDK's key feature, it renders two separate viewports on the iPhone screen using dual cameras against a black background. `HoloKitCameraManager`, attached to the `Main Camera` GameObject, transforms an ARFoundation camera into a HoloKit camera.
 
-<img width="582" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/668880de-71da-457f-a3b2-c0300f07668e">
+<img width="582" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/668880de-71da-457f-a3b2-c0300f07668e">
 
 Key Components:
 
@@ -78,19 +78,19 @@ The `HandTrackingManager` script manages the provision of 3D positions for the u
 
 The `Runtime/iOS/NativeCode` folder houses all the native Objective-C code for the SDK. Each native functionality is represented by three types of files: a header file, an implementation file, and a bridge file. The header file outlines the interface of the native class, the implementation file provides its actual functionality, and the bridge file facilitates marshalling between the unmanaged (Objective-C) and managed (C#) code. For instance, within the `Runtime/iOS/NativeCode/AppleVisionHandPoseDetector-C-Bridge` file, there are four native C functions. These functions correspond to and are linked with four marshalling functions in the `AppleVisionHandPoseDetector` C# class.
 
-<img width="1134" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/03a69774-7472-4793-8b6f-9ccae84e6abb">
+<img width="1134" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/03a69774-7472-4793-8b6f-9ccae84e6abb">
 
-<img width="1263" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/f465e9d1-99f7-4a6c-acdd-0e4314a83eba">
+<img width="1263" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/f465e9d1-99f7-4a6c-acdd-0e4314a83eba">
 
 `AppleVisionHandPoseDetector` offers the flexibility to process video frame images in either 2D or 3D mode. The `HandGestureRecognitionManager` requires only 2D hand poses, while the `HandTrackingManager` necessitates 3D hand poses. Consequently, when using `HandGestureRecognitionManager` alone, 2D hand poses can be obtained without activating the LiDAR sensor. In contrast, `HandTrackingManager` usage mandates turning on the LiDAR sensor to capture the user's 3D hand poses. Both managers rely on `AppleVisionHandPoseDetector` to access hand data from native code. When operated concurrently, they share the same `AppleVisionHandPoseDetector` instance, optimizing efficiency.
 
 ### Low Latency Tracking
 
-See [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking) for detailed explanation.
+See [HoloKit Low Latency Tracking repository](https://github.com/holokit/holokit-low-latency-tracking) for detailed explanation.
 
 ## How To Work With The SDK
 
-This SDK, being a Unity package, requires a carrier Unity project for development and testing. If you want to contribute or modify the SDK, start by cloning [the carrier project](https://github.com/holoi/holokit-unity-sdk-project). This repository includes the SDK as a git submodule. Within the carrier project, the SDK is integrated as a local folder, allowing for direct modifications and testing.
+This SDK, being a Unity package, requires a carrier Unity project for development and testing. If you want to contribute or modify the SDK, start by cloning [the carrier project](https://github.com/holokit/holokit-unity-sdk-boilerplate). This repository includes the SDK as a git submodule. Within the carrier project, the SDK is integrated as a local folder, allowing for direct modifications and testing.
 
 In the `Assets/Samples` folder of the carrier project, you'll find multiple SDK samples. To update existing samples or create new ones, simply copy the desired sample folder into the SDK's `Samples~` folder. After making changes or additions, don't forget to update the `package.json` file in the SDK to reflect these modifications. This process ensures that your contributions are properly integrated and accessible within the SDK structure.
 
@@ -106,4 +106,4 @@ At present, our system recognizes only two hand gestures: Pinched and Five. Theo
 
 ### Advancing Low Latency Tracking Performance
 
-There is a continuous need for further optimization in our low latency tracking system. This involves refining the system's responsiveness and accuracy to minimize latency even further. For detailed information and specific areas of focus, please refer to the [HoloKit Low Latency Tracking repository](https://github.com/holoi/holokit-low-latency-tracking).
+There is a continuous need for further optimization in our low latency tracking system. This involves refining the system's responsiveness and accuracy to minimize latency even further. For detailed information and specific areas of focus, please refer to the [HoloKit Low Latency Tracking repository](https://github.com/holokit/holokit-low-latency-tracking).

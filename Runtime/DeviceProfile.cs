@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2023 Holo Interactive <dev@holoi.com>
-// SPDX-FileContributor: Yuchen Zhang <yuchen@holoi.com>
+// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
 using System;
 using UnityEngine;
 
-namespace HoloInteractive.XR.HoloKit
+namespace HoloKit
 {
     /// <summary>
     /// You can add new HoloKit model here.
