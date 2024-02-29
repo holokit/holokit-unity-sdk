@@ -99,13 +99,13 @@ Stereoscopic rendering is the core feature of the SDK, your app needs to display
 
 The SDK provides two rendering modes: mono and stereo. Mono mode renders the background camera image with virtual content layered on top, akin to a standard ARFoundation project. In constrast, stereo mode renders two stereo images on a black background one the phone's screen, so that you can insert your phone onto the HoloKit headset to have stereoscopic AR experience.
 
-| <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a9d048a0-b2b5-4f0e-a7f8-03ca782b9725" alt="ScreenRenderMode.Mono" width="450"/> | <img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/01bf3231-41ec-4a29-9d94-a48dcebfeefb" alt="ScreenRenderMode.Stereo" width="450"/> |
+| <img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/a9d048a0-b2b5-4f0e-a7f8-03ca782b9725" alt="ScreenRenderMode.Mono" width="450"/> | <img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/01bf3231-41ec-4a29-9d94-a48dcebfeefb" alt="ScreenRenderMode.Stereo" width="450"/> |
 |:---:|:---:|
 | Mono rendering mode | Stereo rendering mode |
 
 To integrate stereoscopic rendering into your project, the `HoloKitCameraManager` component is required. In fact, `HoloKitCameraManager` is the only mandatory component in the SDK that you must add into the scene. Instead of adding a default ARFoundation `XR Origin` object, we add a `HoloKit XR Origin` object into the scene by right-clicking in Unity Editor's hierarchy window and selecting `XR/HoloKit/HoloKit XR Origin`. The `HoloKit XR Origin` contains a `HoloKit Camera` object with the `HoloKitCameraManager` script, which enables both mono and stereo rendering modes.
 
-<img width="903" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/a5d5a3d8-c600-405f-8743-a5266d024368">
+<img width="903" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/a5d5a3d8-c600-405f-8743-a5266d024368">
 
 When you start the game, `HoloKitCameraManager` initially enters mono mode. A UI button is required to transition between rendering modes. The current rendering mode can be retrieved and set with `HoloKitCameraManager`. The following code snippet illustrates how to switch the rendering mode.
 
@@ -128,15 +128,15 @@ The SDK tracks the user's hand, providing the 3D positions of the [21 hand joint
 
 To incorporate the hand tracking into your project, create an empty GameObject and add `HandTrackingManager` component to it. The script will automatically setup all necessary objects as child GameObjects.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
+<img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/54c5dc5e-ca2b-4cac-b132-d1aab5f47fa0" alt="HandTrackingManager" width="800"/>
 
 `HandTrackingManager` requires depth information to calculate 3D hand positions, so add `AROcclusionManager` component to the `HoloKit Camera` GameObject and adjust its settings accordingly.
 
-<img width="903" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/e38f3c36-a673-46ec-a41c-339572fc11a5">
+<img width="903" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/e38f3c36-a673-46ec-a41c-339572fc11a5">
 
 You can now build the project onto an iPhone to view the results.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="600"/>
+<img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="600"/>
 
 `HandTrackingManager` can be configured to track either one hand or both hands. As hand tracking is energy-intensive, if dual hand tracking isn't necessary, we advise tracking only one hand to conserve energy. Set `HandTrackingManager.MaxHandCount` in its inspector within the Unity editor.
 
@@ -148,7 +148,7 @@ Please note, the hand tracking feature is only compatible with iOS 14.0 or highe
 
 The SDK can also recognizes user's hand gesture, which can serve as input triggers in your project. Currently there are only two available hand gestures: `HandGesture.None` and `HandGesture.Pinched`.
 
-<img src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/0fe0010f-7854-41ad-b9b8-95ee8039fb4c" alt="Hand Gesture Recognition" width="600"/>
+<img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/0fe0010f-7854-41ad-b9b8-95ee8039fb4c" alt="Hand Gesture Recognition" width="600"/>
 
 To utilize hand gesture recognition, add `HandGestureRecognitionManager` to the scene. The callback function `HandGestureRecognitionManager.OnHandGestureChanged` is invoked when a hand gesture transition is detected. Register this callback to receive notifications. You can also access the user's current hand gesture via `HandGestureRecognitionManager.HandGesture`. The following code snippet illustrates how to capture user hand gesture transitions.
 
@@ -175,15 +175,15 @@ You can use hand tracking and hand gesture recognition at the same time, simply 
 
 HoloKit Unity SDK is based on ARFoundation. For a minimal ARFoundation scene requires two primary objects: an `AR Session` object and an `XR Origin` object with the Main Camera Object as its child.
 
-<img width="377" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/feeb658f-ec65-4461-bf5a-e42fc423cafa">
+<img width="377" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/feeb658f-ec65-4461-bf5a-e42fc423cafa">
 
 To enable stereoscopic rendering, we need to upgrade the default Main Camera to a HoloKit Camera. To create an `XR Origin` with a HoloKit Camera as its child, right-click in the Unity Editor and select `XR/HoloKit/HoloKit XR Origin` to create a `HoloKit XR Origin`.
 
-<img width="660" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/ad56a592-147f-4969-9942-d3445bf038f6">
+<img width="660" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/ad56a592-147f-4969-9942-d3445bf038f6">
 
 The `HoloKit XR Orign` object includes a HoloKit Camera capable of both screen AR and stereoscopic rendering.
 
-<img width="355" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/cdd3b0fa-6d69-45eb-9a8b-f129ce14df2a">
+<img width="355" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/cdd3b0fa-6d69-45eb-9a8b-f129ce14df2a">
 
 To switch between the rendering modes, a UI button is necessary. To create a default UI panel which includes this mode-switching button, right-click and navigate to `UI/HoloKit/HoloKit Default UI Canvas`.
 
@@ -191,7 +191,7 @@ To switch between the rendering modes, a UI button is necessary. To create a def
 
 The default canvas also has a button for controlling video recording.
 
-<img width="374" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/6daa7737-49e6-4403-9f95-a1eedd88506d">
+<img width="374" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/6daa7737-49e6-4403-9f95-a1eedd88506d">
 
 After setting up the `AR Session`, `HoloKit XROrigin`, and UI components, you can add any 3D object to the scene, such as a cube. When you build your project onto an iPhone, you'll be able to view your object in both screen AR mode and stereoscopic rendering mode with a HoloKit headset.
 
@@ -207,7 +207,7 @@ Import the `Reset World Origin` package sample for how to use this feature.
 
 The 4K HDR (High Dynamic Range) AR background video is a feature of ARKit 6, available on iOS 16 and later. This enhancement improves the quality of ARBackground video, leading to better video recording quality. To enable the 4K HDR option, use the `ARBackgroundVideoEnhancementManager` component. Please notice that there must be a `HoloKitARKitManager` component in the scene, which is used by the `ARBackgroundVideoEnhancementManager` script.
 
-<img width="675" alt="image" src="https://github.com/holoi/holokit-unity-sdk/assets/44870300/24c9274f-d30c-47e3-acb3-10b7d0bce816">
+<img width="675" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/24c9274f-d30c-47e3-acb3-10b7d0bce816">
 
 Import the `AR Background Video Enhancement` package sample for how to use this feature. Please note that not all iOS devices support 4K or HDR. For more information, please visit the [ARKit's website](https://developer.apple.com/augmented-reality/arkit/) and check out this [WWDC session](https://developer.apple.com/videos/play/wwdc2022/10126/#:~:text=In%204K%20mode%2C%20an%20image,at%2030%20frames%20per%20second.) on ARKit 6.
 
