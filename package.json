@@ -1,5 +1,5 @@
 {
-  "name": "io.holokit.unity",
+  "name": "io.holokit.unity-sdk",
   "displayName": "HoloKit Unity SDK",
   "version": "0.5.0",
   "unity": "2022.3",
@@ -16,8 +16,8 @@
     "url": "https://reality.design"
   },
   "dependencies": {
-    "com.unity.xr.arfoundation": "5.1.0",
-    "com.unity.xr.arkit": "5.1.0"
+    "com.unity.xr.arfoundation": "5.1.2",
+    "com.unity.xr.arkit": "5.1.2"
   },
   "samples": [
     {
@@ -39,11 +39,6 @@
       "displayName": "Phone Model Specs Calibration",
       "description": "Provides a tool allowing developers to calibrate phones which are currently not supported by the SDK.",
       "path": "Samples~/PhoneModelSpecsCalibration"
-    },
-    {
-      "displayName": "3DoF Tracking",
-      "description": "Provides a demonstration of the SDK's 3DoF tracking feature for internal testing.",
-      "path": "Samples~/3DoFTracking"
     },
     {
       "displayName": "Gaze Interaction",

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2024.2.29
+
+### Changed
+
+- Refactored the package name from `com.holoi.xr.holokit` to `io.holokit.unity-sdk`
+- Removed `LowLatencyTrackingManager_3DoF` and `3DoFTracking` scene.
+
+## Known Issues
+
+- Error message from 4K Video Recording. 
+```
+Video Writer pixelBufferPool is empty.
+Cannot Append Video Frame at time 3.4967351
+HoloKit.iOS.HoloKitVideoRecorder:OnSourceReadback(AsyncGPUReadbackRequest)
+```
+
 ## [0.4.4] - 2024.1.5
 
 ### Changed
