@@ -25,7 +25,7 @@ https://github.com/holokit/holokit-unity-sdk.git
 
 or by directly adding the following line to the `Packages/manifest.json` file.
 ```
-"io.holokit.unity": "https://github.com/holokit/holokit-unity-sdk.git"
+"io.holokit.unity-sdk": "https://github.com/holokit/holokit-unity-sdk.git"
 ```
 
 ## Supported Software Versions
