@@ -21,7 +21,6 @@ You can install HoloKit Unity SDK from the following git URL in Package Manager:
 https://github.com/holokit/holokit-unity-sdk.git
 ```
 <img width="279" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/a82656c9-aa73-4158-83b5-20d5178c8a81">
-<img width="326" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/511c748f-251c-42a5-b481-fd3160c19c63">
 
 or by directly adding the following line to the `Packages/manifest.json` file.
 ```
@@ -34,6 +33,7 @@ HoloKit Unity SDK has been tested and found compatible with the following softwa
 
 ### Unity
 - Unity 2022.3 LTS
+- Unity 6 Beta
 
 ### ARFoundation
 - ARFoundation 5.1
