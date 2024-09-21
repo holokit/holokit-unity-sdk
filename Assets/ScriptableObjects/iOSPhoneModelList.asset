@@ -165,3 +165,35 @@ MonoBehaviour:
       ViewportBottomOffset: 0
       CameraOffset: {x: 0.04652, y: -0.0598, z: -0.00773}
       ScreenBottomBorder: 0.00276
+  - ModelName: iPhone17,3
+    Description: iPhone 16
+    ModelSpecs:
+      ScreenResolution: {x: 2556, y: 1179}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.04818, y: -0.042715, z: -0.0069}
+      ScreenBottomBorder: 0.003275
+  - ModelName: iPhone17,4
+    Description: iPhone 16 Plus
+    ModelSpecs:
+      ScreenResolution: {x: 2796, y: 1290}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.054805, y: -0.048845, z: -0.0069}
+      ScreenBottomBorder: 0.003275
+  - ModelName: iPhone17,1
+    Description: iPhone 16 Pro
+    ModelSpecs:
+      ScreenResolution: {x: 2622, y: 1206}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      ScreenBottomBorder: 0.00276
+  - ModelName: iPhone17,2
+    Description: iPhone 16 Pro Max
+    ModelSpecs:
+      ScreenResolution: {x: 2868, y: 1320}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.04652, y: -0.0598, z: -0.00773}
+      ScreenBottomBorder: 0.00276
