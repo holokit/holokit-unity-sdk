@@ -38,9 +38,15 @@ namespace HoloKit
             }
 
             List<InputDevice> devices = new();
-            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.HeadMounted, devices);
-            if (devices.Count > 0)
-                m_InputDevice = devices[0];
+            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.TrackedDevice, devices);
+            for (int i = 0; i < devices.Count; i++)
+            {
+                if (devices[i].name == "ARKit")
+                {
+                    m_InputDevice = devices[i];
+                    break;
+                }
+            }
             if (m_InputDevice == null)
             {
                 Debug.LogWarning("[LowLatencyTrackingManager] Failed to find InputDevice.");
