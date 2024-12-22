@@ -22,8 +22,8 @@
     "versionDefines": [
         {
             "name": "com.unity.xr.hands",
-            "expression": "1.4",
-            "define": "XR_HANDS_1_4_OR_NEWER"
+            "expression": "1.5",
+            "define": "XR_HANDS_1_5_OR_NEWER"
         }
     ],
     "noEngineReferences": false

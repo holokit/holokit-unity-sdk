@@ -10,6 +10,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
+#if XR_HANDS_1_5_OR_NEWER
+using UnityEngine.XR.Hands;
+#endif
+
 namespace HoloKit.iOS
 {
     public class HandTrackingManager : MonoBehaviour
@@ -29,6 +33,8 @@ namespace HoloKit.iOS
         List<GameObject> m_Hands = new();
 
         List<Dictionary<JointName, GameObject>> m_HandJoints = new();
+
+        HoloKitHandSubsystem handSubsystem = null;
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -71,6 +77,7 @@ namespace HoloKit.iOS
         }
 #endif
 
+
         private void Awake()
         {
             var arCameraManager = FindObjectOfType<ARCameraManager>();
@@ -105,6 +112,24 @@ namespace HoloKit.iOS
             m_HandPoseDetector = new(m_MaxHandCount);
             m_HandPoseDetector.OnHandPoseUpdated += OnHandPoseUpdated;
             m_HandPoseDetector.OnHandPoseLost += OnHandPoseLost;
+
+            handSubsystem = GetHoloKitHandSubsystem();
+        }
+
+        private HoloKitHandSubsystem GetHoloKitHandSubsystem()
+        {
+            // Find the XR Hand Subsystem
+            var handSubsystems = new List<XRHandSubsystem>();
+            SubsystemManager.GetSubsystems(handSubsystems);
+
+            foreach (var handSubsystem in handSubsystems)
+            {
+                if (handSubsystem.subsystemDescriptor.id == HoloKitHandSubsystem.HandsSubsystemId)
+                    return (HoloKitHandSubsystem) handSubsystem;
+            }
+          
+            Debug.LogWarning("No HoloKit XR Hand Subsystem found");
+            return null;
         }
 
         private void OnDestroy()
@@ -122,6 +147,8 @@ namespace HoloKit.iOS
 
         private void OnHandPoseUpdated()
         {
+            handSubsystem.SetHandPoses();
+            
             for (int i = 0; i < m_HandJoints.Count; i++)
             {
                 if (i < m_HandPoseDetector.HandCount)

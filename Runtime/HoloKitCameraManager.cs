@@ -253,9 +253,9 @@ namespace HoloKit
             m_RightEyeCamera.backgroundColor = Color.black;
 
             // Load the iOS phone model list in the SDK
-            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
+            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/io.holokit.unity/Assets/ScriptableObjects/iOSPhoneModelList.asset");
             // Load the default Android phone model list in the SDK
-            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
+            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/io.holokit.unity/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
 
             SetupCameraData();
 

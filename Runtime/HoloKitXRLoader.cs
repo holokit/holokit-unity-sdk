@@ -1,15 +1,18 @@
 using UnityEngine.XR;
+#if XR_HANDS_1_5_OR_NEWER
 using UnityEngine.XR.Hands;
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 namespace HoloKit
 {
-    public class HoloKitXRLoader
+    public class HoloKitXRLoader: ScriptableObject
     {
         private static HoloKitXRLoader loader;
-        
-        public HoloKitHandsSubsystem HandsSubsystem { get; private set; }
+        static List<XRHandSubsystemDescriptor> xrHandsSubsystemDescriptors = new();
+
+        public HoloKitHandSubsystem HandSubsystem { get; private set; }
 
         private void Awake()
         {
@@ -25,18 +28,18 @@ namespace HoloKit
         public void Start()
         {
             // TODO: Handle the XRDevice
-            HandsSubsystem?.Start();
+            HandSubsystem?.Start();
         }
 
         /// <inheritdoc />
         public void Stop()
         {
             // TODO: Handle the XRDevice
-            HandsSubsystem?.Stop();
+            HandSubsystem?.Stop();
         }
         public void OnDestroy()
         {
-            HandsSubsystem?.Destroy();
+            HandSubsystem?.Destroy();
             loader = null;
         }
         
@@ -49,7 +52,7 @@ namespace HoloKit
                 return;
             }
 
-            if (loader.settings.EnableXRHandSubsystem)
+            //if (loader.EnableXRHandSubsystem)
             {
                 SubsystemManager.GetSubsystemDescriptors<XRHandSubsystemDescriptor>(xrHandsSubsystemDescriptors);
 
@@ -57,23 +60,24 @@ namespace HoloKit
                 {
                     foreach (var descriptor in xrHandsSubsystemDescriptors)
                     {
-                        if (String.Compare(descriptor.id, HoloKitXRConstants.handSubsystemId, true) == 0)
+                        if (String.Compare(descriptor.id, HoloKitHandSubsystem.HandsSubsystemId, true) == 0)
                         {
-                            loader.handsSubsystem = descriptor.Create() as HoloKitHandsSubsystem;
+                            loader.HandSubsystem = descriptor.Create() as HoloKitHandSubsystem;
                             break;
                         }
                     }
                 }
                 if (loader.HandSubsystem == null)
                 {
-                    Debug.LogError($"{typeof(ViconHandSubsystem).Name} failed to configure!");
+                    Debug.LogError($"{typeof(HoloKitHandSubsystem).Name} failed to configure!");
                 }
                 else
                 {
                     loader.HandSubsystem?.Start();
-                    Debug.Log($"{typeof(ViconHandSubsystem).Name} configured!");
+                    Debug.Log($"{typeof(HoloKitHandSubsystem).Name} configured!");
                 }
             }
         }
     }
 }
+#endif

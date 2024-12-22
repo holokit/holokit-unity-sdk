@@ -1,13 +1,13 @@
-// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileCopyrightText: Copyright 2024 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
-// SPDX-FileContributor: Botao Amber Hu <botao.a.hu@gmail.com>
+// SPDX-FileContributor: Botao Amber Hu <botao@reality.design>
 // SPDX-License-Identifier: MIT
 
 #import <Vision/Vision.h>
 #import <ARKit/ARKit.h>
 #import "UnityXRInterface.h"
 
-typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, float * _Nullable, float * _Nullable, float * _Nullable);
+typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, int * __Nullable, float * _Nullable, float * _Nullable, float * _Nullable);
 
 @interface AppleVisionHandPoseDetector : NSObject
 

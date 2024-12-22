@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Hands;
 
 namespace HoloKit.iOS
 {
@@ -22,11 +23,13 @@ namespace HoloKit.iOS
     {
         public int HandCount => m_HandCount;
 
-        public List<Dictionary<JointName, Vector2>> HandPoses2D => m_HandPoses2D;
+        public List<Dictionary<XRHandJointID, Vector2>> HandPoses2D => m_HandPoses2D;
 
-        public List<Dictionary<JointName, Vector3>> HandPoses3D => m_HandPoses3D;
+        public List<Dictionary<XRHandJointID, Vector3>> HandPoses3D => m_HandPoses3D;
+        
+        public List<Handedness> Handednesses => m_Handednesses;
 
-        public List<Dictionary<JointName, float>> HandPosesConfidence => m_HandPosesConfidence;
+        public List<Dictionary<XRHandJointID, float>> HandPosesConfidence => m_HandPosesConfidence;
 
         public event Action OnHandPoseUpdated;
 
@@ -41,6 +44,8 @@ namespace HoloKit.iOS
         List<Dictionary<JointName, Vector3>> m_HandPoses3D;
 
         List<Dictionary<JointName, float>> m_HandPosesConfidence;
+
+        List<Handedness> m_Handednesses;
 
         static Dictionary<IntPtr, AppleVisionHandPoseDetector> s_Detectors = new();
 
@@ -60,11 +65,13 @@ namespace HoloKit.iOS
             m_HandPoses2D = new();
             m_HandPoses3D = new();
             m_HandPosesConfidence = new();
+            m_Handednesses = new List<Handedness>();
             for (int i = 0; i < 2; i++)
             {
-                m_HandPoses2D.Add(new Dictionary<JointName, Vector2>());
-                m_HandPoses3D.Add(new Dictionary<JointName, Vector3>());
-                m_HandPosesConfidence.Add(new Dictionary<JointName, float>());
+                m_HandPoses2D.Add(new Dictionary<XRHandJointID, Vector2>());
+                m_HandPoses3D.Add(new Dictionary<XRHandJointID, Vector3>());
+                m_HandPosesConfidence.Add(new Dictionary<XRHandJointID, float>());
+                m_Handednesses.Add(Handedness.Invalid);
             }
             RegisterCallbacks(m_Ptr, OnHandPoseUpdatedCallback);
 
@@ -95,7 +102,7 @@ namespace HoloKit.iOS
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
-        static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
+        static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);
@@ -103,8 +110,28 @@ namespace HoloKit.iOS
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
         static extern bool ProcessCurrentFrame3D(IntPtr self);
 
+        static Handedness ConvertToHandedness(int x)
+        {
+            switch (x)
+            {
+                case 1: return Handedness.Left;
+                case 2: return Handedness.Right;
+                default: 
+                    return Handedness.Invalid;
+            }
+        }
+
+        static XRHandJointID ConvertToXRHandJointID(int x)
+        {
+            switch (x)
+            {
+                JointName
+            }
+        }
+        
+            
         [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr, IntPtr>))]
-        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr, IntPtr confidencesPtr)
+        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr resultHandednessPtr, IntPtr results2DPtr, IntPtr results3DPtr, IntPtr confidencesPtr)
         {
             if (s_Detectors.TryGetValue(detectorPtr, out AppleVisionHandPoseDetector detector))
             {
@@ -119,6 +146,16 @@ namespace HoloKit.iOS
                 }
                 detector.m_HandCount = handCount;
 
+                if (resultHandednessPtr != IntPtr.Zero)
+                {
+                    int[] results = new int[handCount];
+                    Marshal.Copy(resultHandednessPtr, results, 0, handCount);
+                    for (int i = 0; i < handCount; i++)
+                    {
+                        detector.m_Handednesses[i] = () results[i]; 
+                    }
+                }
+
                 if (results2DPtr != IntPtr.Zero)
                 {
                     int length = 2 * 21 * handCount;
@@ -128,7 +165,7 @@ namespace HoloKit.iOS
                     {
                         for (int j = 0; j < 21; j++)
                         {
-                            detector.m_HandPoses2D[i][(JointName)j] = new Vector2(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1]);
+                            detector.m_HandPoses2D[i][(JointName)(j)] = new Vector2(results[i * 2 * 21 + j * 2], results[i * 2 * 21 + j * 2 + 1]);
                         }
                     }
                 }
@@ -142,7 +179,7 @@ namespace HoloKit.iOS
                     {
                         for (int j = 0; j < 21; j++)
                         {
-                            detector.m_HandPoses3D[i][(JointName)j] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                            detector.m_HandPoses3D[i][ConvertToXRHandJointID(j)] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
                         }
                     }
                 }
@@ -156,7 +193,7 @@ namespace HoloKit.iOS
                     {
                         for (int j = 0; j < 21; j++)
                         {
-                            detector.m_HandPosesConfidence[i][(JointName)j] = confidences[i * 21 + j];
+                            detector.m_HandPosesConfidence[i][ConvertToXRHandJointID(j)] = confidences[i * 21 + j];
                         }
                     }
                 }

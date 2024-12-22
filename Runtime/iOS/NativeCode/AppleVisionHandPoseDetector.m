@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
+// SPDX-FileCopyrightText: Copyright 2024 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
-// SPDX-FileContributor: Botao Amber Hu <botao.a.hu@gmail.com>
+// SPDX-FileContributor: Botao Amber Hu <botao@reality.design>
 // SPDX-License-Identifier: MIT
 
 #import "AppleVisionHandPoseDetector.h"
 
-API_AVAILABLE(ios(14.0))
+API_AVAILABLE(ios(15.0))
 @interface AppleVisionHandPoseDetector ()
 
 @property (nonatomic, strong) VNDetectHumanHandPoseRequest *handPoseRequest;
@@ -22,7 +22,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
 
 - (instancetype)initWithARSession:(ARSession *)arSession maximumHandCount:(int)maximumHandCount {
     if (self = [super init]) {
-        if (@available(iOS 14.0, *)) {
+        if (@available(iOS 15.0, *)) {
             self.handPoseRequest = [[VNDetectHumanHandPoseRequest alloc] init];
             self.handPoseRequest.usesCPUOnly = false;
             self.handPoseRequest.maximumHandCount = maximumHandCount;
@@ -44,7 +44,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
 }
 
 - (BOOL)processCurrentFrame {
-    if (@available(iOS 14.0, *)) {
+    if (@available(iOS 15.0, *)) {
         VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer: self.arSession.currentFrame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
         @try {
             NSArray<VNRequest *> *requests = [[NSArray alloc] initWithObjects:self.handPoseRequest, nil];
@@ -57,7 +57,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
 }
 
 - (void)processCurrentFrame2D {
-    if (@available(iOS 14.0, *)) {
+    if (@available(iOS 15.0, *)) {
         if ([self processCurrentFrame]) {
             int handCount = (int)self.handPoseRequest.results.count;
             if (handCount == 0) {
@@ -69,10 +69,12 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
                 return;
             }
             
+            int *resultsChirality = malloc(sizeof(int) * handCount);
             float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
             float *confidences = malloc(sizeof(float) * 21 * handCount);
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
+                resultsChirality[i] = [AppleVisionHandPoseDetector getChiralityIndex:observation.chirality];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
                     results2D[i * 2 * 21 + j * 2] = point.x;
@@ -84,6 +86,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, NULL, confidences);
+                    free(resultsChirality);
                     free(results2D);
                     free(confidences);
                 });
@@ -101,7 +104,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
 }
 
 - (void)processCurrentFrame3D {
-    if (@available(iOS 14.0, *)) {
+    if (@available(iOS 15.0, *)) {
         if (self.arSession.currentFrame.sceneDepth == nil) {
             NSLog(@"Failed to get environment depth image");
             return;
@@ -117,7 +120,8 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
                 }
                 return;
             }
-
+            
+            int *resultsChirality = malloc(sizeof(int) * handCount);
             float *results2D = malloc(sizeof(float) * 2 * 21 * handCount);
             float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
             float *confidences = malloc(sizeof(float) * 21 * handCount);
@@ -146,6 +150,7 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
                 self.previousWristPositions[i * 2] = [NSNumber numberWithFloat:wristPoint.x];
                 self.previousWristPositions[i * 2 + 1] = [NSNumber numberWithFloat:wristPoint.y];
                 
+                resultsChirality[i] = [AppleVisionHandPoseDetector getChiralityIndex:observation.chirality];
                 for (int j = 0; j < 21; j++) {
                     VNRecognizedPoint *point = [observation recognizedPointForJointName:[AppleVisionHandPoseDetector getVNHumanHandPoseObservationJointNameWithJointIndex:j] error:nil];
                     results2D[i * 2 * 21 + j * 2] = point.x;
@@ -184,7 +189,8 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
             
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, results2D, results3D, confidences);
+                    self.onHandPoseUpdatedCallback((__bridge void *)self, handCount, resultsChirality, results2D, results3D, confidences);
+                    free(resultsChirality);
                     free(results2D);
                     free(results3D);
                     free(confidences);
@@ -202,8 +208,23 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
     }
 }
 
++ (int) getChiralityIndex:(VNChirality)chirality {
+    if (@available(iOS 15.0, *)) {
+        switch(chirality) {
+            case VNChiralityUnknown:
+                return 0;
+            case VNChiralityLeft:
+                return 1;
+            case VNChiralityRight:
+                return 2;
+            default:
+                return 0;
+        }
+    }
+}
+
 + (VNRecognizedPointKey)getVNHumanHandPoseObservationJointNameWithJointIndex:(int)jointIndex {
-    if (@available(iOS 14.0, *)) {
+    if (@available(iOS 15.0, *)) {
         switch(jointIndex) {
             case 0:
                 return VNHumanHandPoseObservationJointNameWrist;

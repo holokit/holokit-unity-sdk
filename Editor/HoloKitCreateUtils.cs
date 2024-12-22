@@ -43,6 +43,8 @@ namespace HoloKit.Editor
             var origin = originGo.GetComponent<XROrigin>();
             origin.CameraFloorOffsetObject = offsetGo;
             origin.Camera = arCamera;
+            origin.CameraYOffset = 0.0f;
+            origin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
 
             holokitCameraGo.AddComponent<HoloKitCameraManager>();
 
