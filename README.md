@@ -32,10 +32,10 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 HoloKit Unity SDK has been tested and found compatible with the following software versions:
 
 ### Unity
-- Unity 2022.3 LTS
+- Unity 6 LTS
 
 ### ARFoundation
-- ARFoundation 5.1
+- ARFoundation 6.0.5
 
 We aim to continually test and verify compatibility with newer versions of these softwares.
 
@@ -56,7 +56,7 @@ If your Android phone is not supported, we also provide a calibration method to 
 
 Before using the HoloKit Unity SDK, ensure to adjust the project settings to meet ARFoundation's requirements. If you are already comfortable with ARFoundation, feel free to skip this section.
 
-Upon successfully installation of the SDK package, the ARFoundation package will be installed automatically. Please note that the HoloKit Unity SDK is only compatible with ARFoundation 5.+. If you are using ARFoundation 4.+, please update to a more recent version. 
+Upon successfully installation of the SDK package, the ARFoundation package will be installed automatically. Please note that the HoloKit Unity SDK is only compatible with ARFoundation 6.+. 
 
 For iOS-targeted projects, install the `Apple ARKit XR Plugin` package. For Android-targeted projects, the `Google ARCore XR Plugin` is required.
 
@@ -141,7 +141,7 @@ You can now build the project onto an iPhone to view the results.
 
 To obtain specific hand joint positions in code, use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. As the hand tracking algorithm can't distinguish handedness, the parameter `handIndex` simply represents the hand detection sequence. When only one hand is detected, `handIndex` should always be 0. If two hands are detected, `handIndex` can be either 0 or 1. The number of detected hands can be accessed via `HandTrackingManager.HandCount`.
 
-Please note, the hand tracking feature is only compatible with iOS 14.0 or higher devices equipped with a LiDAR depth sensor.
+Please note, the hand tracking feature is only compatible with iOS 18.0 or higher devices equipped with a LiDAR depth sensor.
 
 ### Hand Gesture Recognition
 
@@ -166,7 +166,7 @@ private void OnHandGestureChanged(HandGesture handGesture)
 }
 ```
 
-Please note, the hand gesture recognition feature is only available on iOS 14.0 or higher devices.
+Please note, the hand gesture recognition feature is only available on iOS 18.0 or higher devices.
 
 You can use hand tracking and hand gesture recognition at the same time, simply add both `HandTrackingManager` and `HandGestureRecognitionManager` components to your scene.
 
