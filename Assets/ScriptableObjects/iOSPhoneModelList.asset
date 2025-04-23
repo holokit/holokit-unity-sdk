@@ -37,6 +37,14 @@ MonoBehaviour:
       ViewportBottomOffset: 0
       CameraOffset: {x: 0.06694, y: -0.09405, z: -0.00591}
       ScreenBottomBorder: 0.00391
+  - ModelName: iPhone12,1
+    Description: iPhone 11
+    ModelSpecs:
+      ScreenResolution: {x: 0, y: 0}
+      ScreenDpi: 326
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.059955, y: -0.05932, z: -0.00591}
+      ScreenBottomBorder: 0.00452
   - ModelName: iPhone12,3
     Description: iPhone 11 Pro
     ModelSpecs:
