@@ -40,10 +40,10 @@ namespace HoloKit.iOS
 
         private void Start()
         {
-            m_HandTrackingManager = FindObjectOfType<HandTrackingManager>();
+            m_HandTrackingManager = FindFirstObjectByType<HandTrackingManager>();
             if (m_HandTrackingManager == null)
             {
-                var arCameraManager = FindObjectOfType<ARCameraManager>();
+                var arCameraManager = FindFirstObjectByType<ARCameraManager>();
                 if (arCameraManager == null)
                 {
                     Debug.Log("HandGestureManager won't work without ARCameraManager in the scene");

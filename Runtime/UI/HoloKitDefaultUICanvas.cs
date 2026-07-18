@@ -24,7 +24,7 @@ namespace HoloKit.UI
 
         private void Start()
         {
-            m_HoloKitCameraManager = FindObjectOfType<HoloKitCameraManager>();
+            m_HoloKitCameraManager = FindFirstObjectByType<HoloKitCameraManager>();
 #if UNITY_IOS
             m_VideoRecorder = m_HoloKitCameraManager.GetComponentInChildren<HoloKitVideoRecorder>();
 #endif

@@ -73,14 +73,14 @@ namespace HoloKit.iOS
 
         private void Awake()
         {
-            var arCameraManager = FindObjectOfType<ARCameraManager>();
+            var arCameraManager = FindFirstObjectByType<ARCameraManager>();
             if (arCameraManager == null)
             {
                 Debug.LogWarning("HandTrackingManager won't work without ARCameraManager in the scene");
                 return;
             }
 
-            if (FindObjectOfType<AROcclusionManager>() == null)
+            if (FindFirstObjectByType<AROcclusionManager>() == null)
             {
                 Debug.LogWarning("HandTrackingManager won't work without AROcclusionManager in the scene");
                 return;
