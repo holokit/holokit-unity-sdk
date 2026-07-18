@@ -16,7 +16,7 @@ namespace HoloKit
 
         private void Start()
         {
-            var holokitCameraManager = FindObjectOfType<HoloKitCameraManager>();
+            var holokitCameraManager = FindFirstObjectByType<HoloKitCameraManager>();
             m_CenterEyePose = holokitCameraManager.CenterEyePose;
         }
 

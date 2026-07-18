@@ -188,7 +188,7 @@ namespace HoloKit.Editor
             Undo.RegisterCreatedObjectUndo(canvasGo, "Create HoloKit Default UI Canvas");
 
             // Check for EventSystem
-            EventSystem eventSystem = Object.FindObjectOfType<EventSystem>();
+            EventSystem eventSystem = Object.FindFirstObjectByType<EventSystem>();
             if (eventSystem == null)
             {
                 // Create new EventSystem
