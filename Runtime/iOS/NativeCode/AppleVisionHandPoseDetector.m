@@ -48,12 +48,12 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
         VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer: self.arSession.currentFrame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
         @try {
             NSArray<VNRequest *> *requests = [[NSArray alloc] initWithObjects:self.handPoseRequest, nil];
-            [imageRequestHandler performRequests:requests error:nil];
-            return YES;
+            return [imageRequestHandler performRequests:requests error:nil];
         } @catch(NSException *e) {
             return NO;
         }
     }
+    return NO;
 }
 
 - (void)processCurrentFrame2D {
