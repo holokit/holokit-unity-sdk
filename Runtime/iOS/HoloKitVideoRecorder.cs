@@ -108,6 +108,14 @@ namespace HoloKit.iOS
             LastError = null;
             _startedNative = false;
             bool needsMicrophone = _audioMode == RecordingAudioMode.Environment || _includeMicrophone;
+            if (needsMicrophone && _microphoneInput == null)
+            {
+                // Recorders configured before 0.6.0 have no input assigned. Share the scene's
+                // input if there is one, otherwise add one here, so they keep recording audio.
+                _microphoneInput = FindFirstObjectByType<HoloKitMicrophoneCapture>();
+                if (_microphoneInput == null) _microphoneInput = gameObject.AddComponent<HoloKitMicrophoneCapture>();
+                Debug.Log($"[Recorder] No Microphone Input assigned; using {_microphoneInput.name}'s HoloKitMicrophoneCapture.");
+            }
             if (needsMicrophone && (_microphoneInput == null || !_microphoneInput.IsReady))
             {
                 if (_microphoneInput == null) { Fail("Assign a shared HoloKitMicrophoneCapture input."); return; }

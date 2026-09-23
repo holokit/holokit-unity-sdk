@@ -49,6 +49,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   persists until another has enough consecutive evidence.
 - A one-frame hand-tracking dropout reset the gesture to `None` at once, so one pinch could become
   Pinched/None/Pinched and select a gazed object several times. The gesture now survives a 0.2 s dropout.
+- Recorders without an assigned Microphone Input (all scenes created before 0.6.0, including the samples)
+  failed to start. They now share the scene's `HoloKitMicrophoneCapture` or add one.
 - Gaze Gesture Interaction sample had no `GazeRaycastInteractor`/`GazeGestureInteractor`, so nothing
   could be selected.
 - Duplicate `iPhone14,5` entry in the iOS phone list; the iPhone 13 mini data is now `iPhone14,4`.
