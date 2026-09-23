@@ -26,6 +26,9 @@ namespace HoloKit.iOS
         [SerializeField] AudioListener _gameAudioListener;
         [Tooltip("In GameAndMicrophone mode, turn off for game-only recording without microphone permission.")]
         [SerializeField] bool _includeMicrophone = true;
+        [Tooltip("Environment mode only: Environment records the raw level; Default uses iOS automatic gain " +
+                 "(louder quiet sounds, like Unity's Microphone). Must match other consumers of the shared input.")]
+        [SerializeField] MicrophoneProcessing _environmentProcessing = MicrophoneProcessing.Environment;
         [Range(0, 2)] [SerializeField] float _gameGain = 1;
         [Range(0, 2)] [SerializeField] float _microphoneGain = 1;
         [Tooltip("Keep the original source tracks and also export a single mixed audio track for sharing. Video is copied without re-encoding.")]
@@ -34,6 +37,13 @@ namespace HoloKit.iOS
         public HoloKitMicrophoneCapture MicrophoneInput { get => _microphoneInput; set => _microphoneInput = value; }
         public AudioListener GameAudioListener { get => _gameAudioListener; set => _gameAudioListener = value; }
         public bool IncludeMicrophone { get => _includeMicrophone; set => _includeMicrophone = value; }
+        /// <summary>Microphone processing in Environment mode (Environment raw level or Default automatic gain).
+        /// Takes effect at the next recording.</summary>
+        public MicrophoneProcessing EnvironmentProcessing
+        {
+            get => _environmentProcessing;
+            set => _environmentProcessing = value == MicrophoneProcessing.EchoCancellation ? MicrophoneProcessing.Environment : value;
+        }
         public float GameGain { get => _gameGain; set => _gameGain = Mathf.Clamp(value, 0, 2); }
         public float MicrophoneGain { get => _microphoneGain; set => _microphoneGain = Mathf.Clamp(value, 0, 2); }
         public RecordingAudioMode AudioMode { get => _audioMode; set => _audioMode = value; }
@@ -195,7 +205,8 @@ namespace HoloKit.iOS
         }
 
         MicrophoneProcessing Processing => _audioMode == RecordingAudioMode.Environment
-            ? MicrophoneProcessing.Environment : MicrophoneProcessing.EchoCancellation;
+            ? (_environmentProcessing == MicrophoneProcessing.EchoCancellation ? MicrophoneProcessing.Environment : _environmentProcessing)
+            : MicrophoneProcessing.EchoCancellation;
 
         IEnumerator PrepareRecording()
         {

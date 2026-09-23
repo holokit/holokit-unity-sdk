@@ -9,7 +9,8 @@ double HoloKit_AudioClockTime(void);
 // Permission: 0 not determined, 1 granted, -1 denied. Request is asynchronous.
 int HoloKit_MicrophonePermission(void);
 void HoloKit_MicrophoneRequestPermission(void);
-int HoloKit_MicrophoneStart(int echoCancellation);
+// processing: 0 raw (Measurement mode), 1 echo cancellation, 2 iOS default (system automatic gain).
+int HoloKit_MicrophoneStart(int processing);
 void HoloKit_MicrophoneStop(void);
 int HoloKit_MicrophoneIsRunning(void);
 int HoloKit_MicrophoneSampleRate(void);

@@ -272,10 +272,12 @@ def summarize(out, run_id, completed, args):
     if any(r['id'] == 'A4.orientation-captured' for r in results):
         ok, detail = orientation_check(out)
         results.append({'id': 'A4.orientation-mac', 'pass': ok, 'detail': detail})
-    results.extend(handvideo_checks(out))
+    # Only this run's video suite; the device keeps older CSVs in Documents.
+    if args.suites == 'all' or 'handvideo' in args.suites.split(','):
+        results.extend(handvideo_checks(out))
     if not args.allow_speaker:
         for r in results:
-            if r['id'] == 'G2.tone-440':
+            if r['id'] in ('G2.tone-440', 'G3.default-gain'):
                 r['pass'] = None
                 r['detail'] = 'UNTESTED (speaker not allowed); ' + r['detail']
     failed = [r for r in results if r['pass'] is False]

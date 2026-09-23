@@ -6,6 +6,7 @@ analysis/effects and references the SDK's shared microphone input.
 | Inspector mode | Captured sound | Microphone processing |
 | --- | --- | --- |
 | Environment | Environmental microphone, one mono track | Measurement input; voice processing off |
+| Environment, Microphone Processing = Default | Environmental microphone, one mono track | iOS default input with automatic gain (as Unity's `Microphone`); quiet sounds read louder, levels uncalibrated |
 | Game And Microphone | Game stereo track and microphone mono track | Native voice processing with AEC; AGC off |
 | Game And Microphone, Include Microphone off | Game track only | Recorder does not acquire or request microphone input |
 
@@ -20,6 +21,12 @@ Game Gain and Microphone Gain control recorded samples independently of playback
 Zero gain retains the track and its timeline. These values can change during a
 recording. Source selection, microphone processing and track topology take effect
 at the next recording; do not switch processing while another consumer holds it.
+
+`MicrophoneProcessing` has three values: `Environment` (raw level for measurement and
+analysis calibrated to it), `EchoCancellation` (voice processing, used by Game And Microphone) and
+`Default` (iOS automatic gain, matching apps that used Unity's `Microphone`). A sound-reactive app
+whose thresholds were tuned with Unity's `Microphone` should use `Default` for both its analysis
+and the recorder, because all consumers of the shared input must request the same processing.
 
 ## Shared analysis
 

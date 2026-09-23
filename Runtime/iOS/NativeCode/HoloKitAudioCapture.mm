@@ -28,7 +28,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
 @property(nonatomic, copy) NSString* previousCategory;
 @property(nonatomic, copy) NSString* previousMode;
 @property(nonatomic) AVAudioSessionCategoryOptions previousOptions;
-@property(nonatomic) BOOL echoCancellation;
+@property(nonatomic) int processing; // 0 raw (Measurement), 1 echo cancellation, 2 iOS default (system gain)
 @property(nonatomic) BOOL tapInstalled;
 @property(nonatomic) NSUInteger users;
 @end
@@ -57,9 +57,10 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     [self stop];
     return NO;
 }
-- (BOOL)start:(BOOL)aec {
+- (BOOL)start:(int)processing {
+    const BOOL aec = processing == 1;
     if (self.engine.isRunning) {
-        if (aec == self.echoCancellation) return YES;
+        if (processing == self.processing) return YES;
         self.error = @"Cannot change microphone processing while the shared input is running.";
         return NO;
     }
@@ -73,7 +74,8 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionDefaultToSpeaker |
         AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionMixWithOthers;
     if (![session setCategory:AVAudioSessionCategoryPlayAndRecord
-                        mode:aec ? AVAudioSessionModeVoiceChat : AVAudioSessionModeMeasurement
+                        mode:aec ? AVAudioSessionModeVoiceChat
+                            : processing == 2 ? AVAudioSessionModeDefault : AVAudioSessionModeMeasurement
                      options:options error:&error]) return [self fail:error.localizedDescription];
     if (![session setActive:YES error:&error]) return [self fail:error.localizedDescription];
 
@@ -91,7 +93,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
             input.voiceProcessingOtherAudioDuckingConfiguration = ducking;
         }
     }
-    self.echoCancellation = aec;
+    self.processing = processing;
     AVAudioFormat* format = [input outputFormatForBus:0];
     if (!format.channelCount || format.sampleRate <= 0 || format.commonFormat != AVAudioPCMFormatFloat32)
         return [self fail:@"Microphone has no supported floating-point input format."];
@@ -127,6 +129,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     self.tapInstalled = YES;
     [self.engine prepare];
     if (![self.engine startAndReturnError:&error]) return [self fail:error.localizedDescription];
+    NSLog(@"[Microphone] processing=%d session mode=%@", processing, session.mode);
     NSLog(@"[Microphone] latency input=%.6f output=%.6f IO=%.6f node=%.6f inputPresentation=%.6f outputPresentation=%.6f AGC=%d",
         session.inputLatency, session.outputLatency, session.IOBufferDuration, input.latency,
         input.presentationLatency, aec ? self.engine.outputNode.presentationLatency : session.outputLatency,
@@ -163,8 +166,9 @@ void HoloKit_MicrophoneRequestPermission() {
     if (@available(iOS 17.0, *)) [AVAudioApplication requestRecordPermissionWithCompletionHandler:^(BOOL granted) {}];
     else [AVAudioSession.sharedInstance requestRecordPermission:^(BOOL granted) {}];
 }
-int HoloKit_MicrophoneStart(int aec) {
-    if (![Microphone() start:aec != 0]) return -1;
+int HoloKit_MicrophoneStart(int processing) {
+    if (processing < 0 || processing > 2) return -1;
+    if (![Microphone() start:processing]) return -1;
     Microphone().users++;
     return 0;
 }

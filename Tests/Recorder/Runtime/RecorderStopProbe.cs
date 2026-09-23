@@ -130,16 +130,18 @@ public class RecorderStopProbe : MonoBehaviour
         if (input == null) yield break;
         int originalConsumers = input.ConsumerCount;
         recorder.AudioMode = RecordingAudioMode.Environment;
-        input.Acquire(this, MicrophoneProcessing.Environment);
+        // Follow the scene's Environment processing (raw or Default) so an app's own analysis lease is compatible.
+        MicrophoneProcessing environment = recorder.EnvironmentProcessing;
+        input.Acquire(this, environment);
         float deadline = Time.realtimeSinceStartup + 5;
         while (input.IsPreparing && Time.realtimeSinceStartup < deadline) yield return null;
         Check(input.IsReady, "independent analysis consumer ready");
         if (input.IsReady)
         {
-            Check(input.Acquire(this, MicrophoneProcessing.Environment) &&
+            Check(input.Acquire(this, environment) &&
                 input.ConsumerCount == originalConsumers + 1, "repeated acquisition is idempotent");
             Check(!input.Acquire(recorder, MicrophoneProcessing.EchoCancellation) &&
-                input.ConsumerCount == originalConsumers + 1 && input.Processing == MicrophoneProcessing.Environment,
+                input.ConsumerCount == originalConsumers + 1 && input.Processing == environment,
                 "conflicting AEC request preserves environmental input");
             yield return Run("shared-microphone", false, false, .7f, 1);
             Check(input.IsReady && input.ConsumerCount == originalConsumers + 1,

@@ -269,6 +269,29 @@ public partial class HoloKitFeatureProbe
         microphone.Release(c);
         yield return null;
         Check("G1.released", microphone.ConsumerCount == 0 && !microphone.IsReady, $"consumers={microphone.ConsumerCount}");
+
+        // G3: the same tone through iOS default processing (automatic gain) should read louder than raw.
+        microphone.Acquire(a, MicrophoneProcessing.Default);
+        deadline = Time.realtimeSinceStartup + 8;
+        while (!microphone.IsReady && Time.realtimeSinceStartup < deadline) yield return null;
+        Check("G3.default-ready", microphone.IsReady && microphone.Processing == MicrophoneProcessing.Default,
+            $"ready={microphone.IsReady} error={microphone.LastError}");
+        var gained = new Dictionary<string, List<float>> { ["silence"] = new(), ["tone-440"] = new() };
+        nextRead = 0;
+        yield return During(() =>
+        {
+            if (!Settled || Time.realtimeSinceStartup < nextRead || !gained.ContainsKey(m_Stimulus)) return;
+            nextRead = Time.realtimeSinceStartup + 0.2f;
+            int n = microphone.ReadLatestSamples(samples);
+            if (n > 0) gained[m_Stimulus].Add(Mathf.Sqrt(samples.Take(n).Sum(s => s * s) / n));
+        }, ("silence", 5), ("tone-440", 6), ("silence", 3));
+        float defaultQuiet = Median(gained["silence"]), defaultLoud = Median(gained["tone-440"]);
+        float gainDb = 20 * Mathf.Log10(Mathf.Max(defaultLoud, 1e-6f) / Mathf.Max(loud, 1e-6f));
+        Debug.Log($"[SDK-AUDIO] default silenceRms={defaultQuiet:F5} toneRms={defaultLoud:F5} vsEnvironment={gainDb:F1}dB");
+        Check("G3.default-gain", defaultLoud > 2 * defaultQuiet && gainDb > 3,
+            $"environment toneRms={loud:F5}, default toneRms={defaultLoud:F5} ({gainDb:+0.0;-0.0} dB)");
+        microphone.Release(a);
+        yield return null;
         Destroy(a); Destroy(b); Destroy(c);
     }
 

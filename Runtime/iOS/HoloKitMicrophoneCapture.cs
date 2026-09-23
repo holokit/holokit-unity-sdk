@@ -8,7 +8,17 @@ using UnityEngine;
 
 namespace HoloKit.iOS
 {
-    public enum MicrophoneProcessing { Environment, EchoCancellation }
+    /// <summary>How iOS processes the shared microphone input. Values are serialized; append only.</summary>
+    public enum MicrophoneProcessing
+    {
+        /// <summary>Raw environmental level (Measurement mode): no automatic gain or voice processing.</summary>
+        Environment,
+        /// <summary>Voice processing with echo cancellation, for recording game audio and voice together.</summary>
+        EchoCancellation,
+        /// <summary>iOS default input processing with automatic gain, like Unity's Microphone class.
+        /// Quiet sounds read louder; levels are not calibrated.</summary>
+        Default,
+    }
 
     /// <summary>One shared native input for recording and application analysis.</summary>
     [DefaultExecutionOrder(-100), DisallowMultipleComponent]
@@ -74,7 +84,7 @@ namespace HoloKit.iOS
                 Debug.Log($"[Microphone] Native permission={HoloKit_MicrophonePermission()} mode={processing}");
                 if (HoloKit_MicrophonePermission() != 1)
                     LastError = "Microphone permission was denied.";
-                else if (HoloKit_MicrophoneStart(processing == MicrophoneProcessing.EchoCancellation ? 1 : 0) != 0)
+                else if (HoloKit_MicrophoneStart((int)processing) != 0)
                     LastError = NativeError() ?? "Could not start the microphone.";
                 else
                 {
@@ -154,7 +164,7 @@ namespace HoloKit.iOS
         const string Library = "__Internal";
         [DllImport(Library)] static extern int HoloKit_MicrophonePermission();
         [DllImport(Library)] static extern void HoloKit_MicrophoneRequestPermission();
-        [DllImport(Library)] static extern int HoloKit_MicrophoneStart(int echoCancellation);
+        [DllImport(Library)] static extern int HoloKit_MicrophoneStart(int processing);
         [DllImport(Library)] static extern void HoloKit_MicrophoneStop();
         [DllImport(Library)] static extern int HoloKit_MicrophoneIsRunning();
         [DllImport(Library)] static extern int HoloKit_MicrophoneSampleRate();

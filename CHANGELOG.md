@@ -18,6 +18,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - `HoloKitMicrophoneCapture`: shared native microphone with owner-counted `Acquire`/`Release`,
   optional voice-processing echo cancellation, and `ReadLatestSamples`/`ReadSpectrum` for analysis.
 - `HoloKitGameAudioTap` and a recorder Inspector.
+- `MicrophoneProcessing.Default`: iOS default input processing with automatic gain (as Unity's
+  `Microphone`), about 17 dB louder than raw `Environment` in a measured room. The recorder's
+  Environment mode can use it (`EnvironmentProcessing`), so sound-reactive apps keep their thresholds.
 - Standard `HoloKit Default UI Canvas` prefab (`Assets/Prefabs`) with render mode, record and 4K
   buttons; the GameObject > UI > HoloKit menu now places it. Every interactive sample uses it and has
   a `HoloKitVideoRecorder`.

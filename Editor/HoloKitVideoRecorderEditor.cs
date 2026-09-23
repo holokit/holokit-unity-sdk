@@ -23,6 +23,9 @@ namespace HoloKit.Editor
                 EditorGUILayout.PropertyField(include);
                 microphone = include.boolValue;
             }
+            if (!game)
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_environmentProcessing"),
+                    new UnityEngine.GUIContent("Microphone Processing"));
             if (microphone)
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_microphoneInput"));
@@ -34,7 +37,9 @@ namespace HoloKit.Editor
                 ? microphone
                     ? "Records separate game and echo-cancelled microphone tracks. Game playback is unchanged."
                     : "Records game audio only. Recording does not request microphone permission."
-                : "Records raw environmental sound without microphone playback. Share this input with application analysis.",
+                : serializedObject.FindProperty("_environmentProcessing").enumValueIndex == (int)MicrophoneProcessing.Default
+                    ? "Records environmental sound with iOS automatic gain (louder quiet sounds, like Unity's Microphone). Share this input with application analysis."
+                    : "Records raw environmental sound without microphone playback. Share this input with application analysis.",
                 MessageType.Info);
             serializedObject.ApplyModifiedProperties();
             var recorder = (HoloKitVideoRecorder)target;
