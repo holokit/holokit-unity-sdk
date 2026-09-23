@@ -32,17 +32,17 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 HoloKit Unity SDK has been tested and found compatible with the following software versions:
 
 ### Unity
-- Unity 6 LTS
+- Unity 6 LTS or higher
 
 ### ARFoundation
-- ARFoundation 6.0.5
+- ARFoundation 6.2.0
 
 We aim to continually test and verify compatibility with newer versions of these softwares.
 
 ## Phone Compatibility
 
 ### iOS
-- iOS 18.0 or higher
+- iOS 26.0 or higher
 
 HoloKit was primarily built for iOS devices. Please see the [Supported iOS Devices](Supported_iOS_Devices.md) to check if your iPhone is supported.
 
