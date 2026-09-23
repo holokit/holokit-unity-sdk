@@ -1,0 +1,11 @@
+{
+  "name": "HoloKit.Recorder.Regression.Editor",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "defineConstraints": [
+    "HOLOKIT_RECORDER_TESTS"
+  ],
+  "autoReferenced": true
+}

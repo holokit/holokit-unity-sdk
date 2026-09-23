@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
-// SPDX-FileContributor: Botao Amber Hu <botao.a.hu@gmail.com>
+// SPDX-FileContributor: Botao Amber Hu <amber@reality.design>
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
@@ -29,7 +29,6 @@ namespace HoloKit.Editor
                 project.SetBuildProperty(mainTargetGuid, "ENABLE_BITCODE", "NO");
                 project.SetBuildProperty(unityFrameworkTargetGuid, "ENABLE_BITCODE", "NO");
                 project.SetBuildProperty(unityFrameworkTargetGuid, "GCC_ENABLE_OBJC_EXCEPTIONS", "YES");
-                project.AddBuildProperty(unityFrameworkTargetGuid, "OTHER_LDFLAGS", "-ld64");
 
                 // Modify Info.plist for NSMicrophoneUsageDescription and NSPhotoLibraryAddUsageDescription
                 string plistPath = buildPath + "/Info.plist";

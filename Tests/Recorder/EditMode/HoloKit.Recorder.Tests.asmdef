@@ -1,0 +1,12 @@
+{
+  "name": "HoloKit.Recorder.Tests",
+  "references": [
+    "HoloKit"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

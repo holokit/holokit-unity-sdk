@@ -38,7 +38,7 @@ namespace HoloKit
             }
 
             List<InputDevice> devices = new();
-            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.HeadMounted, devices);
+            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.TrackedDevice, devices);
             if (devices.Count > 0)
                 m_InputDevice = devices[0];
             if (m_InputDevice == null)

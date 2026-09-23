@@ -1,0 +1,15 @@
+{
+  "name": "HoloKit.Recorder.Regression",
+  "references": [
+    "HoloKit",
+    "Unity.XR.ARFoundation"
+  ],
+  "includePlatforms": [
+    "Editor",
+    "iOS"
+  ],
+  "defineConstraints": [
+    "HOLOKIT_RECORDER_TESTS"
+  ],
+  "autoReferenced": true
+}
