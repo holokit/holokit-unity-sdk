@@ -39,6 +39,40 @@ public partial class HoloKitFeatureProbe
         button.onClick.Invoke();
         yield return new WaitForSecondsRealtime(2);
         Check("E1.render-restore", manager.ScreenRenderMode == before, $"mode={manager.ScreenRenderMode}");
+
+        var recorder = manager.GetComponentInChildren<HoloKitVideoRecorder>();
+        if (!Check("E2.recorder", recorder != null, "camera rig has a HoloKitVideoRecorder")) yield break;
+        Button quality = canvas.RecordIn4KButton;
+        if (Check("E2.4k-button", quality != null, "standard canvas has a 4K button"))
+        {
+            bool was4K = recorder.RecordIn4K;
+            quality.onClick.Invoke();
+            yield return null;
+            string qualityLabel = quality.GetComponentInChildren<Text>()?.text;
+            Check("E2.4k-toggle", recorder.RecordIn4K != was4K && qualityLabel == (recorder.RecordIn4K ? "4K" : "2K"),
+                $"{was4K}->{recorder.RecordIn4K} label='{qualityLabel}'");
+            quality.onClick.Invoke();
+            yield return null;
+            Check("E2.4k-restore", recorder.RecordIn4K == was4K, $"recordIn4K={recorder.RecordIn4K}");
+        }
+
+        Button record = FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b =>
+            Enumerable.Range(0, b.onClick.GetPersistentEventCount())
+                .Any(i => b.onClick.GetPersistentMethodName(i) == nameof(HoloKitDefaultUICanvas.ToggleRecording)));
+        if (!Check("E3.record-button", record != null, "a Button is wired to ToggleRecording")) yield break;
+        record.onClick.Invoke();
+        float deadline = Time.realtimeSinceStartup + 8;
+        while (!recorder.IsRecording && Time.realtimeSinceStartup < deadline) yield return null;
+        if (!Check("E3.record-start", recorder.IsRecording, $"recording={recorder.IsRecording} error={recorder.LastError}")) yield break;
+        yield return new WaitForSecondsRealtime(3);
+        yield return Capture("ui-recording");
+        record.onClick.Invoke();
+        deadline = Time.realtimeSinceStartup + 15;
+        while ((recorder.IsRecording || recorder.IsFinishing) && Time.realtimeSinceStartup < deadline) yield return null;
+        string movie = recorder.LastRecordingPath;
+        long bytes = !string.IsNullOrEmpty(movie) && System.IO.File.Exists(movie) ? new System.IO.FileInfo(movie).Length : 0;
+        Check("E3.record-stop", !recorder.IsRecording && !recorder.IsFinishing && bytes > 0 && recorder.SubmittedFrames > 0,
+            $"bytes={bytes} frames={recorder.SubmittedFrames} dropped={recorder.DroppedFrames} error={recorder.LastError}");
     }
 
     IEnumerator TrackingSuite()

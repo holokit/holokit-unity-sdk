@@ -223,7 +223,7 @@ def main():
     parser.add_argument('--allow-speaker', action='store_true', help='play the 440 Hz tone on the current volume')
     parser.add_argument('--timeout', type=float, default=900)
     parser.add_argument('--screenshots', nargs='*', default=[
-        'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'orient-Portrait', 'orient-LandscapeLeft',
+        'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'ui-recording', 'orient-Portrait', 'orient-LandscapeLeft',
         'orient-LandscapeRight', 'orient-PortraitUpsideDown'])
     raise SystemExit(run(parser.parse_args()))
 
