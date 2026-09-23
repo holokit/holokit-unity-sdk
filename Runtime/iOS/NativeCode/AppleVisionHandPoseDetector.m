@@ -43,9 +43,12 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
     return self;
 }
 
-- (BOOL)processCurrentFrame {
+// Every use of `currentFrame` can return a newer ARFrame. Each call snapshots one frame and
+// uses it for Vision, depth and unprojection, so depth is never read from a different frame.
+- (BOOL)processFrame:(ARFrame *)frame {
     if (@available(iOS 14.0, *)) {
-        VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer: self.arSession.currentFrame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
+        if (frame == nil || frame.capturedImage == NULL) return NO;
+        VNImageRequestHandler *imageRequestHandler = [[VNImageRequestHandler alloc] initWithCVPixelBuffer:frame.capturedImage orientation:kCGImagePropertyOrientationUp options:[NSMutableDictionary dictionary]];
         @try {
             NSArray<VNRequest *> *requests = [[NSArray alloc] initWithObjects:self.handPoseRequest, nil];
             [imageRequestHandler performRequests:requests error:nil];
@@ -54,11 +57,13 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
             return NO;
         }
     }
+    return NO;
 }
 
 - (void)processCurrentFrame2D {
     if (@available(iOS 14.0, *)) {
-        if ([self processCurrentFrame]) {
+        ARFrame *frame = self.arSession.currentFrame;
+        if ([self processFrame:frame]) {
             int handCount = (int)self.handPoseRequest.results.count;
             if (handCount == 0) {
                 if (self.onHandPoseUpdatedCallback != NULL) {
@@ -102,12 +107,14 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
 
 - (void)processCurrentFrame3D {
     if (@available(iOS 14.0, *)) {
-        if (self.arSession.currentFrame.sceneDepth == nil) {
+        ARFrame *frame = self.arSession.currentFrame;
+        CVPixelBufferRef depthMap = frame.sceneDepth.depthMap;
+        if (depthMap == NULL) {
             NSLog(@"Failed to get environment depth image");
             return;
         }
         
-        if ([self processCurrentFrame]) {
+        if ([self processFrame:frame]) {
             int handCount = (int)self.handPoseRequest.results.count;
             if (handCount == 0) {
                 if (self.onHandPoseUpdatedCallback != NULL) {
@@ -122,11 +129,19 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
             float *results3D = malloc(sizeof(float) * 3 * 21 * handCount);
             float *confidences = malloc(sizeof(float) * 21 * handCount);
             
-            // Get scene depth
-            CVPixelBufferLockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
-            size_t depthBufferWidth = CVPixelBufferGetWidth(self.arSession.currentFrame.sceneDepth.depthMap);
-            size_t depthBufferHeight = CVPixelBufferGetHeight(self.arSession.currentFrame.sceneDepth.depthMap);
-            Float32 *depthBufferBaseAddress = (Float32 *)CVPixelBufferGetBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap);
+            // Get scene depth from the same frame Vision processed
+            CVPixelBufferLockBaseAddress(depthMap, kCVPixelBufferLock_ReadOnly);
+            size_t depthBufferWidth = CVPixelBufferGetWidth(depthMap);
+            size_t depthBufferHeight = CVPixelBufferGetHeight(depthMap);
+            size_t depthRowFloats = CVPixelBufferGetBytesPerRow(depthMap) / sizeof(Float32);
+            Float32 *depthBufferBaseAddress = (Float32 *)CVPixelBufferGetBaseAddress(depthMap);
+            if (depthBufferBaseAddress == NULL || depthBufferWidth == 0 || depthBufferHeight == 0) {
+                CVPixelBufferUnlockBaseAddress(depthMap, kCVPixelBufferLock_ReadOnly);
+                free(results2D);
+                free(results3D);
+                free(confidences);
+                return;
+            }
 
             for (int i = 0; i < handCount; i++) {
                 VNHumanHandPoseObservation *observation = self.handPoseRequest.results[i];
@@ -153,9 +168,10 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
                     confidences[i * 21 + j] = point.confidence;
                     
                     // Get the depth of the point
-                    int depthX = point.x * depthBufferWidth;
-                    int depthY = (1 - point.y) * depthBufferHeight;
-                    float depth = (float)depthBufferBaseAddress[depthY * depthBufferWidth + depthX];
+                    // Vision can report joints on or outside the image edge; clamp to the depth map.
+                    long depthX = MIN(MAX((long)(point.x * depthBufferWidth), 0L), (long)depthBufferWidth - 1);
+                    long depthY = MIN(MAX((long)((1 - point.y) * depthBufferHeight), 0L), (long)depthBufferHeight - 1);
+                    float depth = (float)depthBufferBaseAddress[depthY * depthRowFloats + depthX];
                     
                     // Depth filtering
                     if (foundHandIndex == -1) {
@@ -174,13 +190,13 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
                     }
                     self.previousHandJointDepths[i * 21 + j] = [NSNumber numberWithFloat:depth];
 
-                    simd_float3 unprojectedPoint = [self unprojectScreenPointWithLocationX:point.x locationY:point.y depth:depth];
+                    simd_float3 unprojectedPoint = [self unprojectScreenPointWithCamera:frame.camera locationX:point.x locationY:point.y depth:depth];
                     results3D[i * 3 * 21 + j * 3] = unprojectedPoint.x;
                     results3D[i * 3 * 21 + j * 3 + 1] = unprojectedPoint.y;
                     results3D[i * 3 * 21 + j * 3 + 2] = -unprojectedPoint.z;
                 }
             }
-            CVPixelBufferUnlockBaseAddress(self.arSession.currentFrame.sceneDepth.depthMap, 0);
+            CVPixelBufferUnlockBaseAddress(depthMap, kCVPixelBufferLock_ReadOnly);
             
             if (self.onHandPoseUpdatedCallback != NULL) {
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -304,18 +320,18 @@ const float DEPTH_SMOOTH_FACTOR = 0.5;
     }
 }
 
-- (simd_float3)unprojectScreenPointWithLocationX:(float)locationX locationY:(float)locationY depth:(float)depth {
-    CGFloat screenX = (CGFloat)locationX * self.arSession.currentFrame.camera.imageResolution.width;
-    CGFloat screenY = (CGFloat)(1 - locationY) * self.arSession.currentFrame.camera.imageResolution.height;
+- (simd_float3)unprojectScreenPointWithCamera:(ARCamera *)camera locationX:(float)locationX locationY:(float)locationY depth:(float)depth {
+    CGFloat screenX = (CGFloat)locationX * camera.imageResolution.width;
+    CGFloat screenY = (CGFloat)(1 - locationY) * camera.imageResolution.height;
     CGPoint screenPoint = CGPointMake(screenX, screenY);
     
     simd_float4x4 translation = matrix_identity_float4x4;
     translation.columns[3].z = -depth;
-    simd_float4x4 planeOrigin = simd_mul(self.arSession.currentFrame.camera.transform, translation);
+    simd_float4x4 planeOrigin = simd_mul(camera.transform, translation);
     simd_float3 xAxis = simd_make_float3(1, 0, 0);
     simd_float4x4 rotation = simd_matrix4x4(simd_quaternion(0.5 * M_PI, xAxis));
     simd_float4x4 plane = simd_mul(planeOrigin, rotation);
-    simd_float3 unprojectedPoint = [self.arSession.currentFrame.camera unprojectPoint:screenPoint ontoPlaneWithTransform:plane orientation:UIInterfaceOrientationLandscapeRight viewportSize:self.arSession.currentFrame.camera.imageResolution];
+    simd_float3 unprojectedPoint = [camera unprojectPoint:screenPoint ontoPlaneWithTransform:plane orientation:UIInterfaceOrientationLandscapeRight viewportSize:camera.imageResolution];
     return simd_make_float3(unprojectedPoint.x, unprojectedPoint.y, unprojectedPoint.z);
 }
 
