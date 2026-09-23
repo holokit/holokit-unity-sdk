@@ -9,18 +9,24 @@ using UnityEngine.XR.ARSubsystems;
 
 namespace HoloKit.iOS
 {
-    // iOS 27 + SDK 27: use ARKit's absolute interface pose and display
-    // transform together. Device tests found an incorrect background matrix
-    // and missing pose roll in ARKit XR 6.4.3. No accumulated rotations.
+    // iOS 27 + SDK 27: use ARKit's absolute interface pose, display transform
+    // and projection together. Device tests found an incorrect background matrix,
+    // missing pose roll and, in portrait, a projection scaled by the image aspect
+    // ratio in ARKit XR 6.4.3. No accumulated rotations.
     [DisallowMultipleComponent]
     public sealed class ARKitCameraCompatibility : MonoBehaviour
     {
         readonly float[] view = new float[16], projection = new float[16], display = new float[8];
         readonly List<XRSessionSubsystem> sessions = new();
         ARCameraBackground background;
+        Camera arCamera;
         Material correctedBackground;
 
-        void Awake() => background = GetComponent<ARCameraBackground>();
+        void Awake()
+        {
+            background = GetComponent<ARCameraBackground>();
+            arCamera = GetComponent<Camera>();
+        }
         void OnDestroy()
         {
             if (background != null && background.customMaterial == correctedBackground)
@@ -57,6 +63,7 @@ namespace HoloKit.iOS
             for (int i=0; i<16; i++) nativeView[i] = view[i];
             var flip = Matrix4x4.Scale(new Vector3(1,1,-1));
             transform.localRotation = (flip * nativeView.inverse * flip).rotation;
+            if (arCamera != null) arCamera.projectionMatrix = ProjectionMatrix(projection, arCamera.nearClipPlane, arCamera.farClipPlane);
             if (background != null && background.material != null)
             {
                 if (correctedBackground == null)
@@ -69,6 +76,16 @@ namespace HoloKit.iOS
                 correctedBackground.SetMatrix("_UnityDisplayTransform", DisplayMatrix(display));
             }
 #endif
+        }
+
+        // ARKit's projection for this orientation and viewport, with the camera's own clip planes.
+        public static Matrix4x4 ProjectionMatrix(float[] p, float near, float far)
+        {
+            var result = new Matrix4x4();
+            for (int i = 0; i < 16; i++) result[i] = p[i];
+            result.m22 = -(far + near) / (far - near);
+            result.m23 = -2 * far * near / (far - near);
+            return result;
         }
 
         // ARKit maps image -> UIKit view. Invert, flip viewport V, and

@@ -33,6 +33,11 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Fixed
 
+- iOS 27 portrait: the virtual camera kept AR Foundation's projection, which was scaled by the camera
+  image aspect ratio (4/3 at 1920x1440, 16/9 in 4K), while the background used ARKit's display
+  transform, so virtual content was misregistered. `ARKitCameraCompatibility` now also applies ARKit's
+  projection for the current orientation. Landscape already matched (e.g. 68.16° -> 70.66° horizontal
+  FOV when 4K is enabled).
 - Hand tracking (3D) could crash with `EXC_BAD_ACCESS` at address 0: Vision, depth and unprojection
   each re-read `ARSession.currentFrame` and could mix frames, including one without scene depth.
   Each call now uses one frame snapshot and clamps depth lookups to the depth map.
