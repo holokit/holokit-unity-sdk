@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Download and crop the Wikimedia Commons photos used by sdk_stimuli.html.
+"""Download the Wikimedia Commons person photo used by sdk_stimuli.html (human stencil).
+
+Hand stimuli are the committed first-person images in first-person/.
 
 The images are not committed; each keeps its Commons licence (see stimuli/CREDITS.txt).
 Requires Pillow. Usage: python3 fetch_stimuli.py

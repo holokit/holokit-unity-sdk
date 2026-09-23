@@ -38,6 +38,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   Each call now uses one frame snapshot and clamps depth lookups to the depth map.
 - Disabling AR background 4K right after enabling it (e.g. stopping a recording and switching render
   mode in the same frame) could leave the camera in 4K. The non-4K format is now captured once.
+- Hand gesture recognition emitted each gesture and then `None` on the next frame; a gesture now
+  persists until another has enough consecutive evidence.
 - Gaze Gesture Interaction sample had no `GazeRaycastInteractor`/`GazeGestureInteractor`, so nothing
   could be selected.
 - Duplicate `iPhone14,5` entry in the iOS phone list; the iPhone 13 mini data is now `iPhone14,4`.

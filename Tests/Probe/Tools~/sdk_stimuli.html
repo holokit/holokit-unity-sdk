@@ -9,6 +9,8 @@
   .stage { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; }
   .stage.on { display: flex; }
   .stage img { max-height: 92vh; max-width: 92vw; }
+  /* Hands stay well inside the phone camera's view (first-person, back of hand). */
+  #one img, #open img, #pinch img { max-height: 70vh; }
   #sweep img { position: absolute; height: 70vh; left: 0; animation: sweep 14s linear forwards; }
   @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 70vh)); } }
   #fiducial { background: #fff; }
@@ -23,11 +25,11 @@
 </head>
 <body>
 <div class="stage" id="blank"></div>
-<div class="stage" id="one"><img src="stimuli/open.jpg"></div>
-<div class="stage" id="open"><img src="stimuli/open.jpg"></div>
-<div class="stage" id="pinch"><img src="stimuli/pinch.jpg"></div>
-<div class="stage" id="two"><img src="stimuli/hands.jpg"></div>
-<div class="stage" id="sweep"><img src="stimuli/open.jpg"></div>
+<div class="stage" id="one"><img src="first-person/open.jpg"></div>
+<div class="stage" id="open"><img src="first-person/open.jpg"></div>
+<div class="stage" id="pinch"><img src="first-person/pinch.jpg"></div>
+<div class="stage" id="two"><img src="first-person/both.jpg"></div>
+<div class="stage" id="sweep"><img src="first-person/open.jpg"></div>
 <div class="stage" id="person"><img src="stimuli/person.jpg"></div>
 <div class="stage" id="fiducial">
   <div class="mark red"></div><div class="mark green"></div><div class="mark blue"></div>
