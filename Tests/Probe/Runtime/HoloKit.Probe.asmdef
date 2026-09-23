@@ -3,6 +3,7 @@
   "references": [
     "HoloKit",
     "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
     "UnityEngine.UI"
   ],
   "includePlatforms": [
