@@ -78,7 +78,9 @@ namespace HoloKit.iOS
 
         private void OnHandPoseUpdated()
         {
-            HandGesture handGesture = HandGesture.None;
+            // Keep the current gesture until another has enough consecutive evidence; defaulting
+            // to None here dropped every gesture one frame after it was recognized.
+            HandGesture handGesture = m_HandGesture;
             var handJoints = m_HandTrackingManager == null ? m_HandPoseDetector.HandPoses2D[0] : m_HandTrackingManager.HandPoseDetector.HandPoses2D[0];
             if (Vector2.Distance(handJoints[JointName.ThumbTip], handJoints[JointName.IndexTip]) < PINCH_THRESHOLD)
             {
