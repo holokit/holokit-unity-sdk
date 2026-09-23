@@ -6,6 +6,8 @@
 #import "HoloKitARKitNativeProvider.h"
 
 @interface HoloKitARKitNativeProvider()
+@property (nonatomic, strong) ARVideoFormat* previousVideoFormat;
+@property (assign) BOOL previousVideoHDRAllowed;
 
 @end
 
@@ -51,31 +53,27 @@
 
 - (void)setVideoEnhancement:(bool)enabled {
     if (@available(iOS 16, *)) {
-        ARWorldTrackingConfiguration *config = (ARWorldTrackingConfiguration *)self.session.configuration;
-        if (ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution == nil) {
-            NSLog(@"[HoloKitARKitNativeProvider] Current device does not support 4K resolution video format.");
-            return;
-        }
-        
-        if (!enabled) {
-            config.videoFormat = ARWorldTrackingConfiguration.supportedVideoFormats[0];
-            config.videoHDRAllowed = false;
-            [self.session runWithConfiguration:config];
-            NSLog(@"[HoloKitARKitNativeProvider] AR background video enhancement disabled.");
-            return;
-        }
-        
-        config.videoFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution;
-        if (!config.videoFormat.videoHDRSupported) {
-            config.videoHDRAllowed = true;
+        if (![self.session.configuration isKindOfClass:ARWorldTrackingConfiguration.class]) return;
+        ARWorldTrackingConfiguration* config = [(ARWorldTrackingConfiguration*)self.session.configuration copy];
+        if (enabled) {
+            ARVideoFormat* format = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution;
+            if (!format) { NSLog(@"[HoloKit] 4K camera input unavailable"); return; }
+            if (!self.previousVideoFormat) {
+                self.previousVideoFormat = config.videoFormat;
+                self.previousVideoHDRAllowed = config.videoHDRAllowed;
+            }
+            config.videoFormat = format;
+            config.videoHDRAllowed = format.videoHDRSupported;
         } else {
-            NSLog(@"[HoloKitARKitNativeProvider] Current device does not support HDR video format, only 4K resolution is being used.");
+            if (!self.previousVideoFormat) return;
+            config.videoFormat = self.previousVideoFormat;
+            config.videoHDRAllowed = self.previousVideoHDRAllowed;
+            self.previousVideoFormat = nil;
         }
-        
         [self.session runWithConfiguration:config];
-        NSLog(@"[HoloKitARKitNativeProvider] AR background video enhancement enabled.");
-    } else {
-        NSLog(@"[HoloKitARKitNativeProvider] Video enhancement is only supported on iOS 16 or higher.");
+        NSLog(@"[HoloKit] 4K input %@: %.0fx%.0f @ %ld fps", enabled ? @"ON" : @"RESTORED",
+            config.videoFormat.imageResolution.width, config.videoFormat.imageResolution.height,
+            (long)config.videoFormat.framesPerSecond);
     }
 }
 

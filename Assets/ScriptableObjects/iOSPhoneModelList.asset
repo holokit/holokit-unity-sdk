@@ -109,6 +109,14 @@ MonoBehaviour:
       ViewportBottomOffset: 0
       CameraOffset: {x: 0.06147, y: -0.05964, z: -0.00781}
       ScreenBottomBorder: 0.00347
+  - ModelName: iPhone14,4
+    Description: iPhone 13 Mini
+    ModelSpecs:
+      ScreenResolution: {x: 2340, y: 1080}
+      ScreenDpi: 476
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.061475, y: -0.05964, z: -0.00848}
+      ScreenBottomBorder: 0.00347
   - ModelName: iPhone14,2
     Description: iPhone 13 Pro
     ModelSpecs:
@@ -124,14 +132,6 @@ MonoBehaviour:
       ScreenDpi: 458
       ViewportBottomOffset: 0
       CameraOffset: {x: 0.04907, y: -0.06464, z: -0.00727}
-      ScreenBottomBorder: 0.00347
-  - ModelName: iPhone14,5
-    Description: iPhone 13 Mini
-    ModelSpecs:
-      ScreenResolution: {x: 2340, y: 1080}
-      ScreenDpi: 476
-      ViewportBottomOffset: 0
-      CameraOffset: {x: 0.061475, y: -0.05964, z: -0.00848}
       ScreenBottomBorder: 0.00347
   - ModelName: iPhone14,6
     Description: iPhone SE 3rd Gen
@@ -271,6 +271,38 @@ MonoBehaviour:
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone18,2
     Description: iPhone 17 Pro Max
+    ModelSpecs:
+      ScreenResolution: {x: 2868, y: 1320}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.04652, y: -0.0598, z: -0.00773}
+      ScreenBottomBorder: 0.00276
+  - ModelName: iPhone19,1
+    Description: iPhone 18 Pro
+    ModelSpecs:
+      ScreenResolution: {x: 2622, y: 1206}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      ScreenBottomBorder: 0.00276
+  - ModelName: iPhone19,2
+    Description: iPhone 18 Pro
+    ModelSpecs:
+      ScreenResolution: {x: 2622, y: 1206}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      ScreenBottomBorder: 0.00276
+  - ModelName: iPhone19,3
+    Description: iPhone 18 Pro Max
+    ModelSpecs:
+      ScreenResolution: {x: 2868, y: 1320}
+      ScreenDpi: 460
+      ViewportBottomOffset: 0
+      CameraOffset: {x: 0.04652, y: -0.0598, z: -0.00773}
+      ScreenBottomBorder: 0.00276
+  - ModelName: iPhone19,7
+    Description: iPhone 18 Pro Max
     ModelSpecs:
       ScreenResolution: {x: 2868, y: 1320}
       ScreenDpi: 460

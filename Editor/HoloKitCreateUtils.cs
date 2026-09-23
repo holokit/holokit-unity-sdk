@@ -154,8 +154,8 @@ namespace HoloKit.Editor
             var recordButtonRectTransform = recordButtonGo.GetComponent<RectTransform>();
             recordButtonRectTransform.anchorMin = new(0f, 1f);
             recordButtonRectTransform.anchorMax = new(0f, 1f);
-            recordButtonRectTransform.anchoredPosition = new(100f, -40f);
-            recordButtonRectTransform.sizeDelta = new(300f, 100f);
+            recordButtonRectTransform.anchoredPosition = new(80f, -40f);
+            recordButtonRectTransform.sizeDelta = new(160f, 100f);
             recordButtonRectTransform.pivot = new(0f, 1f);
             _ = recordButtonGo.AddComponent<CanvasRenderer>();
             var recordButtonImage = recordButtonGo.AddComponent<Image>();
@@ -177,12 +177,33 @@ namespace HoloKit.Editor
             CreateUtils.Place(recordButtonTextGo, recordButtonGo.transform);
             _ = recordButtonTextGo.AddComponent<CanvasRenderer>();
             var recordButtonText = recordButtonTextGo.AddComponent<Text>();
-            recordButtonText.text = "Start Recording";
+            recordButtonText.text = "● REC";
             recordButtonText.fontStyle = FontStyle.Bold;
-            recordButtonText.fontSize = 36;
+            recordButtonText.fontSize = 30;
             recordButtonText.alignment = TextAnchor.MiddleCenter;
-            recordButtonText.color = Color.black;
+            recordButtonText.color = Color.red;
+            recordButtonText.rectTransform.anchorMin = Vector2.zero;
+            recordButtonText.rectTransform.anchorMax = Vector2.one;
+            recordButtonText.rectTransform.anchoredPosition = Vector2.zero;
+            recordButtonText.rectTransform.sizeDelta = Vector2.zero;
             defaultUICanavs.RecordButtonText = recordButtonText;
+
+            // Reuse the record-button visual; quality selection belongs to the SDK UI.
+            var qualityButtonGo = UnityEngine.Object.Instantiate(recordButtonGo, canvasGo.transform);
+            qualityButtonGo.name = "Recording 4K Button";
+            qualityButtonGo.GetComponent<RectTransform>().anchoredPosition = new(252f, -40f);
+            qualityButtonGo.GetComponent<RectTransform>().sizeDelta = new(132f, 100f);
+            var qualityButton = qualityButtonGo.GetComponent<Button>();
+            qualityButton.onClick = new Button.ButtonClickedEvent();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(qualityButton.onClick, defaultUICanavs.ToggleRecording4K);
+            var qualityText = qualityButtonGo.GetComponentInChildren<Text>();
+            qualityText.text = "4K";
+            qualityText.color = Color.black;
+            qualityText.rectTransform.anchorMin = Vector2.zero;
+            qualityText.rectTransform.anchorMax = Vector2.one;
+            qualityText.rectTransform.anchoredPosition = Vector2.zero;
+            qualityText.rectTransform.sizeDelta = Vector2.zero;
+            defaultUICanavs.RecordIn4KButton = qualityButton;
 #endif
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "Create HoloKit Default UI Canvas");

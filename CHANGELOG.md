@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - Unreleased
+
+Requires Unity 6000.0 or later, AR Foundation / ARKit 6.4.3.
+
+### Added
+
+- GPU video recording path for `HoloKitVideoRecorder`, with asynchronous stop and bounded GPU copies.
+- Recording audio: separate AAC game and microphone tracks on a common host-clock timebase
+  (`RecordingAudioMode` Environment / GameAndMicrophone), independent `GameGain` / `MicrophoneGain`,
+  and an optional single-track mixed sharing copy. See `Documentation~/RecordingAudio.md`.
+- `HoloKitMicrophoneCapture`: shared native microphone with owner-counted `Acquire`/`Release`,
+  optional voice-processing echo cancellation, and `ReadLatestSamples`/`ReadSpectrum` for analysis.
+- `HoloKitGameAudioTap` and a recorder Inspector.
+- `ARKitCameraCompatibility` and `HoloKit_GetARCameraReference`: AR background rendering that stays
+  correct across interface orientations on iOS 27.
+- Recorder regression tests (`Tests/Recorder`): EditMode tests, host-side native writer tests and
+  opt-in device probes (`HOLOKIT_RECORDER_TESTS`) with artifact collectors.
+- Phone models iPhone 13 Mini (`iPhone14,4`), iPhone 16e/17 series (`iPhone17,5`, `iPhone18,x`) and
+  `iPhone19,x` entries; new models reuse previous-generation parameters until calibrated.
+
+### Changed
+
+- Removed the `-ld64` linker flag, which fails with Xcode 26 and later.
+- Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
+  recorder and 4K handling.
+
 ## [0.5.1] - 2024.9.21
 
 ### Added

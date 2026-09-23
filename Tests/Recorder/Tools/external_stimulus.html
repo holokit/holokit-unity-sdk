@@ -1,0 +1,102 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>HoloKit camera / microphone synchronization fixture</title>
+<style>
+html,body { margin:0; width:100%; height:100%; background:#111; color:#aaa; font:20px system-ui; }
+main { position:absolute; inset:0; display:grid; place-content:center; text-align:center; }
+button { font:inherit; padding:18px; } small { position:fixed; bottom:12px; left:12px; }
+#clock { position:absolute; inset:0; display:grid; place-content:center; text-align:center;
+  color:#fff; font-family:ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+#clock[hidden] { display:none; }
+#timecode { font-size:clamp(32px,6.5vw,130px); font-weight:700; }
+#counter { font-size:clamp(20px,2.5vw,40px); }
+body.flash #clock { color:#111; }
+</style>
+<main><h1>Camera + microphone timing</h1><p>Point the phone camera at this screen.<br>Use this computer's speakers. Keep this window visible.</p><button id="start">Start 90-second flash / pulse test</button></main>
+<div id="clock" hidden><div id="timecode">00:00:00.000</div><div id="counter">PULSE 00 / 65 · FRAME 00000</div></div>
+<small id="status">Ready</small>
+<script>
+// A physical fixture, not a virtual overlay in the recorded app. The output
+// timestamp estimates the speaker clock; display presentation remains bounded
+// by refresh/compositor latency and requires calibration for sub-frame claims.
+// https://webaudio.github.io/web-audio-api/#dom-audiocontext-getoutputtimestamp
+const button = document.querySelector('#start');
+const status = document.querySelector('#status');
+const timecode = document.querySelector('#timecode');
+const counter = document.querySelector('#counter');
+function formatTimecode(milliseconds) {
+  const ms=Math.max(0,Math.floor(milliseconds));
+  return [Math.floor(ms/3600000),Math.floor(ms/60000)%60,Math.floor(ms/1000)%60]
+    .map(value=>String(value).padStart(2,'0')).join(':')+'.'+String(ms%1000).padStart(3,'0');
+}
+button.onclick = async () => {
+  button.disabled = true;
+  const ctx = new AudioContext({latencyHint:'interactive'});
+  await ctx.resume();
+  const start = ctx.currentTime + 2;
+  const pulses = Array.from({length:65}, (_,i)=>start+i*1.3);
+  const pulseDuration=.30, amplitude=.8;
+  const buffer = ctx.createBuffer(1, Math.round(ctx.sampleRate*pulseDuration), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++) {
+    const edge = Math.min(1,i/(ctx.sampleRate*.002),(data.length-i)/(ctx.sampleRate*.002));
+    data[i] = amplitude*edge*Math.sin(2*Math.PI*1200*i/ctx.sampleRate);
+  }
+  for(const time of pulses) {
+    const source = ctx.createBufferSource(); source.buffer=buffer;
+    source.connect(ctx.destination); source.start(time);
+  }
+  const runId=crypto.randomUUID();
+  const events=[], frames=[]; let last=false; let previous=performance.now(); let maxFrameGap=0;
+  document.querySelector('main').hidden = true;
+  document.querySelector('main').style.display = 'none';
+  document.querySelector('#clock').hidden = false;
+  function frame() {
+    const now=performance.now();
+    maxFrameGap=Math.max(maxFrameGap,now-previous); previous=now;
+    const stamp=ctx.getOutputTimestamp();
+    // Safari can return an all-zero timestamp before audio output starts.
+    // It is not an anchor at performance.now()==0: wait for a valid clock pair.
+    if(stamp.performanceTime<=0) {
+      status.textContent='Waiting for speaker clock';
+      requestAnimationFrame(frame);
+      return;
+    }
+    const audible=stamp.contextTime+(now-stamp.performanceTime)/1000;
+    const phase=audible-start;
+    const on=phase>=0 && phase<65*1.3 && phase%1.3<pulseDuration;
+    const frameId=frames.length;
+    const elapsedMs=Math.floor(Math.max(0,phase)*1000);
+    const pulse=phase<0 ? 0 : Math.min(65,Math.floor(phase/1.3)+1);
+    // The visible timecode uses the SAME estimated speaker clock as the flash,
+    // not wall-clock time or a separate timer. Log each drawn value for replay.
+    timecode.textContent=formatTimecode(elapsedMs);
+    counter.textContent=`PULSE ${String(pulse).padStart(2,'0')} / 65 · FRAME ${String(frameId).padStart(5,'0')}`;
+    frames.push([frameId,now,elapsedMs]);
+    if(on!==last) {
+      document.body.style.background=on?'#fff':'#111';
+      document.body.classList.toggle('flash',on);
+      events.push({on,frameId,elapsedMs,pulse,performanceTime:now,estimatedAudioTime:audible,outputLatency:ctx.outputLatency});
+      last=on;
+    }
+    status.textContent=`${phase<0?'Starting':'Running'} · ${runId.slice(0,8)} · speaker-clock timecode`;
+    if(phase<88) requestAnimationFrame(frame);
+    else {
+      const report={runId,frameColumns:['frameId','performanceTimeMs','elapsedMs'],frames,
+        pulses,pulseDuration,amplitude,events,maxFrameGap,sampleRate:ctx.sampleRate,baseLatency:ctx.baseLatency,
+        outputLatency:ctx.outputLatency,visibility:document.visibilityState,
+        limitation:'Speaker timing is browser-estimated. Display presentation is not photodiode-calibrated.'};
+      const json=JSON.stringify(report,null,2);
+      // A local automation server may collect this; opening the HTML directly
+      // still provides a downloadable report without a server dependency.
+      fetch('/stimulus-report',{method:'POST',headers:{'Content-Type':'application/json'},body:json}).catch(()=>{});
+      ctx.close(); status.textContent='Finished — ';
+      const download=document.createElement('a');
+      download.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+      download.download='holokit-stimulus-report.json'; download.textContent='Save timing log';
+      status.append(download);
+    }
+  }
+  requestAnimationFrame(frame);
+};
+</script>

@@ -16,8 +16,8 @@
     "url": "https://reality.design"
   },
   "dependencies": {
-    "com.unity.xr.arfoundation": "6.2.0",
-    "com.unity.xr.arkit": "6.2.0"
+    "com.unity.xr.arfoundation": "6.4.3",
+    "com.unity.xr.arkit": "6.4.3"
   },
   "samples": [
     {
@@ -65,5 +65,6 @@
       "description": "Provides a demonstration of enabling ARKit's 4K and HDR options for the AR background video feed.",
       "path": "Samples~/ARBackgroundVideoEnhancement"
     }
-  ]
+  ],
+  "_fingerprint": "e7326129f7843dd62aef928ea4a272a9a159c0a2"
 }
