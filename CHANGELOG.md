@@ -33,6 +33,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Fixed
 
+- iOS 27: `ARKitCameraCompatibility` was attached only to the first scene's AR camera, so scenes loaded
+  later lost the pose, background and projection corrections. It now attaches on every scene load.
 - iOS 27 portrait: the virtual camera kept AR Foundation's projection, which was scaled by the camera
   image aspect ratio (4/3 at 1920x1440, 16/9 in 4K), while the background used ARKit's display
   transform, so virtual content was misregistered. `ARKitCameraCompatibility` now also applies ARKit's

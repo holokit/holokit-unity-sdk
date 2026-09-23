@@ -42,10 +42,17 @@ namespace HoloKit.iOS
         {
 #if !UNITY_EDITOR
             if (!UnityEngine.iOS.Device.systemVersion.StartsWith("27.")) return;
-            var camera = FindFirstObjectByType<ARCameraManager>();
-            if (camera != null && camera.GetComponent<ARKitCameraCompatibility>() == null)
-                camera.gameObject.AddComponent<ARKitCameraCompatibility>();
+            Attach();
+            // Every later scene brings its own AR camera; attach to it as well.
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (_, _) => Attach();
 #endif
+        }
+
+        static void Attach()
+        {
+            foreach (var camera in FindObjectsByType<ARCameraManager>(FindObjectsSortMode.None))
+                if (camera.GetComponent<ARKitCameraCompatibility>() == null)
+                    camera.gameObject.AddComponent<ARKitCameraCompatibility>();
         }
 
         void OnEnable() => Application.onBeforeRender += ApplyPose;
