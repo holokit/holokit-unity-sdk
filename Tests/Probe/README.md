@@ -1,0 +1,45 @@
+# Feature probe (device)
+
+An opt-in device probe for the SDK's non-recorder features. It compiles only in a
+**Development** iOS build with the `HOLOKIT_SDK_TESTS` scripting define and runs only
+when a one-shot `Documents/sdk-test-mode.txt` exists in the app container.
+
+The probe loads the HoloKit sample scenes and checks:
+
+| Suite | Checks |
+| --- | --- |
+| `device` | LiDAR support, thermal state, native uptime clock |
+| `rendering` | phone-model profile, Mono/Stereo switching and events, eye viewports, eye separation, center-eye pose |
+| `orientation` | AR background in four interface orientations (the runner compares a fiducial across screenshots) |
+| `ui` | `HoloKitDefaultUICanvas` render-mode button wiring and label (button invoked, not physically tapped) |
+| `tracking` | native ARSession frame callback rate/age, delegate restore, low-latency stereo pose, world-origin reset |
+| `enhancement` | 4K background on/off, stereo rule, recording override, restore |
+| `microphone` | shared `HoloKitMicrophoneCapture` leases, conflicting processing, 440 Hz detection |
+| `hand` | no hand, one hand + 3D joints/depth, two hands, left-right sweep, lost event |
+| `gesture` | pinch and five gestures against alternating photos |
+| `gaze` | gaze enter/select/exit, gaze + pinch selection, no selection off target |
+
+Scene names default to the sample scenes. Override one with a mode line
+`scene.<suite>=<SceneName>`; `expect.lidar=0` for devices without LiDAR.
+
+## Running without a person
+
+Mount the phone with its camera facing a Safari window on the Mac.
+
+```sh
+python3 Tests/Probe/Tools~/fetch_stimuli.py        # once; downloads Commons photos (see stimuli/CREDITS.txt)
+python3 Tests/Probe/Tools~/run_feature_probe.py --device UDID --bundle-id BUNDLE --output /tmp/sdk-probe
+```
+
+The runner copies the mode file, launches the app with `devicectl --console`, switches
+`sdk_stimuli.html` when the probe logs `[SDK-STIM] <name> <seconds>`, collects
+`sdk-probe-results.json` and screenshots, and writes `summary.json`. It never changes the
+system volume. The 440 Hz microphone check plays a tone only with `--allow-speaker`;
+otherwise it is reported as untested, not passed.
+
+On-screen photos stand in for real hands. They exercise Vision/LiDAR integration and the
+gesture logic, not real-hand latency or accuracy. Grant camera and microphone permission to
+the bundle once before unattended runs.
+
+The boilerplate project builds a probe player with
+`HoloKitProbeBuild.Build` (see `holokit-unity-sdk-boilerplate/Assets/Editor`).

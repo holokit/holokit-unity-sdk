@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - Unreleased
 
-Requires Unity 6000.0 or later, AR Foundation / ARKit 6.4.3.
+Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Added
 
@@ -30,6 +30,17 @@ Requires Unity 6000.0 or later, AR Foundation / ARKit 6.4.3.
 - Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
+
+### Fixed
+
+- Hand tracking (3D) could crash with `EXC_BAD_ACCESS` at address 0: Vision, depth and unprojection
+  each re-read `ARSession.currentFrame` and could mix frames, including one without scene depth.
+  Each call now uses one frame snapshot and clamps depth lookups to the depth map.
+- Disabling AR background 4K right after enabling it (e.g. stopping a recording and switching render
+  mode in the same frame) could leave the camera in 4K. The non-4K format is now captured once.
+- Gaze Gesture Interaction sample had no `GazeRaycastInteractor`/`GazeGestureInteractor`, so nothing
+  could be selected.
+- Duplicate `iPhone14,5` entry in the iOS phone list; the iPhone 13 mini data is now `iPhone14,4`.
 
 ## [0.5.1] - 2024.9.21
 

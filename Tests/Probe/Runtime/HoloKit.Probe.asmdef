@@ -1,0 +1,16 @@
+{
+  "name": "HoloKit.Probe",
+  "references": [
+    "HoloKit",
+    "Unity.XR.ARFoundation",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [
+    "Editor",
+    "iOS"
+  ],
+  "defineConstraints": [
+    "HOLOKIT_SDK_TESTS"
+  ],
+  "autoReferenced": true
+}

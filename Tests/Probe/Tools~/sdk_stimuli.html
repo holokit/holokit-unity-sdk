@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- Stimulus screen for Tests/Probe. The runner selects a stimulus with the URL hash, e.g. #one. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>HoloKit probe stimuli</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #808080; font-family: -apple-system, sans-serif; }
+  .stage { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; }
+  .stage.on { display: flex; }
+  .stage img { max-height: 92vh; max-width: 92vw; }
+  #sweep img { position: absolute; height: 70vh; left: 0; animation: sweep 14s linear forwards; }
+  @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 70vh)); } }
+  #fiducial { background: #fff; }
+  .mark { position: absolute; width: 22vh; height: 22vh; }
+  .red { background: #e00000; top: 4vh; left: 4vh; }
+  .green { background: #00b000; top: 4vh; right: 4vh; }
+  .blue { background: #0030e0; bottom: 4vh; right: 4vh; }
+  #fiducial .arrow { font-size: 30vh; font-weight: 800; color: #000; }
+  #label { position: fixed; bottom: 1vh; left: 1vh; font-size: 2.2vh; color: #333; }
+  .text { font-size: 12vh; color: #222; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="stage" id="blank"></div>
+<div class="stage" id="one"><img src="stimuli/open.jpg"></div>
+<div class="stage" id="open"><img src="stimuli/open.jpg"></div>
+<div class="stage" id="pinch"><img src="stimuli/pinch.jpg"></div>
+<div class="stage" id="two"><img src="stimuli/hands.jpg"></div>
+<div class="stage" id="sweep"><img src="stimuli/open.jpg"></div>
+<div class="stage" id="person"><img src="stimuli/person.jpg"></div>
+<div class="stage" id="fiducial">
+  <div class="mark red"></div><div class="mark green"></div><div class="mark blue"></div>
+  <div class="arrow">&uarr;</div>
+</div>
+<div class="stage" id="silence"><div class="text">SILENCE</div></div>
+<div class="stage" id="tone-440"><div class="text">TONE 440 Hz</div></div>
+<div class="stage" id="done"><div class="text">DONE</div></div>
+<div id="label"></div>
+<script>
+  function show() {
+    const name = (location.hash || '#blank').slice(1);
+    const known = document.getElementById(name) ? name : 'blank';
+    document.querySelectorAll('.stage').forEach(s => s.classList.toggle('on', s.id === known));
+    document.getElementById('label').textContent = known;
+    if (known === 'sweep') { const img = document.querySelector('#sweep img'); img.style.animation = 'none'; img.offsetHeight; img.style.animation = ''; }
+  }
+  window.addEventListener('hashchange', show);
+  show();
+</script>
+</body>
+</html>
