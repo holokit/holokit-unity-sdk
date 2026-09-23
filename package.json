@@ -64,6 +64,11 @@
       "displayName": "AR Background Video Enhancement",
       "description": "Provides a demonstration of enabling ARKit's 4K and HDR options for the AR background video feed.",
       "path": "Samples~/ARBackgroundVideoEnhancement"
+    },
+    {
+      "displayName": "Recording Audio",
+      "description": "Demonstrates HoloKitVideoRecorder's two audio presets: raw environment microphone, and game audio plus echo-cancelled microphone on separate tracks.",
+      "path": "Samples~/RecordingAudio"
     }
   ],
   "_fingerprint": "e7326129f7843dd62aef928ea4a272a9a159c0a2"

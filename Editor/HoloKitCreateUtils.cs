@@ -15,7 +15,7 @@ using UnityEngine.EventSystems;
 
 namespace HoloKit.Editor
 {
-    static class HoloKitCreateUtils
+    public static class HoloKitCreateUtils
     {
         [MenuItem("GameObject/XR/HoloKit/HoloKit XR Origin")]
         static void CreateHoloKitXROrigin(MenuCommand menuCommand)
@@ -90,13 +90,39 @@ namespace HoloKit.Editor
             return camera;
         }
 
+        public const string DefaultUICanvasPrefabPath = "Packages/io.holokit.unity-sdk/Assets/Prefabs/HoloKit Default UI Canvas.prefab";
+
         [MenuItem("GameObject/UI/HoloKit/HoloKit Default UI Canvas")]
         static void CreateHoloKitDefaultUICanvas(MenuCommand menuCommand)
         {
             var context = menuCommand.context as GameObject;
             var parent = context != null ? context.transform : null;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultUICanvasPrefabPath);
+            if (prefab != null)
+            {
+                // The standard canvas: render mode, record and 4K buttons.
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                Undo.RegisterCreatedObjectUndo(instance, "Create HoloKit Default UI Canvas");
+                if (parent != null) instance.transform.SetParent(parent, false);
+                Selection.activeGameObject = instance;
+                return;
+            }
             var canvas = CreateHoloKitDefaultUICanvasWithParent(parent);
             Selection.activeGameObject = canvas.gameObject;
+        }
+
+        /// <summary>Regenerates the standard canvas prefab from the builder below (iOS build target).</summary>
+        [MenuItem("HoloKit/Rebuild Default UI Canvas Prefab")]
+        public static void RebuildDefaultUICanvasPrefab()
+        {
+            var canvas = CreateHoloKitDefaultUICanvasWithParent(null);
+            // AssetDatabase resolves the package path, including file: (local) packages.
+            if (!AssetDatabase.IsValidFolder("Packages/io.holokit.unity-sdk/Assets/Prefabs"))
+                AssetDatabase.CreateFolder("Packages/io.holokit.unity-sdk/Assets", "Prefabs");
+            PrefabUtility.SaveAsPrefabAsset(canvas.gameObject, DefaultUICanvasPrefabPath);
+            Object.DestroyImmediate(canvas.gameObject);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[HoloKit] Saved {DefaultUICanvasPrefabPath}");
         }
 
         static Canvas CreateHoloKitDefaultUICanvasWithParent(Transform parent)

@@ -18,6 +18,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - `HoloKitMicrophoneCapture`: shared native microphone with owner-counted `Acquire`/`Release`,
   optional voice-processing echo cancellation, and `ReadLatestSamples`/`ReadSpectrum` for analysis.
 - `HoloKitGameAudioTap` and a recorder Inspector.
+- Standard `HoloKit Default UI Canvas` prefab (`Assets/Prefabs`) with render mode, record and 4K
+  buttons; the GameObject > UI > HoloKit menu now places it. Every interactive sample uses it and has
+  a `HoloKitVideoRecorder`.
+- Recording Audio sample: Environment and Game And Microphone (AEC) recorder presets.
 - `ARKitCameraCompatibility` and `HoloKit_GetARCameraReference`: AR background rendering that stays
   correct across interface orientations on iOS 27.
 - Recorder regression tests (`Tests/Recorder`): EditMode tests, host-side native writer tests and
