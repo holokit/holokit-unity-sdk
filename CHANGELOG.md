@@ -27,7 +27,7 @@ Requires Unity 6000.0 or later, AR Foundation / ARKit 6.4.3.
 
 ### Changed
 
-- Removed the `-ld64` linker flag, which fails with Xcode 26 and later.
+- Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
 
