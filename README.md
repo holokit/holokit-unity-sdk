@@ -32,7 +32,7 @@ or by directly adding the following line to the `Packages/manifest.json` file.
 HoloKit Unity SDK has been tested and found compatible with the following software versions:
 
 ### Unity
-- Unity 6 LTS or higher
+- Unity 6000.3 LTS or higher
 
 ### ARFoundation
 - ARFoundation 6.2.0
