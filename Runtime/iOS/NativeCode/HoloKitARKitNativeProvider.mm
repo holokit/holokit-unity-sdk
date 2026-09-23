@@ -55,10 +55,12 @@
     if (@available(iOS 16, *)) {
         if (![self.session.configuration isKindOfClass:ARWorldTrackingConfiguration.class]) return;
         ARWorldTrackingConfiguration* config = [(ARWorldTrackingConfiguration*)self.session.configuration copy];
+        // session.configuration can still describe the previous run when toggled twice in one
+        // frame, so capture the non-4K format once and keep it; never re-derive it after enabling.
+        ARVideoFormat* format = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution;
         if (enabled) {
-            ARVideoFormat* format = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution;
             if (!format) { NSLog(@"[HoloKit] 4K camera input unavailable"); return; }
-            if (!self.previousVideoFormat) {
+            if (!self.previousVideoFormat && !CGSizeEqualToSize(config.videoFormat.imageResolution, format.imageResolution)) {
                 self.previousVideoFormat = config.videoFormat;
                 self.previousVideoHDRAllowed = config.videoHDRAllowed;
             }
@@ -68,7 +70,6 @@
             if (!self.previousVideoFormat) return;
             config.videoFormat = self.previousVideoFormat;
             config.videoHDRAllowed = self.previousVideoHDRAllowed;
-            self.previousVideoFormat = nil;
         }
         [self.session runWithConfiguration:config];
         NSLog(@"[HoloKit] 4K input %@: %.0fx%.0f @ %ld fps", enabled ? @"ON" : @"RESTORED",
