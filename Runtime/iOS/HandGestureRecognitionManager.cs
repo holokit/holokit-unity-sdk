@@ -38,6 +38,11 @@ namespace HoloKit.iOS
 
         const int EVIDENCE_COUNTER_TRIGGER = 3;
 
+        // Vision drops the hand for single frames; keep the gesture briefly so one pinch
+        // does not become Pinched/None/Pinched (repeated selections).
+        const float LOST_GRACE_SECONDS = 0.2f;
+        float m_HandLostTime = -1;
+
         private void Start()
         {
             m_HandTrackingManager = FindObjectOfType<HandTrackingManager>();
@@ -78,6 +83,7 @@ namespace HoloKit.iOS
 
         private void OnHandPoseUpdated()
         {
+            m_HandLostTime = -1;
             // Keep the current gesture until another has enough consecutive evidence; defaulting
             // to None here dropped every gesture one frame after it was recognized.
             HandGesture handGesture = m_HandGesture;
@@ -125,6 +131,15 @@ namespace HoloKit.iOS
 
         private void OnHandPoseLost()
         {
+            if (m_HandGesture != HandGesture.None && m_HandLostTime < 0)
+                m_HandLostTime = Time.unscaledTime;
+        }
+
+        private void Update()
+        {
+            if (m_HandLostTime < 0 || Time.unscaledTime - m_HandLostTime < LOST_GRACE_SECONDS)
+                return;
+            m_HandLostTime = -1;
             if (m_HandGesture != HandGesture.None)
             {
                 m_HandGesture = HandGesture.None;

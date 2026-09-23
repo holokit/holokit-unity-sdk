@@ -47,6 +47,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   mode in the same frame) could leave the camera in 4K. The non-4K format is now captured once.
 - Hand gesture recognition emitted each gesture and then `None` on the next frame; a gesture now
   persists until another has enough consecutive evidence.
+- A one-frame hand-tracking dropout reset the gesture to `None` at once, so one pinch could become
+  Pinched/None/Pinched and select a gazed object several times. The gesture now survives a 0.2 s dropout.
 - Gaze Gesture Interaction sample had no `GazeRaycastInteractor`/`GazeGestureInteractor`, so nothing
   could be selected.
 - Duplicate `iPhone14,5` entry in the iOS phone list; the iPhone 13 mini data is now `iPhone14,4`.
