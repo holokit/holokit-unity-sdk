@@ -276,6 +276,12 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
             Debug.Log($"[SDK-ORIENT] requested={orientation} effective={Screen.orientation} size={Screen.width}x{Screen.height} " +
                 $"pos={position.x:F4},{position.y:F4},{position.z:F4} fwd={forward.x:F4},{forward.y:F4},{forward.z:F4} up={up.x:F4},{up.y:F4},{up.z:F4}");
             yield return Capture($"orient-{orientation}");
+            if (Screen.orientation == orientation)
+            {
+                var fov = MeasureFov(FindFirstObjectByType<ARCameraManager>()?.GetComponent<Camera>());
+                Check($"A4.fov-{orientation}", fov.valid && fov.matches,
+                    $"unity {fov.unityH:F2}x{fov.unityV:F2} native {fov.nativeH:F2}x{fov.nativeV:F2} deg");
+            }
         }
         Screen.orientation = ScreenOrientation.AutoRotation;
         Check("A4.orientation-captured", true, "screenshots are evaluated by the Mac runner");

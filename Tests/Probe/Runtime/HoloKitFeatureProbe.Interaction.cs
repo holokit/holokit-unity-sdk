@@ -6,11 +6,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using HoloKit.iOS;
 using HoloKit.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 namespace HoloKit.Tests
 {
@@ -124,10 +126,18 @@ public partial class HoloKitFeatureProbe
         enhancement.IsEnabled = false;
         yield return new WaitForSecondsRealtime(4);
         Vector2Int off = size;
+        Camera virtualCamera = arCamera.GetComponent<Camera>();
+        var fovOff = MeasureFov(virtualCamera);
         enhancement.IsEnabled = true;
         yield return new WaitForSecondsRealtime(5);
         Vector2Int on = size;
+        var fovOn = MeasureFov(virtualCamera);
         Check("A8.enable", on.x * on.y > off.x * off.y, $"off={off} on={on}");
+        // 4K changes the capture intrinsics; the virtual camera must take the new projection.
+        Check("A8.fov-follows", fovOff.valid && fovOn.valid && fovOff.matches && fovOn.matches &&
+            Mathf.Abs(fovOn.nativeH - fovOff.nativeH) + Mathf.Abs(fovOn.nativeV - fovOff.nativeV) > 0.1f,
+            $"1440p unity {fovOff.unityH:F2}x{fovOff.unityV:F2} native {fovOff.nativeH:F2}x{fovOff.nativeV:F2}; " +
+            $"4K unity {fovOn.unityH:F2}x{fovOn.unityV:F2} native {fovOn.nativeH:F2}x{fovOn.nativeV:F2} deg");
         manager.ScreenRenderMode = ScreenRenderMode.Stereo;
         yield return new WaitForSecondsRealtime(5);
         Vector2Int stereo = size;
@@ -139,7 +149,11 @@ public partial class HoloKitFeatureProbe
         enhancement.IsEnabled = false;
         yield return new WaitForSecondsRealtime(5);
         Vector2Int restored = size;
+        var fovRestored = MeasureFov(virtualCamera);
         arCamera.frameReceived -= onFrame;
+        Check("A8.fov-restore", fovRestored.valid && fovRestored.matches &&
+            Mathf.Abs(fovRestored.unityH - fovOff.unityH) < 0.3f && Mathf.Abs(fovRestored.unityV - fovOff.unityV) < 0.3f,
+            $"restored unity {fovRestored.unityH:F2}x{fovRestored.unityV:F2} deg");
         Check("A8.stereo-disables", stereo == off, $"stereo={stereo}");
         Check("A8.recording-override", recording == on, $"recording={recording}");
         Check("A8.restore", restored == off, $"restored={restored}");
@@ -149,6 +163,25 @@ public partial class HoloKitFeatureProbe
             && ARBackgroundVideoEnhancementManager.ShouldEnhance(false, false, ScreenRenderMode.Stereo, false)
             && ARBackgroundVideoEnhancementManager.ShouldEnhance(false, true, ScreenRenderMode.Stereo, true);
         Check("A8.rules", table, "ShouldEnhance truth table");
+    }
+
+    [DllImport("__Internal")]
+    static extern int HoloKit_GetARCameraReference(IntPtr session, int orientation, int width, int height,
+        [Out] float[] view, [Out] float[] projection, [Out] float[] display);
+
+    static (bool valid, bool matches, float unityH, float unityV, float nativeH, float nativeV) MeasureFov(Camera camera)
+    {
+        var sessions = new List<XRSessionSubsystem>();
+        SubsystemManager.GetSubsystems(sessions);
+        float[] view = new float[16], projection = new float[16], display = new float[8];
+        if (camera == null || sessions.Count == 0 || HoloKit_GetARCameraReference(sessions[0].nativePtr,
+                (int)Screen.orientation, Screen.width, Screen.height, view, projection, display) == 0)
+            return (false, false, 0, 0, 0, 0);
+        float Fov(float focal) => 2 * Mathf.Atan(1 / focal) * Mathf.Rad2Deg;
+        Matrix4x4 p = camera.projectionMatrix;
+        float uH = Fov(p.m00), uV = Fov(p.m11), nH = Fov(projection[0]), nV = Fov(projection[5]);
+        Debug.Log($"[SDK-FOV] texture={display[6]}x{display[7]} unity={uH:F2}x{uV:F2} native={nH:F2}x{nV:F2}");
+        return (true, Mathf.Abs(uH - nH) < 0.5f && Mathf.Abs(uV - nV) < 0.5f, uH, uV, nH, nV);
     }
 
     IEnumerator MicrophoneSuite()
