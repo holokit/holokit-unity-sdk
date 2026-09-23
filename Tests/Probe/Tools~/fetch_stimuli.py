@@ -7,6 +7,7 @@ The images are not committed; each keeps its Commons licence (see stimuli/CREDIT
 Requires Pillow. Usage: python3 fetch_stimuli.py
 """
 import json
+import subprocess
 import pathlib
 import urllib.parse
 import urllib.request
@@ -29,6 +30,36 @@ def api(params):
     return json.load(urllib.request.urlopen(urllib.request.Request(url, headers=USER_AGENT)))
 
 
+# Real hand videos (Pexels License; downloaded, never committed). Order and trimming define the
+# test clip; video_ground_truth.swift runs Vision on every frame of it.
+PEXELS_VIDEOS = [10373882, 4662096, 11878748]
+VIDEOS = pathlib.Path(__file__).resolve().parent / 'videos'
+
+
+def build_hand_video():
+    VIDEOS.mkdir(exist_ok=True)
+    clip, truth = VIDEOS / 'hand-test.mp4', VIDEOS / 'hand-test.truth.json'
+    if clip.exists() and truth.exists():
+        return
+    sources = []
+    for video in PEXELS_VIDEOS:
+        path = VIDEOS / f'pexels-{video}.mp4'
+        if not path.exists():
+            request = urllib.request.Request(f'https://www.pexels.com/download/video/{video}/', headers={'User-Agent': 'Mozilla/5.0'})
+            path.write_bytes(urllib.request.urlopen(request).read())
+        sources.append(path)
+    scale = 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30,setsar=1'
+    graph = ';'.join(f'[{i}:v]{scale}[v{i}]' for i in range(len(sources)))
+    graph += ';' + ''.join(f'[v{i}]' for i in range(len(sources))) + f'concat=n={len(sources)}:v=1:a=0[v]'
+    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', *sum((['-i', str(s)] for s in sources), []),
+                    '-filter_complex', graph, '-map', '[v]', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20',
+                    '-movflags', '+faststart', str(clip)], check=True)
+    with open(truth, 'w') as out:
+        subprocess.run(['swift', str(VIDEOS.parent / 'video_ground_truth.swift'), str(clip)], stdout=out, check=True)
+    (VIDEOS / 'CREDITS.txt').write_text(''.join(f'pexels-{v}.mp4: https://www.pexels.com/video/{v}/ (Pexels License)\n'
+                                                for v in PEXELS_VIDEOS))
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     credits = []
@@ -48,6 +79,7 @@ def main():
         credits.append(f"{name}.jpg: {title} | {meta.get('LicenseShortName', {}).get('value')} | {info['descriptionurl']}")
         print(name, image.size)
     (OUT / 'CREDITS.txt').write_text('\n'.join(credits) + '\n')
+    build_hand_video()
 
 
 if __name__ == '__main__':

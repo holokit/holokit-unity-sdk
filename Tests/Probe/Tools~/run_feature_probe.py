@@ -41,10 +41,21 @@ def set_stimulus(name):
                    capture_output=True)
 
 
+def video_start_delay(received, timeout=5.0):
+    """Seconds from receiving the probe's stimulus line to the video's first playing frame."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        title = subprocess.run(['osascript', '-e', 'tell application "Safari" to get name of current tab of front window'],
+                               capture_output=True, text=True).stdout.strip()
+        if title.startswith('playing:'):
+            return int(title.split(':')[1]) / 1000 - received
+        time.sleep(0.02)
+    return None
+
+
 def open_safari():
-    subprocess.run(['osascript', '-e', 'tell application "Safari" to activate',
-                    '-e', 'tell application "Finder" to set screenBounds to bounds of window of desktop',
-                    '-e', 'tell application "Safari" to set bounds of front window to screenBounds'], capture_output=True)
+    # Only brings Safari forward; the window stays where the user placed it (facing the phone).
+    subprocess.run(['osascript', '-e', 'tell application "Safari" to activate'], capture_output=True)
     set_stimulus('blank')
 
 
@@ -62,7 +73,7 @@ def write_tone(path, seconds=8.0, frequency=440.0, rate=44100):
 def run(args):
     out = pathlib.Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
-    if not (HERE / 'stimuli' / 'open.jpg').exists():
+    if not (HERE / 'stimuli' / 'person.jpg').exists() or not (HERE / 'videos' / 'hand-test.truth.json').exists():
         subprocess.run(['python3', str(HERE / 'fetch_stimuli.py')], check=True)
     run_id = uuid.uuid4().hex[:12]
     mode = tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False)
@@ -77,6 +88,7 @@ def run(args):
     log = open(out / 'device.log', 'w')
     speaker = None
     stimuli = []
+    timing = {}
     completed = False
     process = subprocess.Popen(['xcrun', 'devicectl', 'device', 'process', 'launch', '--device', args.device,
                                 '--terminate-existing', '--console', args.bundle_id],
@@ -100,7 +112,10 @@ def run(args):
                 if speaker:
                     speaker.terminate()
                     speaker = None
+                received = time.time()
                 set_stimulus(name)
+                if name == 'handvideo':
+                    timing['handvideo'] = video_start_delay(received)
                 if name == 'tone-440' and args.allow_speaker:
                     speaker = subprocess.Popen(['afplay', str(tone)])
             if '[SDK-TEST]' in line and ('PASS' in line or 'FAIL' in line or 'SUITE' in line):
@@ -116,10 +131,11 @@ def run(args):
         set_stimulus('done')
         log.close()
 
-    for name in ['sdk-probe-results.json'] + [f'sdk-{n}.png' for n in args.screenshots]:
+    for name in ['sdk-probe-results.json', 'sdk-handvideo.csv'] + [f'sdk-{n}.png' for n in args.screenshots]:
         devicectl('device', 'copy', 'from', '--device', args.device, '--domain-type', 'appDataContainer',
                   '--domain-identifier', args.bundle_id, '--source', f'Documents/{name}',
                   '--destination', str(out / name), check=False)
+    (out / 'stimulus-timing.json').write_text(json.dumps(timing))
     return summarize(out, run_id, completed, args)
 
 
@@ -185,6 +201,65 @@ def orientation_check(out):
     return ok, 'relative rotation vs Portrait: ' + ', '.join(f'{k}={v:.0f}deg' for k, v in rel.items()) + note
 
 
+def handvideo_checks(out):
+    """Compare phone tracking of the real hand video with Vision on the source frames."""
+    rows_path, truth_path = out / 'sdk-handvideo.csv', HERE / 'videos' / 'hand-test.truth.json'
+    if not rows_path.exists() or not truth_path.exists():
+        return []
+    truth = json.loads(truth_path.read_text())
+    fps, frames = truth['fps'], truth['frames']
+    gt_n = np.array([len(f['hands']) for f in frames])
+    first = [f['hands'][0] if f['hands'] else {'x': np.nan, 'y': np.nan, 'pinch': np.nan} for f in frames]
+    gt_x, gt_y, gt_p = (np.array([h[k] for h in first]) for k in ('x', 'y', 'pinch'))
+    rows = [line.split(',') for line in rows_path.read_text().splitlines()[1:] if line]
+    t = np.array([float(r[0]) for r in rows])
+    n = np.array([int(r[1]) for r in rows])
+    both = np.array([int(r[2]) for r in rows])
+    num = lambda i: np.array([float(r[i]) if r[i] else np.nan for r in rows])
+    x, y, p = num(3), num(4), num(5)
+
+    def at_lag(lag):
+        idx = np.round((t - lag) * fps).astype(int)
+        valid = (idx >= 0) & (idx < len(frames))
+        return idx, valid
+
+    best = (-1.0, 0.0)
+    for lag in np.arange(0, 2.5, 0.01):
+        idx, valid = at_lag(lag)
+        m = valid.copy()
+        m[valid] &= (gt_n[idx[valid]] == 1) & (n[valid] >= 1)
+        if m.sum() < 50:
+            continue
+        A = np.column_stack([gt_x[idx[m]], gt_y[idx[m]], np.ones(m.sum())])
+        target = np.column_stack([x[m], y[m]])
+        coef, *_ = np.linalg.lstsq(A, target, rcond=None)
+        residual = ((A @ coef - target) ** 2).sum()
+        total = ((target - target.mean(axis=0)) ** 2).sum()
+        r2 = 1 - residual / total if total > 0 else 0
+        if r2 > best[0]:
+            best = (r2, lag)
+    r2, lag = best
+    timing_path = out / 'stimulus-timing.json'
+    switch = json.loads(timing_path.read_text()).get('handvideo') if timing_path.exists() else None
+    idx, valid = at_lag(lag)
+    gi = idx[valid]
+    recall = float(np.mean(n[valid][gt_n[gi] >= 1] >= 1)) if np.any(gt_n[gi] >= 1) else 0.0
+    two = gt_n[gi] >= 2
+    two_agree = float(np.mean(both[valid][two] >= 2)) if two.any() else float('nan')
+    pm = (gt_n[gi] == 1) & (n[valid] >= 1) & ~np.isnan(p[valid]) & ~np.isnan(gt_p[gi])
+    pinch_r = float(np.corrcoef(p[valid][pm], gt_p[gi][pm])[0, 1]) if pm.sum() > 20 else float('nan')
+    return [
+        {'id': 'V1.detection', 'pass': bool(recall >= 0.9), 'detail': f'recall={recall:.2f} over {valid.sum()} phone frames'},
+        {'id': 'V2.trajectory', 'pass': bool(r2 >= 0.8), 'detail': f'affine-fit R2={r2:.3f} (wrist, phone vs source video)'},
+        {'id': 'V3.latency', 'pass': None if switch is None else bool(lag - switch <= 0.25),
+         'detail': (f'display-to-pose latency={(lag - switch) * 1000:.0f} ms (alignment lag {lag * 1000:.0f} ms '
+                    f'minus stimulus switch {switch * 1000:.0f} ms; includes log transport)') if switch is not None
+                   else f'alignment lag={lag * 1000:.0f} ms; stimulus switch delay not measured'},
+        {'id': 'V4.pinch-distance', 'pass': bool(pinch_r >= 0.7), 'detail': f'pinch distance correlation r={pinch_r:.2f} (n={int(pm.sum())})'},
+        {'id': 'V5.two-hands', 'pass': bool(two_agree >= 0.6), 'detail': f'two-hand agreement={two_agree:.2f} on {int(two.sum())} two-hand frames'},
+    ]
+
+
 def summarize(out, run_id, completed, args):
     path = out / 'sdk-probe-results.json'
     report = json.loads(path.read_text()) if path.exists() else {'results': []}
@@ -197,6 +272,7 @@ def summarize(out, run_id, completed, args):
     if any(r['id'] == 'A4.orientation-captured' for r in results):
         ok, detail = orientation_check(out)
         results.append({'id': 'A4.orientation-mac', 'pass': ok, 'detail': detail})
+    results.extend(handvideo_checks(out))
     if not args.allow_speaker:
         for r in results:
             if r['id'] == 'G2.tone-440':

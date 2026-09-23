@@ -13,6 +13,9 @@
   #one img, #open img, #pinch img { max-height: 70vh; }
   #sweep img { position: absolute; height: 70vh; left: 0; animation: sweep 14s linear forwards; }
   @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 70vh)); } }
+  /* First-person hand "video": known trajectory x(t) = 30vw * sin(2*pi*t / 4 s). */
+  #motion img, #motion-pinch img { position: absolute; height: 60vh; left: calc(50vw - 20vh); top: 20vh; }
+  #handvideo video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
   #fiducial { background: #fff; }
   .mark { position: absolute; width: 22vh; height: 22vh; }
   .red { background: #e00000; top: 4vh; left: 4vh; }
@@ -30,6 +33,9 @@
 <div class="stage" id="pinch"><img src="first-person/pinch.jpg"></div>
 <div class="stage" id="two"><img src="first-person/both.jpg"></div>
 <div class="stage" id="sweep"><img src="first-person/open.jpg"></div>
+<div class="stage" id="motion"><img id="motion-img" src="first-person/open.jpg"></div>
+<div class="stage" id="motion-pinch"><img id="motion-pinch-img" src="first-person/open.jpg"></div>
+<div class="stage" id="handvideo"><video id="handvideo-video" src="videos/hand-test.mp4" muted playsinline preload="auto"></video></div>
 <div class="stage" id="person"><img src="stimuli/person.jpg"></div>
 <div class="stage" id="fiducial">
   <div class="mark red"></div><div class="mark green"></div><div class="mark blue"></div>
@@ -47,8 +53,33 @@
     document.getElementById('label').textContent = known;
     if (known === 'sweep') { const img = document.querySelector('#sweep img'); img.style.animation = 'none'; img.offsetHeight; img.style.animation = ''; }
   }
-  window.addEventListener('hashchange', show);
+  // Deterministic motion: the page clock starts when the stimulus is shown.
+  let motionStart = 0;
+  function animate(now) {
+    const name = (location.hash || '#blank').slice(1);
+    if (name === 'motion' || name === 'motion-pinch') {
+      const t = (now - motionStart) / 1000;
+      const img = document.getElementById(name + '-img');
+      img.style.transform = `translateX(${30 * Math.sin(2 * Math.PI * t / 4)}vw)`;
+      if (name === 'motion-pinch') {
+        const src = Math.floor(t) % 2 === 1 ? 'first-person/pinch.jpg' : 'first-person/open.jpg';
+        if (!img.src.endsWith(src)) img.src = src;
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  window.addEventListener('hashchange', () => {
+    motionStart = performance.now();
+    show();
+    const video = document.getElementById('handvideo-video');
+    if (location.hash === '#handvideo') { video.currentTime = 0; video.play(); } else video.pause();
+  });
+  requestAnimationFrame(animate);
   show();
+  // Report when frames actually start (wall clock) so the runner can remove the switch delay.
+  const handVideo = document.getElementById('handvideo-video');
+  handVideo.addEventListener('playing', () => { document.title = 'playing:' + Date.now(); });
+  handVideo.addEventListener('pause', () => { document.title = 'HoloKit probe stimuli'; });
 </script>
 </body>
 </html>

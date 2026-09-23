@@ -25,13 +25,13 @@ namespace HoloKit.Tests
 public partial class HoloKitFeatureProbe : MonoBehaviour
 {
     static readonly string[] AllSuites =
-        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "gesture", "gaze" };
+        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze" };
     static readonly Dictionary<string, string> Scenes = new()
     {
         ["device"] = "StereoscopicRendering", ["rendering"] = "StereoscopicRendering",
         ["orientation"] = "StereoscopicRendering", ["ui"] = "StereoscopicRendering",
         ["tracking"] = "ResetWorldOrigin", ["enhancement"] = "ARBackgroundVideoEnhancement",
-        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking",
+        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking",
         ["gesture"] = "HandGestureRecognition", ["gaze"] = "GazeGestureInteraction",
     };
     const float Settle = 1.5f;
@@ -103,6 +103,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
                 "enhancement" => EnhancementSuite(),
                 "microphone" => MicrophoneSuite(),
                 "hand" => HandSuite(),
+                "handmotion" => HandMotionSuite(),
+                "handvideo" => HandVideoSuite(),
                 "gesture" => GestureSuite(),
                 "gaze" => GazeSuite(),
                 _ => null,

@@ -16,6 +16,8 @@ The probe loads the HoloKit sample scenes and checks:
 | `enhancement` | 4K background on/off, stereo rule, recording override, restore |
 | `microphone` | shared `HoloKitMicrophoneCapture` leases, conflicting processing, 440 Hz detection |
 | `hand` | no hand, one hand + 3D joints/depth, two hands, left-right sweep, lost event |
+| `handmotion` | first-person hand moving on a known 4 s sine: pose update rate, capture-to-pose latency, continuity, trajectory R², depth stability, pinch while moving |
+| `handvideo` | real hand video (Pexels, first-person style) played in Safari; the runner compares phone tracking with Vision on the source frames: detection recall, affine trajectory R², pinch-distance correlation, two-hand agreement, alignment lag |
 | `gesture` | pinch and five gestures against alternating photos |
 | `gaze` | gaze enter/select/exit, gaze + pinch selection, no selection off target |
 
