@@ -262,6 +262,12 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         var manager = FindFirstObjectByType<HoloKitCameraManager>();
         if (manager != null) manager.ScreenRenderMode = ScreenRenderMode.Mono;
         StartCoroutine(Stimulus("fiducial", 0));
+        if (SystemInfo.operatingSystem.Contains(" 27."))
+        {
+            var arCamera = FindFirstObjectByType<ARCameraManager>();
+            Check("A4.ios27-compatibility", arCamera != null && arCamera.GetComponent<ARKitCameraCompatibility>() != null,
+                "iOS 27 camera compatibility attached to this scene's AR camera");
+        }
         foreach (var orientation in new[] { ScreenOrientation.Portrait, ScreenOrientation.LandscapeLeft,
                      ScreenOrientation.LandscapeRight, ScreenOrientation.PortraitUpsideDown })
         {
@@ -278,6 +284,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
             yield return Capture($"orient-{orientation}");
             if (Screen.orientation == orientation)
             {
+                // Read the projection that was actually rendered (compatibility code sets it before render).
+                yield return new WaitForEndOfFrame();
                 var fov = MeasureFov(FindFirstObjectByType<ARCameraManager>()?.GetComponent<Camera>());
                 Check($"A4.fov-{orientation}", fov.valid && fov.matches,
                     $"unity {fov.unityH:F2}x{fov.unityV:F2} native {fov.nativeH:F2}x{fov.nativeV:F2} deg");

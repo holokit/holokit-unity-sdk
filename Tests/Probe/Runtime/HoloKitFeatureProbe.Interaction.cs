@@ -127,10 +127,12 @@ public partial class HoloKitFeatureProbe
         yield return new WaitForSecondsRealtime(4);
         Vector2Int off = size;
         Camera virtualCamera = arCamera.GetComponent<Camera>();
+        yield return new WaitForEndOfFrame();
         var fovOff = MeasureFov(virtualCamera);
         enhancement.IsEnabled = true;
         yield return new WaitForSecondsRealtime(5);
         Vector2Int on = size;
+        yield return new WaitForEndOfFrame();
         var fovOn = MeasureFov(virtualCamera);
         Check("A8.enable", on.x * on.y > off.x * off.y, $"off={off} on={on}");
         // 4K changes the capture intrinsics; the virtual camera must take the new projection.
@@ -149,6 +151,7 @@ public partial class HoloKitFeatureProbe
         enhancement.IsEnabled = false;
         yield return new WaitForSecondsRealtime(5);
         Vector2Int restored = size;
+        yield return new WaitForEndOfFrame();
         var fovRestored = MeasureFov(virtualCamera);
         arCamera.frameReceived -= onFrame;
         Check("A8.fov-restore", fovRestored.valid && fovRestored.matches &&
