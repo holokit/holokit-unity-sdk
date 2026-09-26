@@ -23,8 +23,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   otherwise blocks each frame on the next ARKit frame; both are restored in Mono.
 - HoloKit Project Validation rules (Project Settings > XR Plug-in Management > Project
   Validation, with Fix buttons), also checked before every build: the iOS thermal frame-rate
-  cap that drops stereo to 30 fps, the microphone usage description, and Android's
-  OpenGLES3-only graphics API.
+  cap that drops stereo to 30 fps (an error: the build stops), the microphone usage
+  description, "Force iOS Speakers When Recording" (game audio otherwise plays from the
+  earpiece when Unity's Microphone is used), and Android's OpenGLES3-only graphics API.
 - GPU video recording path for `HoloKitVideoRecorder`, with asynchronous stop and bounded GPU copies.
 - Recording audio: separate AAC game and microphone tracks on a common host-clock timebase
   (`RecordingAudioMode` Environment / GameAndMicrophone), independent `GameGain` / `MicrophoneGain`,
@@ -51,6 +52,11 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
+
+### Removed
+
+- `libHoloKitLowLatencyTracking.a`: the closed tracking library, replaced by the source in
+  `Runtime/iOS/NativeCode/HoloKitTracking*`.
 
 ### Fixed
 

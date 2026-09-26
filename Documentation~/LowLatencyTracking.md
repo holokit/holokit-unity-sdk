@@ -72,9 +72,15 @@ and 33 ms render-to-display, against 120 fps and 17 ms with it off.
 
 HoloKit checks this for you: **Project Settings > XR Plug-in Management > Project
 Validation** lists HoloKit's rules with a **Fix** button, and every build runs the same
-rules and logs any that fail (`Editor/HoloKitProjectValidation.cs`). The rules cover the
-thermal frame-rate cap, the microphone usage description (recording), and Android's
-graphics API.
+rules (`Editor/HoloKitProjectValidation.cs`). The thermal frame-rate cap is an error: an iOS
+build stops until it is fixed. The other rules log warnings:
+
+| Rule | Why |
+| --- | --- |
+| Thermal FPS cap off (or Serious ≥ 60 fps) — **error** | Stereo drops to 30 fps when the phone warms up |
+| Microphone Usage Description set | `HoloKitVideoRecorder` records the microphone |
+| "Force iOS Speakers When Recording" on | With Unity's `Microphone` in use, game audio otherwise plays from the earpiece (measured, iOS 27) |
+| Android: OpenGLES3 only, Auto Graphics API off | Required by the Android stereo path |
 
 ## Tuning
 

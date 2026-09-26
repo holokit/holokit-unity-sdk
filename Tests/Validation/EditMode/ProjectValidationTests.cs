@@ -17,6 +17,7 @@ namespace HoloKit.Validation.Tests
         bool m_Adjust;
         int m_Serious;
         string m_Microphone;
+        bool m_ForceSpeakers;
         bool m_AndroidDefaultAPIs;
         GraphicsDeviceType[] m_AndroidAPIs;
 
@@ -27,6 +28,7 @@ namespace HoloKit.Validation.Tests
             m_Adjust = m_Settings.FindProperty("adjustIOSFPSUsingThermalState").boolValue;
             m_Serious = m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue;
             m_Microphone = PlayerSettings.iOS.microphoneUsageDescription;
+            m_ForceSpeakers = m_Settings.FindProperty("Force IOS Speakers When Recording").boolValue;
             m_AndroidDefaultAPIs = PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
             m_AndroidAPIs = PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         }
@@ -39,6 +41,9 @@ namespace HoloKit.Validation.Tests
             m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue = m_Serious;
             m_Settings.ApplyModifiedPropertiesWithoutUndo();
             PlayerSettings.iOS.microphoneUsageDescription = m_Microphone;
+            m_Settings.Update();
+            m_Settings.FindProperty("Force IOS Speakers When Recording").boolValue = m_ForceSpeakers;
+            m_Settings.ApplyModifiedPropertiesWithoutUndo();
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, m_AndroidDefaultAPIs);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, m_AndroidAPIs);
         }
@@ -58,6 +63,7 @@ namespace HoloKit.Validation.Tests
         public void ThermalFrameRateCap_IsDetectedAndFixed()
         {
             var rule = Rule(BuildTargetGroup.iOS, "thermal state");
+            Assert.IsTrue(rule.Error, "a 30 fps cap must stop the build");
             SetThermal(true, 30);
             Assert.IsFalse(rule.CheckPredicate(), "30 fps cap must fail");
             SetThermal(true, 60);
@@ -72,6 +78,18 @@ namespace HoloKit.Validation.Tests
         {
             var rule = Rule(BuildTargetGroup.iOS, "Microphone Usage Description");
             PlayerSettings.iOS.microphoneUsageDescription = "";
+            Assert.IsFalse(rule.CheckPredicate());
+            rule.FixIt();
+            Assert.IsTrue(rule.CheckPredicate());
+        }
+
+        [Test]
+        public void SpeakerRouteWhenRecording_IsDetectedAndFixed()
+        {
+            var rule = Rule(BuildTargetGroup.iOS, "Force iOS Speakers");
+            m_Settings.Update();
+            m_Settings.FindProperty("Force IOS Speakers When Recording").boolValue = false;
+            m_Settings.ApplyModifiedPropertiesWithoutUndo();
             Assert.IsFalse(rule.CheckPredicate());
             rule.FixIt();
             Assert.IsTrue(rule.CheckPredicate());

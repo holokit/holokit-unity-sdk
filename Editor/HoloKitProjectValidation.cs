@@ -22,6 +22,7 @@ namespace HoloKit.Editor
     {
         const string Category = "HoloKit";
         const string Docs = "https://github.com/holokit/holokit-unity-sdk";
+        const string ForceSpeakers = "Force IOS Speakers When Recording";
 
         /// iOS rules, also run by <see cref="HoloKitBuildValidation"/>.
         public static readonly BuildValidationRule[] iOSRules =
@@ -37,7 +38,8 @@ namespace HoloKit.Editor
                 FixIt = () => SetPlayerSetting("adjustIOSFPSUsingThermalState", false),
                 FixItMessage = "Turn off Player Settings > iOS > Other Settings > 'Adjust iOS FPS based on thermal state'.",
                 HelpLink = Docs + "/blob/main/Documentation~/LowLatencyTracking.md",
-                Error = false,
+                // A build with this setting stutters in Stereo after a few minutes.
+                Error = true,
             },
             new()
             {
@@ -49,6 +51,18 @@ namespace HoloKit.Editor
                     "The microphone records sound with your HoloKit videos.",
                 FixItMessage = "Set Player Settings > iOS > Other Settings > Microphone Usage Description.",
                 HelpLink = Docs + "#ios-project-settings",
+                Error = false,
+            },
+            new()
+            {
+                Category = Category,
+                Message = "'Force iOS Speakers When Recording' is off. When anything in the app uses Unity's " +
+                          "Microphone, iOS then routes all game audio to the earpiece, which is inaudible in " +
+                          "HoloKit (measured on iPhone 15 Pro, iOS 27).",
+                CheckPredicate = () => PlayerSettingsObject().FindProperty(ForceSpeakers)?.boolValue != false,
+                FixIt = () => SetPlayerSetting(ForceSpeakers, true),
+                FixItMessage = "Turn on Player Settings > iOS > Other Settings > 'Force iOS Speakers When Recording'.",
+                HelpLink = Docs + "/blob/main/Documentation~/RecordingAudio.md",
                 Error = false,
             },
         };
