@@ -1,0 +1,90 @@
+// SPDX-FileCopyrightText: Copyright 2026 Reality Design Lab <dev@reality.design>
+// SPDX-License-Identifier: MIT
+
+using System.Linq;
+using HoloKit.Editor;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine.Rendering;
+
+namespace HoloKit.Validation.Tests
+{
+    /// Each rule must detect a bad setting and its Fix must repair it. Settings are
+    /// restored afterwards.
+    public class ProjectValidationTests
+    {
+        SerializedObject m_Settings;
+        bool m_Adjust;
+        int m_Serious;
+        string m_Microphone;
+        bool m_AndroidDefaultAPIs;
+        GraphicsDeviceType[] m_AndroidAPIs;
+
+        [SetUp]
+        public void Save()
+        {
+            m_Settings = new SerializedObject(Unsupported.GetSerializedAssetInterfaceSingleton("PlayerSettings"));
+            m_Adjust = m_Settings.FindProperty("adjustIOSFPSUsingThermalState").boolValue;
+            m_Serious = m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue;
+            m_Microphone = PlayerSettings.iOS.microphoneUsageDescription;
+            m_AndroidDefaultAPIs = PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
+            m_AndroidAPIs = PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
+        }
+
+        [TearDown]
+        public void Restore()
+        {
+            m_Settings.Update();
+            m_Settings.FindProperty("adjustIOSFPSUsingThermalState").boolValue = m_Adjust;
+            m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue = m_Serious;
+            m_Settings.ApplyModifiedPropertiesWithoutUndo();
+            PlayerSettings.iOS.microphoneUsageDescription = m_Microphone;
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, m_AndroidDefaultAPIs);
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, m_AndroidAPIs);
+        }
+
+        void SetThermal(bool adjust, int seriousFPS)
+        {
+            m_Settings.Update();
+            m_Settings.FindProperty("adjustIOSFPSUsingThermalState").boolValue = adjust;
+            m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue = seriousFPS;
+            m_Settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static Unity.XR.CoreUtils.Editor.BuildValidationRule Rule(BuildTargetGroup group, string text) =>
+            HoloKitProjectValidation.RulesFor(group).Single(r => r.Message.Contains(text));
+
+        [Test]
+        public void ThermalFrameRateCap_IsDetectedAndFixed()
+        {
+            var rule = Rule(BuildTargetGroup.iOS, "thermal state");
+            SetThermal(true, 30);
+            Assert.IsFalse(rule.CheckPredicate(), "30 fps cap must fail");
+            SetThermal(true, 60);
+            Assert.IsTrue(rule.CheckPredicate(), "a 60 fps floor is acceptable");
+            SetThermal(true, 30);
+            rule.FixIt();
+            Assert.IsTrue(rule.CheckPredicate());
+        }
+
+        [Test]
+        public void MissingMicrophoneDescription_IsDetectedAndFixed()
+        {
+            var rule = Rule(BuildTargetGroup.iOS, "Microphone Usage Description");
+            PlayerSettings.iOS.microphoneUsageDescription = "";
+            Assert.IsFalse(rule.CheckPredicate());
+            rule.FixIt();
+            Assert.IsTrue(rule.CheckPredicate());
+        }
+
+        [Test]
+        public void AndroidGraphicsAPIs_AreDetectedAndFixed()
+        {
+            var rule = Rule(BuildTargetGroup.Android, "OpenGLES3");
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, true);
+            Assert.IsFalse(rule.CheckPredicate());
+            rule.FixIt();
+            Assert.IsTrue(rule.CheckPredicate());
+        }
+    }
+}

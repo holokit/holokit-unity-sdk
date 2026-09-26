@@ -68,8 +68,13 @@ One setting must be changed in the project:
 **Player Settings > iOS > Other Settings > "Adjust iOS FPS based on thermal state": off**
 (or raise "Serious" to 60+). With it on, Unity drops to 30 fps as soon as iOS reports a
 serious thermal state, which a phone in HoloKit reaches within minutes: measured 30 fps
-and 33 ms render-to-display, against 120 fps and 17 ms with it off. The SDK warns about
-this at build time (`HoloKitFrameRateCheck`).
+and 33 ms render-to-display, against 120 fps and 17 ms with it off.
+
+HoloKit checks this for you: **Project Settings > XR Plug-in Management > Project
+Validation** lists HoloKit's rules with a **Fix** button, and every build runs the same
+rules and logs any that fail (`Editor/HoloKitProjectValidation.cs`). The rules cover the
+thermal frame-rate cap, the microphone usage description (recording), and Android's
+graphics API.
 
 ## Tuning
 
@@ -87,3 +92,5 @@ this at build time (`HoloKitFrameRateCheck`).
   SDK's `HoloKitPredictionBenchmark` to four decimals.
 - `Tests/Tracking/EditMode/LowLatencyTrackingTests.cs`: runs the host tests from the Unity
   Test Runner on macOS, and checks the manager stays inactive outside the iOS player.
+- `Tests/Validation/EditMode/ProjectValidationTests.cs`: each validation rule detects a bad
+  setting and its Fix repairs it.

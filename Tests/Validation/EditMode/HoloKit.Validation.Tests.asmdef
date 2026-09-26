@@ -1,0 +1,13 @@
+{
+  "name": "HoloKit.Validation.Tests",
+  "references": [
+    "HoloKit.Editor",
+    "Unity.XR.CoreUtils.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

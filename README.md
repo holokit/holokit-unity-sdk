@@ -205,7 +205,9 @@ frame's Metal `presentedTime`. On iPhone 15 Pro the orientation you see is 0.17Â
 where the head is, against about 4Â° without prediction. It is on by default in Stereo mode.
 
 Turn off **Player Settings > iOS > "Adjust iOS FPS based on thermal state"**: with it on,
-Unity drops stereo rendering to 30 fps once the phone warms up. See
+Unity drops stereo rendering to 30 fps once the phone warms up. HoloKit's rules under
+**Project Settings > XR Plug-in Management > Project Validation** flag this (with a Fix
+button) and are checked on every build. See
 [Documentation~/LowLatencyTracking.md](Documentation~/LowLatencyTracking.md) for how it works,
 the measurements and the tests.
 

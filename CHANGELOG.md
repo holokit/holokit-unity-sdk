@@ -21,7 +21,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - Stereo mode renders at the display rate: `HoloKitCameraManager` sets `targetFrameRate` to the
   display maximum (`m_StereoFrameRate`) and turns off `ARSession.matchFrameRateRequested`, which
   otherwise blocks each frame on the next ARKit frame; both are restored in Mono.
-- Build-time warning when "Adjust iOS FPS based on thermal state" would cap stereo at 30 fps.
+- HoloKit Project Validation rules (Project Settings > XR Plug-in Management > Project
+  Validation, with Fix buttons), also checked before every build: the iOS thermal frame-rate
+  cap that drops stereo to 30 fps, the microphone usage description, and Android's
+  OpenGLES3-only graphics API.
 - GPU video recording path for `HoloKitVideoRecorder`, with asynchronous stop and bounded GPU copies.
 - Recording audio: separate AAC game and microphone tracks on a common host-clock timebase
   (`RecordingAudioMode` Environment / GameAndMicrophone), independent `GameGain` / `MicrophoneGain`,
