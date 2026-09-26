@@ -1,0 +1,142 @@
+{
+  "arCaptureToRenderP50Milliseconds" : 37.613208551192656,
+  "arDeliveryP50Milliseconds" : 27.352521050488576,
+  "arFrameIntervalP50Milliseconds" : 16.668250027578324,
+  "bands" : [
+    {
+      "fromDegreesPerSecond" : 0,
+      "hold" : {
+        "count" : 4,
+        "positionP50Millimeters" : 0.9081687312573195,
+        "positionP95Millimeters" : 1.36370116379112,
+        "rotationP50Degrees" : 0.5276737685025479,
+        "rotationP95Degrees" : 0.6949758999617303
+      },
+      "predicted" : {
+        "count" : 4,
+        "positionP50Millimeters" : 1.3956482871435583,
+        "positionP95Millimeters" : 1.6611182130873203,
+        "rotationP50Degrees" : 0.031124450722757026,
+        "rotationP95Degrees" : 0.04779517738750227
+      },
+      "toDegreesPerSecond" : 5
+    },
+    {
+      "fromDegreesPerSecond" : 5,
+      "hold" : {
+        "count" : 98,
+        "positionP50Millimeters" : 1.5409109182655811,
+        "positionP95Millimeters" : 4.983693687245249,
+        "rotationP50Degrees" : 1.1026106857501026,
+        "rotationP95Degrees" : 4.21071922213739
+      },
+      "predicted" : {
+        "count" : 98,
+        "positionP50Millimeters" : 0.755655113607645,
+        "positionP95Millimeters" : 3.3917164895683514,
+        "rotationP50Degrees" : 0.0769471991716377,
+        "rotationP95Degrees" : 0.30816824357604516
+      },
+      "toDegreesPerSecond" : 20
+    },
+    {
+      "fromDegreesPerSecond" : 20,
+      "hold" : {
+        "count" : 222,
+        "positionP50Millimeters" : 2.959376317448914,
+        "positionP95Millimeters" : 6.763300276361404,
+        "rotationP50Degrees" : 2.346283414204451,
+        "rotationP95Degrees" : 7.417180541924909
+      },
+      "predicted" : {
+        "count" : 222,
+        "positionP50Millimeters" : 1.404302951414138,
+        "positionP95Millimeters" : 5.871537420898671,
+        "rotationP50Degrees" : 0.15644942827681574,
+        "rotationP95Degrees" : 0.8897774639910826
+      },
+      "toDegreesPerSecond" : 60
+    },
+    {
+      "fromDegreesPerSecond" : 60,
+      "hold" : {
+        "count" : 186,
+        "positionP50Millimeters" : 3.700164961628616,
+        "positionP95Millimeters" : 8.335784310474992,
+        "rotationP50Degrees" : 4.389257448202438,
+        "rotationP95Degrees" : 9.095176847771924
+      },
+      "predicted" : {
+        "count" : 186,
+        "positionP50Millimeters" : 3.424141788855195,
+        "positionP95Millimeters" : 7.080857292748988,
+        "rotationP50Degrees" : 0.21241321038022848,
+        "rotationP95Degrees" : 1.2073917293461656
+      },
+      "toDegreesPerSecond" : 120
+    },
+    {
+      "fromDegreesPerSecond" : 120,
+      "hold" : {
+        "count" : 188,
+        "positionP50Millimeters" : 3.2232472440227866,
+        "positionP95Millimeters" : 7.668073079548776,
+        "rotationP50Degrees" : 7.471544628340105,
+        "rotationP95Degrees" : 11.022404939482445
+      },
+      "predicted" : {
+        "count" : 188,
+        "positionP50Millimeters" : 5.077586974948645,
+        "positionP95Millimeters" : 9.561550570651889,
+        "rotationP50Degrees" : 0.2860233430301393,
+        "rotationP95Degrees" : 0.9183667359558285
+      }
+    }
+  ],
+  "evaluatedFrames" : 698,
+  "hold" : {
+    "count" : 596,
+    "positionP50Millimeters" : 3.276778617873788,
+    "positionP95Millimeters" : 7.7625729609280825,
+    "rotationP50Degrees" : 4.354393716688756,
+    "rotationP95Degrees" : 10.016185165709722
+  },
+  "holdJitter" : {
+    "count" : 697,
+    "p50Degrees" : 0.6530921037332231,
+    "p95Degrees" : 2.485029892460349,
+    "positionRMSMillimeters" : 0.3851256511647665,
+    "rmsDegrees" : 1.1653628136971201
+  },
+  "live" : {
+    "count" : 596,
+    "positionP50Millimeters" : 1.9852918339893222,
+    "positionP95Millimeters" : 6.7042692098766565,
+    "rotationP50Degrees" : 0.17868614514771852,
+    "rotationP95Degrees" : 0.8413462706451699
+  },
+  "liveJitter" : {
+    "count" : 697,
+    "p50Degrees" : 0.10348997412997327,
+    "p95Degrees" : 0.5106824693683464,
+    "positionRMSMillimeters" : 1.0191936129422194,
+    "rmsDegrees" : 0.22214489961969713
+  },
+  "movingThresholdDegreesPerSecond" : 20,
+  "predicted" : {
+    "count" : 596,
+    "positionP50Millimeters" : 3.240748425014317,
+    "positionP95Millimeters" : 8.113331161439419,
+    "rotationP50Degrees" : 0.21159170107116282,
+    "rotationP95Degrees" : 1.0278839814332579
+  },
+  "predictedJitter" : {
+    "count" : 697,
+    "p50Degrees" : 0.09058311081916885,
+    "p95Degrees" : 0.4495835340178929,
+    "positionRMSMillimeters" : 0.33486924766427406,
+    "rmsDegrees" : 0.19941601722628552
+  },
+  "renderDecisionCount" : 701,
+  "renderToPhotonP50Milliseconds" : 20.68050001980737
+}
