@@ -1,5 +1,5 @@
 // Host tests for Runtime/iOS/NativeCode/HoloKitTrackingCore (the iOS tracking
-// core). Build and run on a Mac:  Tests/Tracking/Tools/run_native_tests.sh
+// core). Build and run on a Mac:  Tests/Tracking/Tools~/run_native_tests.sh
 //
 // 1. Synthetic motion with known truth (ports of holokit-swift-sdk's
 //    KalmanPredictorTests).

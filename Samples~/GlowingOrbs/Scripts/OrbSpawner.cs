@@ -30,7 +30,7 @@ namespace HoloKit.Samples.GlowingOrbs
 
         private void Start()
         {
-            m_CenterEyePose = FindObjectOfType<HoloKitCameraManager>().transform;
+            m_CenterEyePose = FindFirstObjectByType<HoloKitCameraManager>().transform;
 
             // Register the callback
             m_HandGestureRecognitionManager.OnHandGestureChanged += OnHandGestureChanged;

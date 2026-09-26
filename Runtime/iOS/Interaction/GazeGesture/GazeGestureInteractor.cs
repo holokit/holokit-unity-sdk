@@ -17,7 +17,7 @@ namespace HoloKit.iOS
 
         private void Start()
         {
-            m_HandGestureRecognitionManager = FindObjectOfType<HandGestureRecognitionManager>();
+            m_HandGestureRecognitionManager = FindFirstObjectByType<HandGestureRecognitionManager>();
             if (m_HandGestureRecognitionManager == null)
             {
                 Debug.LogWarning("[GazeGestureInteractor] Failed to find HandGestureRecognitionManager");

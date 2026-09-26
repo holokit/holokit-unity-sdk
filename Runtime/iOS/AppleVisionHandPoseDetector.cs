@@ -11,13 +11,6 @@ using UnityEngine.XR.ARSubsystems;
 
 namespace HoloKit.iOS
 {
-    [Serializable]
-    public enum MaxHandCount
-    {
-        One = 1,
-        Both = 2
-    }
-
     public class AppleVisionHandPoseDetector : IDisposable
     {
         public int HandCount => m_HandCount;

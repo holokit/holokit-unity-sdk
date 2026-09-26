@@ -23,27 +23,18 @@ namespace HoloKit.Editor
                 PBXProject project = new();
                 project.ReadFromString(File.ReadAllText(projectPath));
 
-                string mainTargetGuid = project.GetUnityMainTargetGuid();
                 string unityFrameworkTargetGuid = project.GetUnityFrameworkTargetGuid();
 
-                project.SetBuildProperty(mainTargetGuid, "ENABLE_BITCODE", "NO");
-                project.SetBuildProperty(unityFrameworkTargetGuid, "ENABLE_BITCODE", "NO");
                 project.SetBuildProperty(unityFrameworkTargetGuid, "GCC_ENABLE_OBJC_EXCEPTIONS", "YES");
 
-                // Modify Info.plist for NSMicrophoneUsageDescription and NSPhotoLibraryAddUsageDescription
+                // Info.plist: NSPhotoLibraryAddUsageDescription for saving recordings
                 string plistPath = buildPath + "/Info.plist";
                 PlistDocument plist = new PlistDocument();
                 plist.ReadFromFile(plistPath);
 
                 PlistElementDict rootDict = plist.root;
 
-                // Set NSMicrophoneUsageDescription if not set
-                // We have to fill this text in Unity Editor's Project Settings window
-                //if (!rootDict.values.ContainsKey("NSMicrophoneUsageDescription"))
-                //{
-                //    rootDict.SetString("NSMicrophoneUsageDescription", "To record audio with your videos, we need access to your microphone.");
-                //}
-
+                // NSMicrophoneUsageDescription comes from Player Settings (checked by HoloKitProjectValidation).
                 // Set NSPhotoLibraryAddUsageDescription if not set
                 if (!rootDict.values.ContainsKey("NSPhotoLibraryAddUsageDescription"))
                 {

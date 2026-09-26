@@ -3,7 +3,7 @@
   "displayName": "HoloKit Unity SDK",
   "version": "0.6.0",
   "unity": "6000.3",
-  "description": "HoloKit is an open-source mixed reality toolkit that turns your iPhone into an affordable optical see-through AR wearable designed for spatial creators. With the HoloKit Unity SDK, developers can create immersive AR experiences in Unity, which can be viewed with HoloKit headset.\n\nThe SDK currently provides three core features:\n\n- Stereoscopic Rendering\n- Hand Tracking\n- Hand Gesture Recognition\n\nStereoscopic rendering is the central feature of the SDK, allowing for the display of stereo images on the iPhone screen. By attaching your iPhone to the HoloKit, you can enjoy a captivating AR experience. Utilizing Apple Vision framework, the SDK detects user hand poses. Together with LiDAR depth sensor, it allows your iPhone to track the 3D positions of the user's hands. Furthermore, the SDK can recognize hand gestures such as pinching, serving as a trigger for specific operations in your project.\n\nHoloKit Unity SDK, built on the foundation of ARFoundation, is compatible with most ARFoundation features such as image tracking and plane detection. Upgrading your ARFoundation project to a stereoscopic AR project is straightforward with the HoloKit Unity SDK.",
+  "description": "HoloKit turns an iPhone into an optical see-through stereo AR headset. The HoloKit Unity SDK builds on AR Foundation and adds:\n\n- Stereoscopic rendering for the HoloKit headset, switchable with Mono (screen AR)\n- Low-latency tracking: Kalman-filtered IMU prediction to the frame's display time\n- Video recording with microphone and game audio\n- Hand tracking and hand gesture recognition (Apple Vision and LiDAR)\n- Gaze and gaze-gesture interaction\n\nAR Foundation features such as plane detection and image tracking keep working in Stereo.",
   "keywords": [
     "holokit",
     "ar",
@@ -74,6 +74,16 @@
       "displayName": "Recording Audio",
       "description": "Demonstrates HoloKitVideoRecorder's two audio presets: raw environment microphone, and game audio plus echo-cancelled microphone on separate tracks.",
       "path": "Samples~/RecordingAudio"
+    },
+    {
+      "displayName": "Head Interaction",
+      "description": "A cat that turns to follow the viewer's head.",
+      "path": "Samples~/HeadInteraction"
+    },
+    {
+      "displayName": "Device Data",
+      "description": "Logs whether the device has a LiDAR scanner.",
+      "path": "Samples~/DeviceData"
     }
   ],
   "_fingerprint": "e7326129f7843dd62aef928ea4a272a9a159c0a2"

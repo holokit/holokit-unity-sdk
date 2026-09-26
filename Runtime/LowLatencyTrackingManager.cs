@@ -42,10 +42,13 @@ namespace HoloKit
         /// <summary>Age of the newest IMU sample at render start in seconds, or -1.</summary>
         public double IMUSampleAge => IsNative ? HoloKit_Tracking_imuSampleAge() : -1;
 
+        /// <summary>Orientation error in degrees the last ARKit frame corrected (filter vs. ARKit at the capture time).</summary>
+        public float LastCorrectionDegrees => IsNative ? HoloKit_Tracking_lastInnovationDegrees() : 0;
+
 #if UNITY_IOS && !UNITY_EDITOR
-        const bool IsNative = true;
+        static readonly bool IsNative = true;
 #else
-        const bool IsNative = false;
+        static readonly bool IsNative = false;
 #endif
 
         ARCameraManager m_ARCameraManager;
@@ -156,6 +159,7 @@ namespace HoloKit
         [DllImport("__Internal")] static extern double HoloKit_Tracking_presentLatency();
         [DllImport("__Internal")] static extern double HoloKit_Tracking_leadTime();
         [DllImport("__Internal")] static extern double HoloKit_Tracking_imuSampleAge();
+        [DllImport("__Internal")] static extern float HoloKit_Tracking_lastInnovationDegrees();
         [DllImport("__Internal")] static extern void HoloKit_Tracking_setSmoothing(double rotationSeconds, double positionSeconds);
 #else
         static void HoloKit_Tracking_start() {}
@@ -166,6 +170,7 @@ namespace HoloKit
         static double HoloKit_Tracking_presentLatency() => -1;
         static double HoloKit_Tracking_leadTime() => 0;
         static double HoloKit_Tracking_imuSampleAge() => -1;
+        static float HoloKit_Tracking_lastInnovationDegrees() => 0;
         static void HoloKit_Tracking_setSmoothing(double rotationSeconds, double positionSeconds) {}
 #endif
     }

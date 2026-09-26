@@ -9,15 +9,6 @@ using System.Collections.Generic;
 
 namespace HoloKit.iOS
 {
-    [Serializable]
-    public enum AppleThermalState
-    {
-        Normal = 0, // blue
-        Fair = 1, // green
-        Serious = 2, // yellow
-        Critical = 3 // red
-    }
-
     public class AppleNativeProvider : IDisposable
     {
         IntPtr m_Ptr;

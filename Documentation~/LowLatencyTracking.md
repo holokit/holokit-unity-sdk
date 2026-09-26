@@ -85,12 +85,12 @@ build stops until it is fixed. The other rules log warnings:
 ## Tuning
 
 `LowLatencyTrackingManager` exposes `m_RotationSmoothing` and `m_PositionSmoothing`
-(seconds) and read-only `IsPredicting`, `PresentLatency`, `PredictionLeadTime` and
-`IMUSampleAge` for diagnostics.
+(seconds) and read-only `IsPredicting`, `PresentLatency`, `PredictionLeadTime`,
+`IMUSampleAge` and `LastCorrectionDegrees` for diagnostics.
 
 ## Tests
 
-- `Tests/Tracking/Native~/tracking_core_tests.cpp` (run `Tests/Tracking/Tools/run_native_tests.sh`
+- `Tests/Tracking/Native~/tracking_core_tests.cpp` (run `Tests/Tracking/Tools~/run_native_tests.sh`
   on a Mac): 90 ms of rotation and accelerating translation bridged, gyro bias learned,
   extrapolation past the newest sample, relocalization reset, ARKit fallback without IMU,
   smoother, Unity ↔ ARKit conversion, and **parity with the Swift SDK**: a 6 s iPhone 15 Pro

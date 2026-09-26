@@ -1,16 +1,18 @@
-// SPDX-FileCopyrightText: Copyright 2023-2025 Reality Design Lab <dev@reality.design>
+// SPDX-FileCopyrightText: Copyright 2023-2026 Reality Design Lab <dev@reality.design>
 // SPDX-FileContributor: Yuchen Zhang <yuchenz27@outlook.com>
 // SPDX-License-Identifier: MIT
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using HoloKit.iOS;
 
-public class LiDARChecker : MonoBehaviour
+namespace HoloKit.Samples.DeviceData
 {
-    public void Start()
+    public class LiDARChecker : MonoBehaviour
     {
-        Debug.Log($"Support LiDAR {DeviceData.SupportLiDAR()}");
+        void Start()
+        {
+#if UNITY_IOS
+            Debug.Log($"Supports LiDAR: {HoloKit.iOS.DeviceData.SupportsLiDAR()}");
+#endif
+        }
     }
 }

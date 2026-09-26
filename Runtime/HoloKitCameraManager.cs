@@ -14,27 +14,6 @@ using UnityEngine.UI;
 namespace HoloKit
 {
     /// <summary>
-    /// Mono mode for ARFoundation screen AR and Stereo mode for HoloKit.
-    /// </summary>
-    public enum ScreenRenderMode
-    {
-        Mono = 0,
-        Stereo = 1
-    }
-
-    /// <summary>
-    /// The list of supported screen orientations under Mono mode.
-    /// </summary>
-    [Flags]
-    public enum MonoScreenOrientation
-    {
-        Portrait = 1, // 000001
-        PortraitUpsideDown = 2, // 000010
-        LandscapeRight = 4, // 000100
-        LandscapeLeft = 8 // 001000
-    }
-
-    /// <summary>
     /// The core script of the SDK responsible for the rendering of the two viewports on the phone's screen.
     /// </summary>
     public class HoloKitCameraManager : MonoBehaviour
@@ -236,6 +215,12 @@ namespace HoloKit
             }
         }
 
+        const string IOSPhoneModelListGuid = "97e080f80a8ae49d78e255ae53b17e11";
+        const string DefaultAndroidPhoneModelListGuid = "f192a44dbc7c041758df0ca7a4e8befe";
+
+        static T LoadByGuid<T>(string guid) where T : UnityEngine.Object =>
+            AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
+
         private void InitializeInEditor()
         {
             if (Application.isPlaying)
@@ -292,10 +277,10 @@ namespace HoloKit
             m_RightEyeCamera.clearFlags = CameraClearFlags.SolidColor;
             m_RightEyeCamera.backgroundColor = Color.black;
 
-            // Load the iOS phone model list in the SDK
-            m_iOSPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/iOSPhoneModelList.asset");
-            // Load the default Android phone model list in the SDK
-            m_DefaultAndroidPhoneModelList = AssetDatabase.LoadAssetAtPath<PhoneModelList>("Packages/com.holokit.xr.holokit/Assets/ScriptableObjects/DefaultAndroidPhoneModelList.asset");
+            // The SDK's phone model lists, by asset GUID so they load whatever the package id
+            // (a path under the old "com.holokit.xr.holokit" id returned null).
+            m_iOSPhoneModelList = LoadByGuid<PhoneModelList>(IOSPhoneModelListGuid);
+            m_DefaultAndroidPhoneModelList = LoadByGuid<PhoneModelList>(DefaultAndroidPhoneModelListGuid);
 
             SetupCameraData();
 
@@ -366,10 +351,10 @@ namespace HoloKit
         private void SetupCameraData(HoloKitModelSpecs holokitModelSpecs, PhoneModelSpecs phoneModelSpecs)
         {
             float screenDpi = phoneModelSpecs.ScreenDpi == 0f ? Screen.dpi : phoneModelSpecs.ScreenDpi;
-            float screenWidth = phoneModelSpecs.ScreenResolution == Vector2.zero ? Utils.GetScreenWidth() : phoneModelSpecs.ScreenResolution.x;
-            float screenHeight = phoneModelSpecs.ScreenResolution == Vector2.zero ? Utils.GetScreenHeight() : phoneModelSpecs.ScreenResolution.y;
-            float screenWidthInMeters = screenWidth / screenDpi * Utils.INCH_TO_METER_RATIO;
-            float screenHeightInMeters = screenHeight / screenDpi * Utils.INCH_TO_METER_RATIO;
+            float screenWidth = phoneModelSpecs.ScreenResolution == Vector2.zero ? HoloKitScreenUtils.GetScreenWidth() : phoneModelSpecs.ScreenResolution.x;
+            float screenHeight = phoneModelSpecs.ScreenResolution == Vector2.zero ? HoloKitScreenUtils.GetScreenHeight() : phoneModelSpecs.ScreenResolution.y;
+            float screenWidthInMeters = screenWidth / screenDpi * HoloKitScreenUtils.InchToMeter;
+            float screenHeightInMeters = screenHeight / screenDpi * HoloKitScreenUtils.InchToMeter;
 
             float viewportWidthInMeters = holokitModelSpecs.ViewportInner + holokitModelSpecs.ViewportOuter;
             float viewportHeightInMeters = holokitModelSpecs.ViewportTop + holokitModelSpecs.ViewportBottom;
@@ -411,7 +396,6 @@ namespace HoloKit
 
             // Calculate offsets
             Vector3 cameraToCenterEyeOffset = phoneModelSpecs.CameraOffset + holokitModelSpecs.MrOffset;
-            //Vector3 cameraToScreenCenterOffset = phoneModel.CameraOffset + new Vector3(0f, phoneModel.ScreenBottom + (phoneModel.ScreenHeight / 2f), 0f);
             Vector3 centerEyeToLeftEyeOffset = new(-m_Ipd / 2f, 0f, 0f);
             Vector3 centerEyeToRightEyeOffset = new(m_Ipd / 2f, 0f, 0f);
 
@@ -541,11 +525,11 @@ namespace HoloKit
             var holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
             var phoneModelSpecs = GetCurrentPhoneModel().ModelSpecs;
             float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
-            float posX = holokitModelSpecs.AlignmentMarkerOffset * Utils.METER_TO_INCH_RATIO * screenDpi;
+            float posX = holokitModelSpecs.AlignmentMarkerOffset * HoloKitScreenUtils.MeterToInch * screenDpi;
             rectTransform.anchoredPosition = new(posX, 0f);
             // Calculate width and height
-            float screenHeight = Utils.GetScreenHeight();
-            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * Utils.METER_TO_INCH_RATIO * screenDpi / screenHeight;
+            float screenHeight = HoloKitScreenUtils.GetScreenHeight();
+            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * HoloKitScreenUtils.MeterToInch * screenDpi / screenHeight;
             float height = (1f - m_LeftEyeCamera.rect.yMax - heightOffset) * screenHeight;
             rectTransform.sizeDelta = new(ALIGNMENT_MARKER_THICKNESS, height);
         }

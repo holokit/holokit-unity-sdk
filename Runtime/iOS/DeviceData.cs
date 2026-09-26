@@ -3,13 +3,15 @@
 // SPDX-License-Identifier: MIT
 
 #if UNITY_IOS
+using System;
 using System.Runtime.InteropServices;
 
 namespace HoloKit.iOS
 {
     public static class DeviceData
     {
-        public static bool SupportLiDAR()
+        /// <summary>Whether the device has a LiDAR scanner.</summary>
+        public static bool SupportsLiDAR()
         {
 #if UNITY_EDITOR
             return false;
@@ -17,6 +19,9 @@ namespace HoloKit.iOS
             return SupportLiDAR_Native();
 #endif
         }
+
+        [Obsolete("Use SupportsLiDAR.")]
+        public static bool SupportLiDAR() => SupportsLiDAR();
 
         [DllImport("__Internal", EntryPoint = "HoloKit_DeviceData_supportLiDAR")]
         static extern bool SupportLiDAR_Native();

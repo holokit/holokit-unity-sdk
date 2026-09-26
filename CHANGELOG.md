@@ -52,13 +52,28 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
+- Renamed with `[Obsolete]` forwarders: `Utils` → `HoloKitScreenUtils` (`InchToMeter`,
+  `MeterToInch`), `DeviceData.SupportLiDAR` → `DeviceData.SupportsLiDAR`.
+- Folders without spaces: `Runtime/Interaction/Gaze`, `Runtime/iOS/Interaction/GazeGesture`.
+  Types, namespaces and GUIDs are unchanged.
+- One type per file: `ScreenRenderMode`, `MonoScreenOrientation`, `HoloKitGeneration`,
+  `HoloKitModelSpecs`, `PhoneModelSpecs`, `PhoneModel`, `HandGesture`, `MaxHandCount`,
+  `AppleThermalState`, `HoloKitBuildValidation`.
+- Phone calibration guide and supported device lists moved to `Documentation~`.
+- `LowLatencyTrackingManager.LastCorrectionDegrees` reports the last ARKit orientation correction.
+- Head Interaction and Device Data samples listed in `package.json`.
 
 ### Removed
 
 - `libHoloKitLowLatencyTracking.a`: the closed tracking library, replaced by the source in
   `Runtime/iOS/NativeCode/HoloKitTracking*`.
+- `ENABLE_BITCODE` build settings (bitcode was removed in Xcode 14).
+- Custom AR Background sample (empty scene) and three sample UI scripts no scene referenced.
 
 ### Fixed
+
+- Phone model lists failed to load when the package was installed from git or a tarball: they are
+  now loaded by GUID instead of a `Packages/` path.
 
 - iOS 27: `ARKitCameraCompatibility` was attached only to the first scene's AR camera, so scenes loaded
   later lost the pose, background and projection corrections. It now attaches on every scene load.

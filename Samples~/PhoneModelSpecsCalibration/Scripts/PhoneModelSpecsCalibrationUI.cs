@@ -21,7 +21,7 @@ namespace HoloKit.Samples.PhoneModelSpecsCalibration
             Screen.orientation = ScreenOrientation.LandscapeLeft;
 
             m_ModelName.text = "Model Name: " + SystemInfo.deviceModel;
-            m_ScreenResolution.text = $"Screen Resolution: ({Utils.GetScreenWidth()}, {Utils.GetScreenHeight()})";
+            m_ScreenResolution.text = $"Screen Resolution: ({HoloKitScreenUtils.GetScreenWidth()}, {HoloKitScreenUtils.GetScreenHeight()})";
             m_ScreenDpi.text = "Screen DPI: " + Screen.dpi;
         }
 

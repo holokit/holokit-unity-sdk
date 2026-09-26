@@ -17,7 +17,7 @@ namespace HoloKit.Samples.HeadInteraction
         // Start is called before the first frame update
         void Start()
         {
-            head = FindObjectOfType<HoloKitCameraManager>().CenterEyePose;
+            head = FindFirstObjectByType<HoloKitCameraManager>().CenterEyePose;
         }
 
         private void LateUpdate()

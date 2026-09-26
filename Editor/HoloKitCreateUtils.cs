@@ -150,7 +150,6 @@ namespace HoloKit.Editor
             renderModeButtonImage.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
             renderModeButtonImage.type = Image.Type.Sliced;
             var renderModeButton = renderModeButtonGo.AddComponent<Button>();
-            //button.onClick.AddListener(defaultUICanavs.SwitchRenderMode);
             SerializedObject renderModeSerializedButton = new SerializedObject(renderModeButton);
             SerializedProperty renderModeOnClickProp = renderModeSerializedButton.FindProperty("m_OnClick");
             int renderModeNumListeners = renderModeOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").arraySize;
@@ -158,7 +157,6 @@ namespace HoloKit.Editor
             SerializedProperty renderModeAddedElement = renderModeOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").GetArrayElementAtIndex(renderModeNumListeners);
             renderModeAddedElement.FindPropertyRelative("m_Target").objectReferenceValue = defaultUICanavs;
             renderModeAddedElement.FindPropertyRelative("m_MethodName").stringValue = "SwitchRenderMode";
-            //addedElement.FindPropertyRelative("m_Mode").enumValueIndex = 1;
             renderModeAddedElement.FindPropertyRelative("m_CallState").enumValueIndex = 2;
             renderModeSerializedButton.ApplyModifiedProperties();
 
@@ -195,7 +193,6 @@ namespace HoloKit.Editor
             SerializedProperty recordAddedElement = recordOnClickProp.FindPropertyRelative("m_PersistentCalls.m_Calls").GetArrayElementAtIndex(recordNumListeners);
             recordAddedElement.FindPropertyRelative("m_Target").objectReferenceValue = defaultUICanavs;
             recordAddedElement.FindPropertyRelative("m_MethodName").stringValue = "ToggleRecording";
-            //addedElement.FindPropertyRelative("m_Mode").enumValueIndex = 1;
             recordAddedElement.FindPropertyRelative("m_CallState").enumValueIndex = 2;
             recordSerializedButton.ApplyModifiedProperties();
 
@@ -235,7 +232,7 @@ namespace HoloKit.Editor
             Undo.RegisterCreatedObjectUndo(canvasGo, "Create HoloKit Default UI Canvas");
 
             // Check for EventSystem
-            EventSystem eventSystem = Object.FindObjectOfType<EventSystem>();
+            EventSystem eventSystem = Object.FindFirstObjectByType<EventSystem>();
             if (eventSystem == null)
             {
                 // Create new EventSystem

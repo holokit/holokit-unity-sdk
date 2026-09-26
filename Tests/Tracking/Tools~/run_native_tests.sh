@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds and runs the iOS tracking core's host tests on a Mac.
-# Usage: Tests/Tracking/Tools/run_native_tests.sh
+# Usage: Tests/Tracking/Tools~/run_native_tests.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 OUT="${TMPDIR:-/tmp}/holokit-tracking-tests"

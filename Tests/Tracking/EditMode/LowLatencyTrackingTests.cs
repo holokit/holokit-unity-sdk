@@ -21,7 +21,7 @@ namespace HoloKit.Tracking.Tests
                 Assert.Ignore("The native core builds with Apple's clang and simd.");
             var package = PackageInfo.FindForAssembly(typeof(LowLatencyTrackingManager).Assembly);
             Assert.IsNotNull(package, "HoloKit package not found");
-            string script = Path.Combine(package.resolvedPath, "Tests/Tracking/Tools/run_native_tests.sh");
+            string script = Path.Combine(package.resolvedPath, "Tests/Tracking/Tools~/run_native_tests.sh");
             var start = new ProcessStartInfo("/bin/bash", $"\"{script}\"")
             {
                 RedirectStandardOutput = true,

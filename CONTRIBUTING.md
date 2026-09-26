@@ -18,9 +18,9 @@ To add a new iPhone model to the `Assets/ScriptableObjects/iOSPhoneModelList` as
    
 - `Screen DPI`: Also obtainable from Apple’s website, refers to the screen's DPI (Dots Per Inch), synonymous with PPI (Pixels Per Inch).
  
-- `Viewport Bottom Offset`: Indicates the offset between the device screen bottom and the viewport bottom measured in meters. For a detailed explanation, see the [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-2-determine-viewportbottomoffset). However, you can only measure this property manually. You can leave this value to 0 and use `Screen Bottom Border` instead.
+- `Viewport Bottom Offset`: Indicates the offset between the device screen bottom and the viewport bottom measured in meters. For a detailed explanation, see the [Phone Calibration Guide](Documentation~/Phone_Calibration_Guide.md#step-2-determine-viewportbottomoffset). However, you can only measure this property manually. You can leave this value to 0 and use `Screen Bottom Border` instead.
 
-- `Camera Offset`: The 3D distance from the iPhone's main camera to the screen's bottom center, detailed in the [Phone Calibration Guide](./Phone_Calibration_Guide.md#step-3-determine-cameraoffset). Calculate this using [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/accessories/Accessory-Design-Guidelines.pdf).
+- `Camera Offset`: The 3D distance from the iPhone's main camera to the screen's bottom center, detailed in the [Phone Calibration Guide](Documentation~/Phone_Calibration_Guide.md#step-3-determine-cameraoffset). Calculate this using [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/accessories/Accessory-Design-Guidelines.pdf).
 
 - `Screen Bottom Border`: Distance between the screen's bottom border and the phone's frame bottom. Determine this using the [Accessory Design Guidelines for Apple Devices](https://developer.apple.com/accessories/Accessory-Design-Guidelines.pdf). You can use either `Viewport Bottom Offset` or `Screen Bottom Border` to set viewport positioning, but not both. While `Viewport Bottom Offset` offers higher accuracy, it is more challenging to calculate. In contrast, `Screen Bottom Border` is easier to compute but less precise. If both values are provided, the SDK defaults to using `Screen Bottom Border` for viewport positioning. If `Viewport Bottom Offset` is set to 0, the SDK will automatically utilize `Screen Bottom Border`.
 
@@ -66,7 +66,7 @@ Key Components:
 
 - `Default Android Phone Model List`: Specs for supported Android devices.
 
-- `Custom Android Phone Model List`: Custom list for unsupported Android models. Refer to the [Phone Calibration Guide](./Phone_Calibration_Guide.md) for custom model specifications.
+- `Custom Android Phone Model List`: Custom list for unsupported Android models. Refer to the [Phone Calibration Guide](Documentation~/Phone_Calibration_Guide.md) for custom model specifications.
 
 ### Hand Pose Detection
 
@@ -86,7 +86,11 @@ The `Runtime/iOS/NativeCode` folder houses all the native Objective-C code for t
 
 ### Low Latency Tracking
 
-See [HoloKit Low Latency Tracking repository](https://github.com/holokit/holokit-low-latency-tracking) for detailed explanation.
+See [Documentation~/LowLatencyTracking.md](Documentation~/LowLatencyTracking.md). The filter lives in `Runtime/iOS/NativeCode/HoloKitTrackingCore.h/.cpp` and must stay in step with `HoloKitKalmanPredictor` in holokit-swift-sdk: `Tests/Tracking/Tools~/run_native_tests.sh` checks both give the same error statistics on the recorded trace.
+
+## Checks
+
+Run the EditMode tests (Test Runner, or `Unity -batchmode -projectPath <carrier project> -buildTarget iOS -runTests -testPlatform EditMode -testFilter HoloKit`) and `Tests/Tracking/Tools~/run_native_tests.sh` before sending a change. Project settings HoloKit depends on are rules in `Editor/HoloKitProjectValidation.cs`; add a rule there rather than documenting a manual step.
 
 ## How To Work With The SDK
 
@@ -106,4 +110,4 @@ At present, our system recognizes only two hand gestures: Pinched and Five. Theo
 
 ### Advancing Low Latency Tracking Performance
 
-There is a continuous need for further optimization in our low latency tracking system. This involves refining the system's responsiveness and accuracy to minimize latency even further. For detailed information and specific areas of focus, please refer to the [HoloKit Low Latency Tracking repository](https://github.com/holokit/holokit-low-latency-tracking).
+Tune against recorded traces, not by eye: record a trace with the Swift SDK's `Tools/CaptureMotionTrace.sh`, replay it with `make replay` there, and port parameter changes to `HoloKitTrackingCore` with an updated parity fixture (`Tests/Tracking/Native~/fixtures`).

@@ -14,7 +14,7 @@ Once your Android phone is confirmed to be physically compatible with the HoloKi
 
 ## Step 1: Deploy the calibration sample project to your phone
 
-Begin by creating am empty Unity project and installing the HoloKit Unity SDK. Follow the guideline in the [How to Use HoloKit Unity SDK](./README.md#How-to-Use-HoloKit-Unity-SDK) section to configure your project settings correctly. Then, import the "Phone Model Specs Calibration" sample from the SDK.
+Begin by creating an empty Unity project and installing the HoloKit Unity SDK. Follow the guideline in the [Project Environment Setup](../README.md#project-environment-setup) section to configure your project settings correctly. Then, import the "Phone Model Specs Calibration" sample from the SDK.
 
 <img width="400" alt="deploy" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/9d0887bf-2573-4bfe-862a-633421713b28">
 
