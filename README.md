@@ -209,7 +209,8 @@ Unity drops stereo rendering to 30 fps once the phone warms up. HoloKit's rules 
 **Project Settings > XR Plug-in Management > Project Validation** flag this (with a Fix
 button) and are checked on every build. See
 [Documentation~/LowLatencyTracking.md](Documentation~/LowLatencyTracking.md) for how it works,
-the measurements and the tests.
+the measurements and the tests. Import the `Low Latency Tracking` package sample to check it
+on a real table: detected planes show as a dot grid with rows of small cubes standing on it.
 
 ### Reset World Origin
 

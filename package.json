@@ -26,6 +26,11 @@
       "path": "Samples~/StereoscopicRendering"
     },
     {
+      "displayName": "Low Latency Tracking",
+      "description": "Checks world-locking against a real table: detected planes as a dot grid and rows of cubes standing on the table, with live prediction, display latency and frame-rate readouts.",
+      "path": "Samples~/LowLatencyTracking"
+    },
+    {
       "displayName": "Hand Tracking",
       "description": "Provides a demonstration of the SDK's hand tracking feature.",
       "path": "Samples~/HandTracking"
