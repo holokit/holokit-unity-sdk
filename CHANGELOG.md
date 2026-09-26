@@ -11,6 +11,17 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Added
 
+- Low-latency tracking rewritten in source: the Swift SDK's Kalman filter ported to C++
+  (`HoloKitTrackingCore`) with Objective-C++ glue (`HoloKitTracking.mm`) replacing the closed
+  `libHoloKitLowLatencyTracking.a` in `LowLatencyTrackingManager`. It fuses ARKit with Core
+  Motion (gyro, gravity-free acceleration), predicts to the display time measured from
+  `CAMetalDrawable.presentedTime` plus scan-out, and smooths frame-to-frame jumps. Host tests
+  (`Tests/Tracking`) include parity with the Swift SDK on an iPhone 15 Pro trace. See
+  `Documentation~/LowLatencyTracking.md`.
+- Stereo mode renders at the display rate: `HoloKitCameraManager` sets `targetFrameRate` to the
+  display maximum (`m_StereoFrameRate`) and turns off `ARSession.matchFrameRateRequested`, which
+  otherwise blocks each frame on the next ARKit frame; both are restored in Mono.
+- Build-time warning when "Adjust iOS FPS based on thermal state" would cap stereo at 30 fps.
 - GPU video recording path for `HoloKitVideoRecorder`, with asynchronous stop and bounded GPU copies.
 - Recording audio: separate AAC game and microphone tracks on a common host-clock timebase
   (`RecordingAudioMode` Environment / GameAndMicrophone), independent `GameGain` / `MicrophoneGain`,

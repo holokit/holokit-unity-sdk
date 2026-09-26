@@ -196,6 +196,19 @@ After setting up the `AR Session`, `HoloKit XROrigin`, and UI components, you ca
 
 ## Advanced Features
 
+### Low-Latency Tracking
+
+In Stereo mode the SDK predicts the camera pose for the moment each frame is seen. A native
+Kalman filter (the same algorithm as the HoloKit Swift SDK) fuses every ARKit frame with the
+gyroscope and accelerometer at 100 Hz, and predicts to the display time measured from each
+frame's Metal `presentedTime`. On iPhone 15 Pro the orientation you see is 0.17° (median) from
+where the head is, against about 4° without prediction. It is on by default in Stereo mode.
+
+Turn off **Player Settings > iOS > "Adjust iOS FPS based on thermal state"**: with it on,
+Unity drops stereo rendering to 30 fps once the phone warms up. See
+[Documentation~/LowLatencyTracking.md](Documentation~/LowLatencyTracking.md) for how it works,
+the measurements and the tests.
+
 ### Reset World Origin
 
 The SDK enables resetting the ARKit `ARSession`'s world origin to a specified position and rotation by using the `WorldOriginResetter` script. Please notice that there must be a `HoloKitARKitManager` component in the scene, which is used by the `WorldOriginResetter` script.

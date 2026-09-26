@@ -65,6 +65,7 @@ namespace HoloKit
                     m_BlackCamera.gameObject.SetActive(false);
                     m_CenterEyePose.localPosition = Vector3.zero; // Reset the CenterEyePose to the phone's camera position
                     m_ScreenRenderMode = ScreenRenderMode.Mono;
+                    RestoreMonoFrameRate();
 
                     // Deactivate the alignment marker UI
                     if (m_AlignmentMarkerCanvas)
@@ -107,6 +108,7 @@ namespace HoloKit
 
                     // Activate the alignment marker UI
                     SpawnAlignmentMarker();
+                    ApplyStereoFrameRate();
                 }
                 OnScreenRenderModeChanged?.Invoke(m_ScreenRenderMode);
             }
@@ -154,6 +156,44 @@ namespace HoloKit
 
         [Tooltip("The list of supported screen orientations under Mono mode.")]
         [SerializeField] MonoScreenOrientation m_SupportedMonoScreenOrientations = MonoScreenOrientation.Portrait | MonoScreenOrientation.LandscapeLeft;
+
+        [Tooltip("Target frame rate in Stereo mode. 0 uses the display's maximum (120 Hz on ProMotion iPhones). " +
+                 "Unity's iOS default of 30 fps makes world-locked content step visibly.")]
+        [SerializeField] int m_StereoFrameRate = 0;
+
+        int m_MonoFrameRate;
+        bool m_MonoMatchFrameRate;
+        bool m_StereoFrameRateApplied;
+
+        void ApplyStereoFrameRate()
+        {
+            // ARSession's "Match Frame Rate" resets Unity's frame rate to ARKit's
+            // camera rate every frame (30 Hz when the phone is warm), so it is
+            // turned off in Stereo and restored in Mono.
+            var session = FindFirstObjectByType<UnityEngine.XR.ARFoundation.ARSession>();
+            if (!m_StereoFrameRateApplied)
+            {
+                m_MonoFrameRate = Application.targetFrameRate;
+                m_MonoMatchFrameRate = session != null && session.matchFrameRateRequested;
+            }
+            if (session != null)
+                session.matchFrameRateRequested = false;
+            m_StereoFrameRateApplied = true;
+            Application.targetFrameRate = m_StereoFrameRate > 0
+                ? m_StereoFrameRate
+                : Mathf.Max(60, (int)Math.Round(Screen.currentResolution.refreshRateRatio.value));
+        }
+
+        void RestoreMonoFrameRate()
+        {
+            if (!m_StereoFrameRateApplied)
+                return;
+            var session = FindFirstObjectByType<UnityEngine.XR.ARFoundation.ARSession>();
+            if (session != null)
+                session.matchFrameRateRequested = m_MonoMatchFrameRate;
+            Application.targetFrameRate = m_MonoFrameRate;
+            m_StereoFrameRateApplied = false;
+        }
 
         [Header("Devices")]
         [SerializeField] HoloKitGeneration m_HoloKitGeneration = HoloKitGeneration.HoloKitX;
