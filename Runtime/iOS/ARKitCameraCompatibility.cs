@@ -14,6 +14,7 @@ namespace HoloKit.iOS
     // missing pose roll and, in portrait, a projection scaled by the image aspect
     // ratio in ARKit XR 6.4.3. No accumulated rotations.
     [DisallowMultipleComponent]
+    [DefaultExecutionOrder(10000)] // Update runs after other scripts' Update, before constraints and LateUpdate
     public sealed class ARKitCameraCompatibility : MonoBehaviour
     {
         readonly float[] view = new float[16], projection = new float[16], display = new float[8];
@@ -57,6 +58,9 @@ namespace HoloKit.iOS
 
         void OnEnable() => Application.onBeforeRender += ApplyPose;
         void OnDisable() => Application.onBeforeRender -= ApplyPose;
+        // Also correct the pose during the frame: parent constraints and LateUpdate scripts that follow
+        // the camera would otherwise read the uncorrected pose and end up 90 degrees off in portrait.
+        void Update() => ApplyPose();
 
         [BeforeRenderOrder(100)] // after TrackedPoseDriver's pose write
         void ApplyPose()
