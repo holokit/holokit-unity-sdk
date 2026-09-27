@@ -11,6 +11,21 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Added
 
+- Stereo bar, ported from the HoloKit Swift SDK: HoloKit's standard controls along the top edge
+  in Stereo, in the band above the headset frame and sized in millimetres for each phone.
+  MORE (hold: fps, session and recording time, thermal state, `StereoInfo`), RECORD (slide left
+  to start or stop), MONO (tap), OPTIONS (slide right: audio VOICE / GAME / BOTH, HANDS ON / OFF,
+  CAMERA HD / 4K; closes after 4 s) and TRIGGER (hold: `HoloKitCameraManager.OnStereoTrigger`).
+  Holding a control hides the others and the alignment marker; iOS edge gestures are deferred
+  while it shows. `HoloKitCameraManager.StereoBarItems` picks the controls, and
+  `StereoTriggerLabel` / `StereoTriggerPressedLabel` rename TRIGGER. The Default UI
+  Canvas hides its buttons in Stereo. Stereo recordings never prompt for the microphone.
+- Stereo alignment guide from the HoloKit app and Swift SDK: the outline of HoloKit X's phone
+  opening (1 mm around the viewports, from 2.5 mm above them, open at the bottom) and a grey
+  marker line at the notch, replacing the white marker. It hides after 10 s without a touch
+  (`AlignmentGuideAutoHideDelay`), and the marker hides while a stereo bar control is held.
+- Stereo frame rate follows the thermal state as in the Swift SDK: Serious caps it at 40 fps,
+  Critical at 30 (`AdaptStereoFrameRateToThermalState`, on by default).
 - Low-latency tracking rewritten in source: the Swift SDK's Kalman filter ported to C++
   (`HoloKitTrackingCore`) with Objective-C++ glue (`HoloKitTracking.mm`) replacing the closed
   `libHoloKitLowLatencyTracking.a` in `LowLatencyTrackingManager`. It fuses ARKit with Core
@@ -52,6 +67,13 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
+- Recording video modes follow the HoloKit Swift SDK. Mono records the screen; Stereo records a
+  16:9 movie at `HoloKitVideoRecorder.StereoResolution`, 2K (2560 × 1440, default) or 4K
+  (3840 × 2160), cut from the centre of the AR camera view rendered at the screen's aspect (it was
+  screen-sized). `RecordIn4K` is renamed `CaptureCameraIn4K` (serialized values kept): it only
+  switches ARKit's camera feed to 4K, and the movie then runs at 30 fps. The Default UI Canvas
+  button toggles it and reads HD / 4K; the stereo bar's OPTIONS has VIDEO RECORDING 2K / 4K and
+  CAMERA HD / 4K.
 - Renamed with `[Obsolete]` forwarders: `Utils` → `HoloKitScreenUtils` (`InchToMeter`,
   `MeterToInch`), `DeviceData.SupportLiDAR` → `DeviceData.SupportsLiDAR`.
 - Folders without spaces: `Runtime/Interaction/Gaze`, `Runtime/iOS/Interaction/GazeGesture`.

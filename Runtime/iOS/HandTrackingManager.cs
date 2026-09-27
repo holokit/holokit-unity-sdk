@@ -112,6 +112,14 @@ namespace HoloKit.iOS
             m_HandPoseDetector.Dispose();
         }
 
+        // Switched off (e.g. HANDS OFF in the stereo bar's OPTIONS): no stale hands stay in view.
+        private void OnDisable()
+        {
+            // Not while the whole object deactivates: its hands go with it.
+            if (gameObject.activeInHierarchy)
+                OnHandPoseLost();
+        }
+
         private void OnFrameReceived(ARCameraFrameEventArgs args)
         {
             if (enabled)

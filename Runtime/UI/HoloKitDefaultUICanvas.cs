@@ -33,6 +33,8 @@ namespace HoloKit.UI
                 Debug.LogWarning($"[{nameof(HoloKitDefaultUICanvas)}] No HoloKitCameraManager in the scene; this canvas is inert.");
                 return;
             }
+            m_HoloKitCameraManager.OnScreenRenderModeChanged += OnScreenRenderModeChanged;
+            OnScreenRenderModeChanged(m_HoloKitCameraManager.ScreenRenderMode);
 #if UNITY_IOS
             m_VideoRecorder = m_HoloKitCameraManager.GetComponentInChildren<HoloKitVideoRecorder>();
             if (RecordButtonText != null)
@@ -50,9 +52,35 @@ namespace HoloKit.UI
                 return;
 
             m_HoloKitCameraManager.ScreenRenderMode = m_HoloKitCameraManager.ScreenRenderMode == ScreenRenderMode.Mono ? ScreenRenderMode.Stereo : ScreenRenderMode.Mono;
+        }
+
+        private void OnDestroy()
+        {
+            if (m_HoloKitCameraManager != null)
+                m_HoloKitCameraManager.OnScreenRenderModeChanged -= OnScreenRenderModeChanged;
+        }
+
+        // The stereo bar (MONO, RECORD, OPTIONS) replaces these buttons in Stereo, while it has
+        // controls. Checked every frame: StereoBarItems can change at any time.
+        private void UpdateVisibility()
+        {
+            if (m_HoloKitCameraManager == null || !TryGetComponent<Canvas>(out var canvas))
+                return;
+            var bar = m_HoloKitCameraManager.StereoBar;
+            bool barShown = m_HoloKitCameraManager.ScreenRenderMode == ScreenRenderMode.Stereo &&
+                bar != null && bar.isActiveAndEnabled && bar.HasControls;
+            if (canvas.enabled == barShown)
+                canvas.enabled = !barShown;
+        }
+
+        private void LateUpdate() => UpdateVisibility();
+
+        private void OnScreenRenderModeChanged(ScreenRenderMode mode)
+        {
+            UpdateVisibility();
 
             if (RenderModeButtonText != null)
-                RenderModeButtonText.text = m_HoloKitCameraManager.ScreenRenderMode == ScreenRenderMode.Mono ? "Stereo" : "Mono";
+                RenderModeButtonText.text = mode == ScreenRenderMode.Mono ? "Stereo" : "Mono";
 
 #if UNITY_IOS
             // RecordButtonText is optional: a project may drive the record UI itself
@@ -81,7 +109,8 @@ namespace HoloKit.UI
         {
             if (m_VideoRecorder == null || m_VideoRecorder.IsRecording || m_VideoRecorder.IsFinishing || m_VideoRecorder.IsPreparing)
                 return;
-            m_VideoRecorder.RecordIn4K = !m_VideoRecorder.RecordIn4K;
+            // The ARKit camera feed: HD or 4K (Mono movies are screen-sized either way).
+            m_VideoRecorder.CaptureCameraIn4K = !m_VideoRecorder.CaptureCameraIn4K;
             UpdateRecordingQualityButton();
         }
 
@@ -91,7 +120,7 @@ namespace HoloKit.UI
             RecordIn4KButton.interactable = m_VideoRecorder != null &&
                 !m_VideoRecorder.IsRecording && !m_VideoRecorder.IsFinishing && !m_VideoRecorder.IsPreparing;
             if (m_RecordIn4KButtonText != null)
-                m_RecordIn4KButtonText.text = m_VideoRecorder != null && m_VideoRecorder.RecordIn4K ? "4K" : "2K";
+                m_RecordIn4KButtonText.text = m_VideoRecorder != null && m_VideoRecorder.CaptureCameraIn4K ? "4K" : "HD";
         }
 
         public void ToggleRecording()

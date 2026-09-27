@@ -1,0 +1,12 @@
+{
+  "name": "HoloKit.UI.Tests",
+  "references": [
+    "HoloKit"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -9,7 +9,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
-using UnityEngine.UI;
+using HoloKit.UI;
 
 namespace HoloKit
 {
@@ -46,9 +46,11 @@ namespace HoloKit
                     m_ScreenRenderMode = ScreenRenderMode.Mono;
                     RestoreMonoFrameRate();
 
-                    // Deactivate the alignment marker UI
-                    if (m_AlignmentMarkerCanvas)
-                        m_AlignmentMarkerCanvas.SetActive(false);
+                    // Deactivate the alignment marker UI and the stereo bar
+                    if (m_AlignmentGuide)
+                        m_AlignmentGuide.gameObject.SetActive(false);
+                    if (m_StereoBar)
+                        m_StereoBar.gameObject.SetActive(false);
 
                     // Re-enable supported screen orientations for Mono mode
                     Screen.orientation = ScreenOrientation.AutoRotation;
@@ -85,8 +87,9 @@ namespace HoloKit
                     m_CenterEyePose.localPosition = m_CameraToCenterEyeOffset; // Set the CenterEyePose to the middle point between the user's eyes
                     m_ScreenRenderMode = ScreenRenderMode.Stereo;
 
-                    // Activate the alignment marker UI
-                    SpawnAlignmentMarker();
+                    // Activate the alignment marker UI and the stereo bar
+                    SpawnAlignmentGuide();
+                    SpawnStereoBar();
                     ApplyStereoFrameRate();
                 }
                 OnScreenRenderModeChanged?.Invoke(m_ScreenRenderMode);
@@ -101,6 +104,11 @@ namespace HoloKit
                 m_PhoneModel = value;
                 HoloKitModelSpecs holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
                 SetupCameraData(holokitModelSpecs, m_PhoneModel.ModelSpecs);
+                // Millimetres follow the new phone.
+                if (m_StereoBar)
+                    m_StereoBar.Rebuild();
+                if (m_AlignmentGuide)
+                    m_AlignmentGuide.Rebuild();
             }
         }
 
@@ -108,6 +116,66 @@ namespace HoloKit
         /// Invoked when the screen render mode changed.
         /// </summary>
         public event Action<ScreenRenderMode> OnScreenRenderModeChanged;
+
+        /// <summary>
+        /// Invoked once per press of the stereo bar's TRIGGER, a button every app can use in Stereo.
+        /// </summary>
+        public event Action OnStereoTrigger;
+
+        /// <summary>
+        /// Extra lines the stereo bar's MORE shows after frame rate, session time, recording and
+        /// thermal state, e.g. <c>new[] { "anchors 3" }</c>.
+        /// </summary>
+        public string[] StereoInfo { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// TRIGGER's label in the stereo bar ("TRIGGER" by default), e.g. "FIRE".
+        /// </summary>
+        public string StereoTriggerLabel
+        {
+            get => m_StereoTriggerLabel;
+            set => m_StereoTriggerLabel = value;
+        }
+
+        /// <summary>
+        /// TRIGGER's label while pressed ("TRIGGERED" by default), e.g. "FIRED".
+        /// </summary>
+        public string StereoTriggerPressedLabel
+        {
+            get => m_StereoTriggerPressedLabel;
+            set => m_StereoTriggerPressedLabel = value;
+        }
+
+        /// <summary>
+        /// The stereo control bar, created the first time Stereo starts; null before, or when
+        /// <see cref="StereoBarItems"/> is <see cref="HoloKitStereoBarItems.None"/>.
+        /// </summary>
+        public HoloKitStereoBar StereoBar => m_StereoBar;
+
+        /// <summary>
+        /// Which controls the stereo bar shows; <see cref="HoloKitStereoBarItems.None"/> for none
+        /// (place your own, and a way back to Mono).
+        /// </summary>
+        public HoloKitStereoBarItems StereoBarItems
+        {
+            get => m_StereoBarItems;
+            set
+            {
+                if (value == m_StereoBarItems)
+                    return;
+                m_StereoBarItems = value;
+                if (m_StereoBar)
+                {
+                    // Disable first: Destroy waits for the frame's end, and the old bar must
+                    // restore iOS's edge gestures before the new one saves them.
+                    m_StereoBar.gameObject.SetActive(false);
+                    Destroy(m_StereoBar.gameObject);
+                    m_StereoBar = null;
+                }
+                if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
+                    SpawnStereoBar();
+            }
+        }
 
         [Tooltip("The ARCamera used in Mono mode.")]
         [SerializeField] Camera m_MonoCamera;
@@ -130,8 +198,23 @@ namespace HoloKit
         [Tooltip("The far clip plane of two viewport cameras in Stereo mode.")]
         [SerializeField] float m_FarClipPlane = 50f;
 
-        [Tooltip("Whether to show the alignment marker UI in stereo mode?")]
+        [Tooltip("Show the alignment guide in Stereo mode: the outline of the headset's phone opening and the marker line at its notch.")]
         [SerializeField] bool m_ShowAlignmentMarkerInStereoMode = true;
+
+        [Tooltip("Seconds without a touch before the alignment guide hides in Stereo mode (a touch brings it back); 0 keeps it.")]
+        [SerializeField] float m_AlignmentGuideAutoHideDelay = 10f;
+
+        [Tooltip("The controls of the stereo bar along the screen's top edge in Stereo mode: MORE, RECORD, MONO, OPTIONS and TRIGGER. Nothing for none.")]
+        [SerializeField] HoloKitStereoBarItems m_StereoBarItems = HoloKitStereoBarItems.All;
+
+        [Tooltip("TRIGGER's label in the stereo bar, e.g. FIRE. Keep it short: it sits in a 20 mm touch area.")]
+        [SerializeField] string m_StereoTriggerLabel = "TRIGGER";
+
+        [Tooltip("TRIGGER's label while pressed, e.g. FIRED.")]
+        [SerializeField] string m_StereoTriggerPressedLabel = "TRIGGERED";
+
+        [Tooltip("Debug: outline each stereo bar control's touch area.")]
+        [SerializeField] bool m_ShowStereoBarTouchAreas;
 
         [Tooltip("The list of supported screen orientations under Mono mode.")]
         [SerializeField] MonoScreenOrientation m_SupportedMonoScreenOrientations = MonoScreenOrientation.Portrait | MonoScreenOrientation.LandscapeLeft;
@@ -139,6 +222,62 @@ namespace HoloKit
         [Tooltip("Target frame rate in Stereo mode. 0 uses the display's maximum (120 Hz on ProMotion iPhones). " +
                  "Unity's iOS default of 30 fps makes world-locked content step visibly.")]
         [SerializeField] int m_StereoFrameRate = 0;
+
+        [Tooltip("Lower the Stereo frame rate as the phone heats up: Serious caps it at 40 fps, Critical at 30 " +
+                 "(divisors of 120 Hz, so frames stay evenly paced). Fewer frames is the main way to cool down.")]
+        [SerializeField] bool m_AdaptStereoFrameRateToThermalState = true;
+
+        /// <summary>
+        /// Lower the Stereo frame rate as the phone heats up (Serious: 40 fps, Critical: 30), as the
+        /// HoloKit Swift SDK does. On by default.
+        /// </summary>
+        public bool AdaptStereoFrameRateToThermalState
+        {
+            get => m_AdaptStereoFrameRateToThermalState;
+            set
+            {
+                m_AdaptStereoFrameRateToThermalState = value;
+                if (m_StereoFrameRateApplied)
+                    ApplyStereoFrameRate();
+            }
+        }
+
+        /// <summary>
+        /// The Stereo frame rate for a thermal state (0 nominal, 1 fair, 2 serious, 3 critical).
+        /// </summary>
+        public static int StereoFrameRate(int maximum, int thermalState, bool adapts)
+        {
+            if (!adapts)
+                return maximum;
+            if (thermalState >= 3)
+                return Math.Min(maximum, 30);
+            if (thermalState == 2)
+                return Math.Min(maximum, 40);
+            return maximum;
+        }
+
+        int m_ThermalState;
+        float m_NextThermalCheck;
+#if UNITY_IOS && !UNITY_EDITOR
+        iOS.AppleNativeProvider m_AppleNative;
+#endif
+
+        // Polled on the main thread: the thermal notification arrives on any thread.
+        void UpdateThermalFrameRate()
+        {
+            if (!m_AdaptStereoFrameRateToThermalState || Time.unscaledTime < m_NextThermalCheck)
+                return;
+            m_NextThermalCheck = Time.unscaledTime + 1f;
+#if UNITY_IOS && !UNITY_EDITOR
+            m_AppleNative ??= new iOS.AppleNativeProvider();
+            int state = (int)m_AppleNative.GetThermalState();
+            if (state != m_ThermalState)
+            {
+                m_ThermalState = state;
+                ApplyStereoFrameRate();
+            }
+#endif
+        }
 
         int m_MonoFrameRate;
         bool m_MonoMatchFrameRate;
@@ -158,9 +297,10 @@ namespace HoloKit
             if (session != null)
                 session.matchFrameRateRequested = false;
             m_StereoFrameRateApplied = true;
-            Application.targetFrameRate = m_StereoFrameRate > 0
+            int maximum = m_StereoFrameRate > 0
                 ? m_StereoFrameRate
                 : Mathf.Max(60, (int)Math.Round(Screen.currentResolution.refreshRateRatio.value));
+            Application.targetFrameRate = StereoFrameRate(maximum, m_ThermalState, m_AdaptStereoFrameRateToThermalState);
         }
 
         void RestoreMonoFrameRate()
@@ -192,13 +332,11 @@ namespace HoloKit
 
         Vector3 m_CameraToCenterEyeOffset;
 
-        GameObject m_AlignmentMarkerCanvas;
+        HoloKitAlignmentGuide m_AlignmentGuide;
+
+        HoloKitStereoBar m_StereoBar;
 
         List<ScreenOrientation> m_SupportedScreenOrientations;
-
-        const float ALIGNMENT_MARKER_THICKNESS = 6f; // In pixels
-
-        const float ALIGNMENT_MARKER_HEIGHT_OFFSET = 0.006f; // In meters
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -307,10 +445,20 @@ namespace HoloKit
             m_ARCameraBackground = GetComponentInChildren<ARCameraBackground>();
         }
 
+        private void OnDestroy()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            m_AppleNative?.Dispose();
+            m_AppleNative = null;
+#endif
+        }
+
         private void Update()
         {
             if (m_ScreenRenderMode == ScreenRenderMode.Stereo)
             {
+                UpdateThermalFrameRate();
+
                 // In Stereo mode, ensure the screen orientation is always LeftScapeLeft
                 if (Screen.orientation != ScreenOrientation.LandscapeLeft)
                 {
@@ -495,43 +643,81 @@ namespace HoloKit
         }
 
         /// <summary>
-        /// Spawn the alignment marker UI at the appropriate position.
+        /// The alignment guide, created the first time Stereo starts; null before, or when it is turned off.
         /// </summary>
-        private void SpawnAlignmentMarker()
+        public HoloKitAlignmentGuide AlignmentGuide => m_AlignmentGuide;
+
+        /// <summary>
+        /// Show the alignment guide (headset outline and marker), creating it the first time.
+        /// </summary>
+        private void SpawnAlignmentGuide()
         {
             if (!m_ShowAlignmentMarkerInStereoMode)
                 return;
-            if (m_AlignmentMarkerCanvas)
+            if (m_AlignmentGuide)
             {
-                m_AlignmentMarkerCanvas.SetActive(true);
+                m_AlignmentGuide.gameObject.SetActive(true);
                 return;
             }
+            m_AlignmentGuide = new GameObject("HoloKit Alignment Guide").AddComponent<HoloKitAlignmentGuide>();
+            m_AlignmentGuide.Initialize(this, m_AlignmentGuideAutoHideDelay);
+        }
 
-            m_AlignmentMarkerCanvas = new();
-            m_AlignmentMarkerCanvas.name = "Alignment Marker Canvas";
-            var canvas = m_AlignmentMarkerCanvas.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        internal Rect LeftViewport => m_LeftEyeCamera != null ? m_LeftEyeCamera.rect : default;
+        internal Rect RightViewport => m_RightEyeCamera != null ? m_RightEyeCamera.rect : default;
 
-            GameObject alignmentMarker = new();
-            alignmentMarker.name = "Alignment Marker";
-            alignmentMarker.transform.SetParent(m_AlignmentMarkerCanvas.transform);
-            var img = alignmentMarker.AddComponent<Image>();
-            img.color = Color.white;
-            var rectTransform = alignmentMarker.GetComponent<RectTransform>();
-            rectTransform.pivot = new(0.5f, 1f);
-            rectTransform.anchorMin = new(0.5f, 1f);
-            rectTransform.anchorMax = new(0.5f, 1f);
-            // Calculate anchored position X
-            var holokitModelSpecs = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
-            var phoneModelSpecs = GetCurrentPhoneModel().ModelSpecs;
-            float screenDpi = phoneModelSpecs.ScreenDpi != 0 ? phoneModelSpecs.ScreenDpi : Screen.dpi;
-            float posX = holokitModelSpecs.AlignmentMarkerOffset * HoloKitScreenUtils.MeterToInch * screenDpi;
-            rectTransform.anchoredPosition = new(posX, 0f);
-            // Calculate width and height
-            float screenHeight = HoloKitScreenUtils.GetScreenHeight();
-            float heightOffset = ALIGNMENT_MARKER_HEIGHT_OFFSET * HoloKitScreenUtils.MeterToInch * screenDpi / screenHeight;
-            float height = (1f - m_LeftEyeCamera.rect.yMax - heightOffset) * screenHeight;
-            rectTransform.sizeDelta = new(ALIGNMENT_MARKER_THICKNESS, height);
+        /// <summary>
+        /// Show the stereo bar, creating it the first time.
+        /// </summary>
+        private void SpawnStereoBar()
+        {
+            if (m_StereoBarItems == HoloKitStereoBarItems.None)
+                return;
+            if (m_StereoBar)
+            {
+                m_StereoBar.gameObject.SetActive(true);
+                return;
+            }
+            m_StereoBar = new GameObject("HoloKit Stereo Bar").AddComponent<HoloKitStereoBar>();
+            m_StereoBar.Initialize(this, m_StereoBarItems, m_ShowStereoBarTouchAreas);
+        }
+
+        internal void InvokeStereoTrigger() => OnStereoTrigger?.Invoke();
+
+        /// <summary>
+        /// Hides the alignment marker while a stereo bar control is held, as the HoloKit app does.
+        /// </summary>
+        internal void SetAlignmentMarkerSuppressed(bool suppressed)
+        {
+            if (m_AlignmentGuide)
+                m_AlignmentGuide.MarkerSuppressed = suppressed;
+        }
+
+        /// <summary>
+        /// The stereo bar's geometry for this phone: screen pixels per millimetre, and the layout
+        /// in millimetres (alignment marker, half the screen width, and the band from the screen's
+        /// top edge to 2.5 mm above the viewports, where the headset frame sits).
+        /// </summary>
+        internal bool TryGetStereoBarGeometry(out float pixelsPerMillimetre, out HoloKitStereoBarLayout layout)
+        {
+            pixelsPerMillimetre = 0f;
+            layout = default;
+            if (m_LeftEyeCamera == null)
+                return false;
+            var specs = m_PhoneModel.ModelSpecs;
+            float dpi = specs.ScreenDpi != 0f ? specs.ScreenDpi : Screen.dpi;
+            float width = HoloKitScreenUtils.GetScreenWidth(), height = HoloKitScreenUtils.GetScreenHeight();
+            // Millimetres from the profile's native resolution, as the viewports are; Unity may
+            // render fewer pixels than that.
+            float nativeWidth = specs.ScreenResolution == Vector2.zero ? width : specs.ScreenResolution.x;
+            float nativeHeight = specs.ScreenResolution == Vector2.zero ? height : specs.ScreenResolution.y;
+            if (dpi <= 0f || nativeWidth <= 0f || width <= 0f)
+                return false;
+            var holokit = DeviceProfile.GetHoloKitModelSpecs(m_HoloKitGeneration);
+            layout = HoloKitStereoBarLayout.ForPhone(dpi, nativeWidth, nativeHeight,
+                m_LeftEyeCamera.rect.yMax, holokit.AlignmentMarkerOffset);
+            pixelsPerMillimetre = width / (layout.HalfWidth * 2f);
+            return true;
         }
     }
 }

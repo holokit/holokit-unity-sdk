@@ -117,7 +117,42 @@ public void SwitchRenderMode()
 }
 ```
 
-When the stereo mode is activated, the SDK spawns an alignment marker UI on the screen's upper right corner, enabling you to align your phone accurately once attached to the HoloKit headset.
+When the stereo mode is activated, the SDK shows the alignment guide, as in the HoloKit app: the outline of the headset's phone opening around both viewports and a marker line at the headset's notch. Seat the phone so the line sits on the notch and the outline fits the opening. The guide hides after 10 seconds without a touch (**Alignment Guide Auto Hide Delay**; 0 keeps it) and comes back on a touch; **Show Alignment Marker In Stereo Mode** turns it off.
+
+As the phone heats up, stereo mode lowers its frame rate: 40 fps at the Serious thermal state and 30 fps at Critical, as the HoloKit Swift SDK does (**Adapt Stereo Frame Rate To Thermal State**, on by default).
+
+In stereo mode the SDK also shows the stereo bar along the screen's top edge, in the band above the headset frame, as in the HoloKit app. The wearer touches the phone's top edge blind, so every control's touch area runs down to the frame:
+
+| Control | Gesture | Action |
+|---|---|---|
+| MORE | hold | Frame rate, session time, recording time, thermal state, and your `StereoInfo` lines |
+| RECORD | slide left to the end | Start recording; slide again to stop (iOS, needs a `HoloKitVideoRecorder`) |
+| MONO | tap | Back to mono mode |
+| OPTIONS | slide right to the end | VIDEO RECORDING 2K / 4K, AUDIO VOICE / GAME / BOTH, HANDS ON / OFF, CAMERA HD / 4K |
+| TRIGGER | hold | Raises `HoloKitCameraManager.OnStereoTrigger`, a button every app can use in stereo |
+
+```csharp
+m_HoloKitCameraManager.OnStereoTrigger += () => Fire();
+m_HoloKitCameraManager.StereoInfo = new[] { $"anchors {anchorCount}" };
+```
+
+Configure the bar on `HoloKitCameraManager`:
+
+| Setting | Code | Default |
+|---|---|---|
+| Stereo Bar Items: which of MORE, RECORD, MONO, OPTIONS and TRIGGER to show | `StereoBarItems` | all five |
+| Stereo Trigger Label | `StereoTriggerLabel` | `TRIGGER` |
+| Stereo Trigger Pressed Label | `StereoTriggerPressedLabel` | `TRIGGERED` |
+
+```csharp
+m_HoloKitCameraManager.StereoBarItems = HoloKitStereoBarItems.RenderMode | HoloKitStereoBarItems.Trigger;
+m_HoloKitCameraManager.StereoTriggerLabel = "FIRE";
+m_HoloKitCameraManager.StereoTriggerPressedLabel = "FIRED";
+```
+
+Recordings follow the HoloKit Swift SDK: mono mode records the screen; stereo mode records a 16:9 movie from the AR camera view at `HoloKitVideoRecorder.StereoResolution`, 2K (2560 × 1440, default) or 4K (3840 × 2160). `CaptureCameraIn4K` switches ARKit's camera feed to 4K while recording, so the real scene is not upscaled; the movie then runs at 30 fps.
+
+Keep the TRIGGER labels short: they sit in a 20 mm touch area. With *Nothing* selected the bar is hidden, and then your app needs its own way back to mono mode. The bar never asks for microphone permission, because an alert in the headset is invisible and blocks every touch: until the app has the permission, stereo recordings from the bar carry game audio only.
 
 ### Hand Tracking
 
@@ -186,7 +221,7 @@ To switch between the rendering modes, a UI button is necessary. To create a def
 
 <img width="690" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/d3c5a561-43c2-48b4-9f24-cbb770b3e773">
 
-The default canvas also has a button for controlling video recording.
+The default canvas also has a button for controlling video recording. In stereo mode it hides its buttons, and the stereo bar takes over.
 
 <img width="374" alt="image" src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/6daa7737-49e6-4403-9f95-a1eedd88506d">
 
