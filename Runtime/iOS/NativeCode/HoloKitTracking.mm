@@ -136,7 +136,8 @@ void HoloKit_Tracking_start(void) {
         t.queue.maxConcurrentOperationCount = 1;
     }
     if (!t.motion.isDeviceMotionAvailable) return;
-    t.motion.deviceMotionUpdateInterval = 1.0 / 200.0;
+    // iPhones deliver device motion at most at 100 Hz (measured); asking for more changes nothing.
+    t.motion.deviceMotionUpdateInterval = 1.0 / 100.0;
     [t.motion startDeviceMotionUpdatesToQueue:t.queue withHandler:^(CMDeviceMotion* data, NSError*) {
         if (!data) return;
         holokit::GyroSample sample;
