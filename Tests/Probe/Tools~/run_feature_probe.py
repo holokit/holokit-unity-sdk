@@ -143,7 +143,8 @@ def run(args):
         set_stimulus('done')
         log.close()
 
-    for name in ['sdk-probe-results.json', 'sdk-handvideo.csv'] + [f'sdk-{n}.png' for n in args.screenshots]:
+    movies = [f'sdk-movie-stereo-{n}.mp4' for n in ('2k', '4k')]
+    for name in ['sdk-probe-results.json', 'sdk-handvideo.csv'] + [f'sdk-{n}.png' for n in args.screenshots] + movies:
         devicectl('device', 'copy', 'from', '--device', args.device, '--domain-type', 'appDataContainer',
                   '--domain-identifier', args.bundle_id, '--source', f'Documents/{name}',
                   '--destination', str(out / name), check=False)
@@ -272,6 +273,30 @@ def handvideo_checks(out):
     ]
 
 
+def movie_checks(out):
+    """Stereo takes: 16:9 at 2K (2560x1440) or 4K (3840x2160), with frames, as the Swift SDK records."""
+    results = []
+    for name, size in (('2k', (2560, 1440)), ('4k', (3840, 2160))):
+        path = out / f'sdk-movie-stereo-{name}.mp4'
+        if not path.exists():
+            continue
+        probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries',
+                                'stream=width,height,avg_frame_rate,nb_read_frames,duration', '-of', 'json', str(path)],
+                               capture_output=True, text=True)
+        try:
+            stream = json.loads(probe.stdout)['streams'][0]
+        except (ValueError, KeyError, IndexError):
+            results.append({'id': f'M1.stereo-{name}', 'pass': False, 'detail': f'ffprobe failed: {probe.stderr.strip()}'})
+            continue
+        num, den = (int(v) for v in stream.get('avg_frame_rate', '0/1').split('/'))
+        fps = num / den if den else 0
+        frames = int(stream.get('nb_read_frames', 0))
+        ok = (stream['width'], stream['height']) == size and frames > 0
+        results.append({'id': f'M1.stereo-{name}', 'pass': ok,
+                        'detail': f"{stream['width']}x{stream['height']} {fps:.1f} fps frames={frames} duration={stream.get('duration')}s"})
+    return results
+
+
 def summarize(out, run_id, completed, args):
     path = out / 'sdk-probe-results.json'
     report = json.loads(path.read_text()) if path.exists() else {'results': []}
@@ -287,6 +312,8 @@ def summarize(out, run_id, completed, args):
     # Only this run's video suite; the device keeps older CSVs in Documents.
     if args.suites == 'all' or 'handvideo' in args.suites.split(','):
         results.extend(handvideo_checks(out))
+    if args.suites == 'all' or 'stereobar' in args.suites.split(','):
+        results.extend(movie_checks(out))
     if not args.allow_speaker:
         for r in results:
             if r['id'] in ('G2.tone-440', 'G3.default-gain'):
@@ -313,7 +340,8 @@ def main():
     parser.add_argument('--allow-speaker', action='store_true', help='play the 440 Hz tone on the current volume')
     parser.add_argument('--timeout', type=float, default=900)
     parser.add_argument('--screenshots', nargs='*', default=[
-        'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'ui-recording', 'orient-Portrait', 'orient-LandscapeLeft',
+        'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'ui-recording', 'stereobar', 'stereobar-recording-2k',
+        'stereobar-recording-4k', 'orient-Portrait', 'orient-LandscapeLeft',
         'orient-LandscapeRight', 'orient-PortraitUpsideDown'])
     raise SystemExit(run(parser.parse_args()))
 

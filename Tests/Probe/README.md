@@ -19,6 +19,7 @@ The probe loads the HoloKit sample scenes and checks:
 | `handmotion` | first-person hand moving on a known 4 s sine: pose update rate, capture-to-pose latency, continuity, trajectory R², depth stability, pinch while moving |
 | `handvideo` | real hand video (Pexels, first-person style) played in Safari; the runner compares phone tracking with Vision on the source frames: detection recall, affine trajectory R², pinch-distance correlation, two-hand agreement, alignment lag |
 | `gesture` | pinch and five gestures against alternating photos |
+| `stereobar` | stereo bar controls and millimetre layout, Default UI Canvas giving way, alignment guide auto-hide, TRIGGER event and custom label, thermal frame rate, Stereo 2K / 4K takes through RECORD (the runner checks each movie's size and frame rate with ffprobe), MONO |
 | `gaze` | gaze enter/select/exit, gaze + pinch selection, no selection off target |
 
 Scene names default to the sample scenes. Override one with a mode line
