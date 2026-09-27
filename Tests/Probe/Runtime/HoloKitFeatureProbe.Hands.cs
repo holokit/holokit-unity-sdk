@@ -38,8 +38,17 @@ public partial class HoloKitFeatureProbe
         arCamera.frameReceived += process;
         var samples = new List<HandSample>();
         Transform camera = arCamera.transform;
+        int requestsBefore = tracking.HandPoseDetector.CompletedRequests;
+        float suiteStart = Time.realtimeSinceStartup;
+        bool shot = false;
         yield return During(() =>
         {
+            // What the camera sees while the one-hand photo should be on screen.
+            if (!shot && m_Stimulus == "one" && StimulusAge > 3)
+            {
+                ScreenCapture.CaptureScreenshot("sdk-hand-one.png");
+                shot = true;
+            }
             if (!Settled) return;
             var sample = new HandSample { stimulus = m_Stimulus, time = StimulusAge, count = tracking.HandCount,
                 bothCount = both.HandCount, finite = true, depth = float.NaN, wristX = float.NaN, wristY = float.NaN };
@@ -56,6 +65,9 @@ public partial class HoloKitFeatureProbe
         }, ("blank", 8), ("one", 10), ("blank", 8), ("two", 10), ("sweep", 12), ("blank", 3));
         arCamera.frameReceived -= process;
         tracking.HandPoseDetector.OnHandPoseLost -= onLost;
+        // Vision must run whether or not a hand is in view.
+        float requestRate = (tracking.HandPoseDetector.CompletedRequests - requestsBefore) / (Time.realtimeSinceStartup - suiteStart);
+        Check("B0.vision-runs", requestRate >= 15, $"visionRequests={requestRate:F1}/s secondDetector={both.CompletedRequests}");
         both.Dispose();
 
         float Fraction(string stimulus, Func<HandSample, bool> predicate)
@@ -174,15 +186,18 @@ public partial class HoloKitFeatureProbe
         Destroy(cube);
     }
 
+    // Fingers the gesture classifier counts as straight (confidence ignored here).
     static float StraightFingers(Dictionary<JointName, Vector2> j)
     {
-        bool Up(JointName tip, JointName dip, JointName pip, JointName mcp) =>
-            j[tip].y > j[dip].y && j[dip].y > j[pip].y && j[pip].y > j[mcp].y;
-        return (Up(JointName.ThumbTip, JointName.ThumbIP, JointName.ThumbMP, JointName.ThumbCMC) ? 1 : 0)
-            + (Up(JointName.IndexTip, JointName.IndexDIP, JointName.IndexPIP, JointName.IndexMCP) ? 1 : 0)
-            + (Up(JointName.MiddleTip, JointName.MiddleDIP, JointName.MiddlePIP, JointName.MiddleMCP) ? 1 : 0)
-            + (Up(JointName.RingTip, JointName.RingDIP, JointName.RingPIP, JointName.RingMCP) ? 1 : 0)
-            + (Up(JointName.LittleTip, JointName.LittleDIP, JointName.LittlePIP, JointName.LittleMCP) ? 1 : 0);
+        JointName[][] fingers =
+        {
+            new[] { JointName.ThumbCMC, JointName.ThumbMP, JointName.ThumbIP, JointName.ThumbTip },
+            new[] { JointName.IndexMCP, JointName.IndexPIP, JointName.IndexDIP, JointName.IndexTip },
+            new[] { JointName.MiddleMCP, JointName.MiddlePIP, JointName.MiddleDIP, JointName.MiddleTip },
+            new[] { JointName.RingMCP, JointName.RingPIP, JointName.RingDIP, JointName.RingTip },
+            new[] { JointName.LittleMCP, JointName.LittlePIP, JointName.LittleDIP, JointName.LittleTip },
+        };
+        return fingers.Count(f => HandGestureClassifier.Straightness(j, null, f) >= HandGestureClassifier.MinimumStraightness);
     }
 
     static float Correlation(List<float> x, List<float> y)

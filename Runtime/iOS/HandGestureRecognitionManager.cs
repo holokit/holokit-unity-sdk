@@ -11,7 +11,7 @@ namespace HoloKit.iOS
 {
     public class HandGestureRecognitionManager : MonoBehaviour
     {
-        public HandGesture HandGesture => m_HandGesture;
+        public HandGesture HandGesture => m_Filter.Gesture;
 
         public event Action<HandGesture> OnHandGestureChanged;
 
@@ -19,22 +19,9 @@ namespace HoloKit.iOS
 
         HandTrackingManager m_HandTrackingManager;
 
-        HandGesture m_HandGesture = HandGesture.None;
-
-        int m_PinchEvidenceCounter = 0;
-
-        int m_FiveEvidenceCounter = 0;
-
-        int m_NoneEvidenceCounter = 0;
-
-        const float PINCH_THRESHOLD = 0.12f;
-
-        const int EVIDENCE_COUNTER_TRIGGER = 3;
-
-        // Vision drops the hand for single frames; keep the gesture briefly so one pinch
-        // does not become Pinched/None/Pinched (repeated selections).
-        const float LOST_GRACE_SECONDS = 0.2f;
-        float m_HandLostTime = -1;
+        // Swift SDK GestureRecognizer: four matching observations change the gesture, and a
+        // Vision dropout shorter than 0.2 s keeps it, so one pinch is not Pinched/None/Pinched.
+        readonly HandGestureFilter m_Filter = new();
 
         private void Start()
         {
@@ -74,73 +61,41 @@ namespace HoloKit.iOS
             }
         }
 
+        AppleVisionHandPoseDetector Detector =>
+            m_HandTrackingManager != null ? m_HandTrackingManager.HandPoseDetector : m_HandPoseDetector;
+
         private void OnHandPoseUpdated()
         {
-            m_HandLostTime = -1;
-            // Keep the current gesture until another has enough consecutive evidence; defaulting
-            // to None here dropped every gesture one frame after it was recognized.
-            HandGesture handGesture = m_HandGesture;
-            var handJoints = m_HandTrackingManager == null ? m_HandPoseDetector.HandPoses2D[0] : m_HandTrackingManager.HandPoseDetector.HandPoses2D[0];
-            if (Vector2.Distance(handJoints[JointName.ThumbTip], handJoints[JointName.IndexTip]) < PINCH_THRESHOLD)
-            {
-                m_PinchEvidenceCounter++;
-                m_FiveEvidenceCounter = 0;
-                m_NoneEvidenceCounter = 0;
-                if (m_PinchEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
-                    handGesture = HandGesture.Pinched;
-            }
-            else
-            {
-                bool isThumbStraight = handJoints[JointName.ThumbTip].y > handJoints[JointName.ThumbIP].y && handJoints[JointName.ThumbIP].y > handJoints[JointName.ThumbMP].y && handJoints[JointName.ThumbMP].y > handJoints[JointName.ThumbCMC].y;
-                bool isIndexStraight = handJoints[JointName.IndexTip].y > handJoints[JointName.IndexDIP].y && handJoints[JointName.IndexDIP].y > handJoints[JointName.IndexPIP].y && handJoints[JointName.IndexPIP].y > handJoints[JointName.IndexMCP].y;
-                bool isMiddleStraight = handJoints[JointName.MiddleTip].y > handJoints[JointName.MiddleDIP].y && handJoints[JointName.MiddleDIP].y > handJoints[JointName.MiddlePIP].y && handJoints[JointName.MiddlePIP].y > handJoints[JointName.MiddleMCP].y;
-                bool isRingStraight = handJoints[JointName.RingTip].y > handJoints[JointName.RingDIP].y && handJoints[JointName.RingDIP].y > handJoints[JointName.RingPIP].y && handJoints[JointName.RingPIP].y > handJoints[JointName.RingMCP].y;
-                bool isLittleStraight = handJoints[JointName.LittleTip].y > handJoints[JointName.LittleDIP].y && handJoints[JointName.LittleDIP].y > handJoints[JointName.LittlePIP].y && handJoints[JointName.LittlePIP].y > handJoints[JointName.LittleMCP].y;
-                
-                if (isThumbStraight && isIndexStraight && isMiddleStraight && isRingStraight && isLittleStraight) // Five
-                {
-                    m_PinchEvidenceCounter = 0;
-                    m_FiveEvidenceCounter++;
-                    m_NoneEvidenceCounter = 0;
-                    if (m_FiveEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
-                        handGesture = HandGesture.Five;
-                }
-                else // None
-                {
-                    m_PinchEvidenceCounter = 0;
-                    m_FiveEvidenceCounter = 0;
-                    m_NoneEvidenceCounter++;
-                    if (m_NoneEvidenceCounter > EVIDENCE_COUNTER_TRIGGER)
-                        handGesture = HandGesture.None;
-                }
-            }
-
-            if (m_HandGesture != handGesture)
-            {
-                m_HandGesture = handGesture;
-                OnHandGestureChanged?.Invoke(m_HandGesture);
-            }
+            var detector = Detector;
+            if (detector == null || detector.HandCount == 0)
+                return;
+            // Classifies Vision's 2D image joints of the first hand; smoothing does not touch them.
+            HandGesture observed = HandGestureClassifier.Classify(detector.HandPoses2D[0], detector.HandPosesConfidence[0]);
+            if (m_Filter.Observe(observed, Time.realtimeSinceStartupAsDouble))
+                OnHandGestureChanged?.Invoke(m_Filter.Gesture);
         }
 
-        private void OnHandPoseLost()
-        {
-            if (m_HandGesture != HandGesture.None && m_HandLostTime < 0)
-                m_HandLostTime = Time.unscaledTime;
-        }
+        private void OnHandPoseLost() => Release();
 
         private void Update()
         {
-            if (m_HandLostTime < 0 || Time.unscaledTime - m_HandLostTime < LOST_GRACE_SECONDS)
-                return;
-            m_HandLostTime = -1;
-            if (m_HandGesture != HandGesture.None)
-            {
-                m_HandGesture = HandGesture.None;
-                m_PinchEvidenceCounter = 0;
-                m_FiveEvidenceCounter = 0;
-                m_NoneEvidenceCounter = EVIDENCE_COUNTER_TRIGGER;
-                OnHandGestureChanged?.Invoke(m_HandGesture);
-            }
+            var detector = Detector;
+            if (detector != null && detector.HandCount == 0)
+                Release();
+        }
+
+        void Release()
+        {
+            if (m_Filter.Lost(Time.realtimeSinceStartupAsDouble))
+                OnHandGestureChanged?.Invoke(m_Filter.Gesture);
+        }
+
+        private void OnDisable()
+        {
+            bool had = m_Filter.Gesture != HandGesture.None;
+            m_Filter.Reset();
+            if (had)
+                OnHandGestureChanged?.Invoke(HandGesture.None);
         }
     }
 }

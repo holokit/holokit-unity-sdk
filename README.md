@@ -172,13 +172,15 @@ You can now build the project onto an iPhone to view the results.
 
 `HandTrackingManager` can be configured to track either one hand or both hands. As hand tracking is energy-intensive, if dual hand tracking isn't necessary, we advise tracking only one hand to conserve energy. Set `HandTrackingManager.MaxHandCount` in its inspector within the Unity editor.
 
-To obtain specific hand joint positions in code, use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)`. As the hand tracking algorithm can't distinguish handedness, the parameter `handIndex` simply represents the hand detection sequence. When only one hand is detected, `handIndex` should always be 0. If two hands are detected, `handIndex` can be either 0 or 1. The number of detected hands can be accessed via `HandTrackingManager.HandCount`.
+To obtain specific hand joint positions in code, use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)` or `HandTrackingManager.HandPoses3D`. The parameter `handIndex` is the hand detection sequence; `HandPoseDetector.HandChiralities[handIndex]` tells left from right (iOS 15 and later). When only one hand is detected, `handIndex` should always be 0. If two hands are detected, `handIndex` can be either 0 or 1. The number of detected hands can be accessed via `HandTrackingManager.HandCount`.
+
+Hand tracking follows the HoloKit Swift SDK. Vision runs on a background queue, so the main thread never waits for it. Each joint takes its own LiDAR depth only when the 3x3 neighbourhood agrees and it lies within 10 cm of the hand's median depth; otherwise it takes the hand's depth (remembered for 0.5 s per hand), else a 0.65 m plane. So a fingertip over the background no longer jumps to the wall. Joint world positions are smoothed with a 1€ filter (**Smooth Joints**, **Smoothing**); `HandPoseDetector.HandPoses3D` keeps the raw ones.
 
 Please note, the hand tracking feature is only compatible with iOS 18.0 or higher devices equipped with a LiDAR depth sensor.
 
 ### Hand Gesture Recognition
 
-The SDK can also recognizes user's hand gesture, which can serve as input triggers in your project. Currently there are only two available hand gestures: `HandGesture.None` and `HandGesture.Pinched`.
+The SDK can also recognizes user's hand gesture, which can serve as input triggers in your project. The gestures are `HandGesture.None`, `HandGesture.Pinched` (thumb tip to index tip) and `HandGesture.Five` (an open hand). Classification follows the HoloKit Swift SDK (`HandGestureClassifier`): joints Vision is unsure of (confidence below 0.35) are ignored, and Five needs every finger straight whichever way the hand points, so a tilted or sideways open hand counts. A gesture changes after four matching observations and survives a tracking dropout shorter than 0.2 s.
 
 <img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/0fe0010f-7854-41ad-b9b8-95ee8039fb4c" alt="Hand Gesture Recognition" width="600"/>
 
@@ -199,7 +201,7 @@ private void OnHandGestureChanged(HandGesture handGesture)
 }
 ```
 
-Please note, the hand gesture recognition feature is only available on iOS 18.0 or higher devices.
+Hand tracking and gesture recognition use Apple Vision (iOS 14 and later; handedness from iOS 15).
 
 You can use hand tracking and hand gesture recognition at the same time, simply add both `HandTrackingManager` and `HandGestureRecognitionManager` components to your scene.
 

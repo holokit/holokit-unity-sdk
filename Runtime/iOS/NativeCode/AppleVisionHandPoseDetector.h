@@ -7,7 +7,9 @@
 #import <ARKit/ARKit.h>
 #import "UnityXRInterface.h"
 
-typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, float * _Nullable, float * _Nullable, float * _Nullable);
+// detector, hand count, 2D joints (x, y per joint), 3D joints (x, y, z; NULL for 2D-only
+// requests), confidences (one per joint), chiralities (-1 left, 0 unknown, 1 right, one per hand).
+typedef void (*OnHandPoseUpdatedCallback)(void * _Nonnull, int, float * _Nullable, float * _Nullable, float * _Nullable, int * _Nullable);
 
 @interface AppleVisionHandPoseDetector : NSObject
 

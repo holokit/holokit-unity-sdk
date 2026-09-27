@@ -21,6 +21,15 @@ namespace HoloKit.iOS
 
         public List<Dictionary<JointName, float>> HandPosesConfidence => m_HandPosesConfidence;
 
+        /// <summary>Left or right as Vision sees each hand (iOS 15 and later; Unknown before).</summary>
+        public IReadOnlyList<HandChirality> HandChiralities => m_HandChiralities;
+
+        /// <summary>Vision requests finished since this detector was created, with or without a hand (diagnostics).</summary>
+        public int CompletedRequests { get; private set; }
+
+        /// <summary><c>Time.realtimeSinceStartupAsDouble</c> when the latest hand poses arrived.</summary>
+        public double LastUpdateTime { get; private set; }
+
         public event Action OnHandPoseUpdated;
 
         public event Action OnHandPoseLost;
@@ -34,6 +43,8 @@ namespace HoloKit.iOS
         List<Dictionary<JointName, Vector3>> m_HandPoses3D;
 
         List<Dictionary<JointName, float>> m_HandPosesConfidence;
+
+        readonly List<HandChirality> m_HandChiralities = new() { HandChirality.Unknown, HandChirality.Unknown };
 
         static Dictionary<IntPtr, AppleVisionHandPoseDetector> s_Detectors = new();
 
@@ -88,7 +99,7 @@ namespace HoloKit.iOS
         static extern IntPtr InitWithARSession(IntPtr arSessionPtr, int maximumHandCount);
 
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_registerCallbacks")]
-        static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
+        static extern void RegisterCallbacks(IntPtr self, Action<IntPtr, int, IntPtr, IntPtr, IntPtr, IntPtr> onHandPoseUpdatedCallback);
 
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame2D")]
         static extern bool ProcessCurrentFrame2D(IntPtr self);
@@ -96,11 +107,12 @@ namespace HoloKit.iOS
         [DllImport("__Internal", EntryPoint = "HoloKit_AppleVisionHandPoseDetector_processCurrentFrame3D")]
         static extern bool ProcessCurrentFrame3D(IntPtr self);
 
-        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr, IntPtr>))]
-        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr, IntPtr confidencesPtr)
+        [AOT.MonoPInvokeCallback(typeof(Action<IntPtr, int, IntPtr, IntPtr, IntPtr, IntPtr>))]
+        static void OnHandPoseUpdatedCallback(IntPtr detectorPtr, int handCount, IntPtr results2DPtr, IntPtr results3DPtr, IntPtr confidencesPtr, IntPtr chiralitiesPtr)
         {
             if (s_Detectors.TryGetValue(detectorPtr, out AppleVisionHandPoseDetector detector))
             {
+                detector.CompletedRequests++;
                 if (handCount == 0)
                 {
                     if (detector.m_HandCount > 0)
@@ -111,6 +123,15 @@ namespace HoloKit.iOS
                     return;
                 }
                 detector.m_HandCount = handCount;
+                detector.LastUpdateTime = Time.realtimeSinceStartupAsDouble;
+
+                if (chiralitiesPtr != IntPtr.Zero)
+                {
+                    int[] chiralities = new int[handCount];
+                    Marshal.Copy(chiralitiesPtr, chiralities, 0, handCount);
+                    for (int i = 0; i < handCount && i < detector.m_HandChiralities.Count; i++)
+                        detector.m_HandChiralities[i] = (HandChirality)Math.Sign(chiralities[i]);
+                }
 
                 if (results2DPtr != IntPtr.Zero)
                 {

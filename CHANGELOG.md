@@ -26,6 +26,15 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   (`AlignmentGuideAutoHideDelay`), and the marker hides while a stereo bar control is held.
 - Stereo frame rate follows the thermal state as in the Swift SDK: Serious caps it at 40 fps,
   Critical at 30 (`AdaptStereoFrameRateToThermalState`, on by default).
+- Hand tracking and gestures ported from the HoloKit Swift SDK. `HandGestureClassifier`: Five
+  needs every finger straight (tip-to-base over length at least 0.82) whichever way the hand points
+  (it required fingers pointing up in the image), and joints below 0.35 confidence are ignored;
+  `HandGestureFilter` holds a gesture until four matching observations. Joint depth
+  (`HoloKitHandDepth`, host tests in `Tests/Hands`): a 3x3 consistent LiDAR depth within 10 cm of
+  the hand's median depth, else the hand's depth remembered for 0.5 s, else a 0.65 m plane.
+  `HandTrackingManager` smooths joints with a 1€ filter (`SmoothJoints`, `Smoothing`,
+  `HandPoses3D`); Vision runs on a background queue, dropping frames while busy; the detector
+  reports `HandChiralities`.
 - Low-latency tracking rewritten in source: the Swift SDK's Kalman filter ported to C++
   (`HoloKitTrackingCore`) with Objective-C++ glue (`HoloKitTracking.mm`) replacing the closed
   `libHoloKitLowLatencyTracking.a` in `LowLatencyTrackingManager`. It fuses ARKit with Core

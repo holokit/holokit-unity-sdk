@@ -341,7 +341,7 @@ def main():
     parser.add_argument('--timeout', type=float, default=900)
     parser.add_argument('--screenshots', nargs='*', default=[
         'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'ui-recording', 'stereobar', 'stereobar-recording-2k',
-        'stereobar-recording-4k', 'orient-Portrait', 'orient-LandscapeLeft',
+        'stereobar-recording-4k', 'hand-one', 'orient-Portrait', 'orient-LandscapeLeft',
         'orient-LandscapeRight', 'orient-PortraitUpsideDown'])
     raise SystemExit(run(parser.parse_args()))
 

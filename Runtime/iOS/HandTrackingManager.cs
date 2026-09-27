@@ -30,6 +30,37 @@ namespace HoloKit.iOS
 
         List<Dictionary<JointName, GameObject>> m_HandJoints = new();
 
+        [Tooltip("Smooth each joint's world position with a 1€ filter, as the HoloKit Swift SDK does: a still hand stops jittering, a moving one lags little.")]
+        [SerializeField] bool m_SmoothJoints = true;
+
+        [Tooltip("1€ filter settings: Minimum Cutoff (Hz) sets how still a still hand is, Beta how quickly it follows speed.")]
+        [SerializeField] HandSmoothing m_Smoothing = HandSmoothing.Default;
+
+        readonly HandJointSmoother m_Smoother = new();
+        readonly List<Dictionary<JointName, Vector3>> m_SmoothedPoses = new() { new(), new() };
+        readonly int[] m_HandKeys = new int[2];
+
+        /// <summary>Smooth joint world positions (1€ filter); off returns Vision and LiDAR's raw positions.</summary>
+        public bool SmoothJoints
+        {
+            get => m_SmoothJoints;
+            set { m_SmoothJoints = value; m_Smoother.Reset(); }
+        }
+
+        /// <summary>The 1€ filter settings for joint world positions.</summary>
+        public HandSmoothing Smoothing
+        {
+            get => m_Smoothing;
+            set { m_Smoothing = value; m_Smoother.Reset(); }
+        }
+
+        /// <summary>
+        /// Joint world positions of each hand: smoothed when <see cref="SmoothJoints"/> is on.
+        /// <see cref="HandPoseDetector"/> keeps the raw ones.
+        /// </summary>
+        public IReadOnlyList<Dictionary<JointName, Vector3>> HandPoses3D =>
+            m_SmoothJoints ? m_SmoothedPoses : m_HandPoseDetector.HandPoses3D;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -130,6 +161,18 @@ namespace HoloKit.iOS
 
         private void OnHandPoseUpdated()
         {
+            if (m_SmoothJoints)
+            {
+                // Each hand keeps its filters by chirality (else by slot) across updates.
+                for (int i = 0; i < m_HandPoseDetector.HandCount && i < m_HandKeys.Length; i++)
+                {
+                    var chirality = m_HandPoseDetector.HandChiralities[i];
+                    m_HandKeys[i] = chirality != HandChirality.Unknown ? (int)chirality : 10 + i;
+                }
+                m_Smoother.Smooth(Mathf.Min(m_HandPoseDetector.HandCount, 2), m_HandKeys, m_HandPoseDetector.HandPoses3D,
+                    m_SmoothedPoses, m_HandPoseDetector.LastUpdateTime, m_Smoothing);
+            }
+            var poses = HandPoses3D;
             for (int i = 0; i < m_HandJoints.Count; i++)
             {
                 if (i < m_HandPoseDetector.HandCount)
@@ -138,7 +181,7 @@ namespace HoloKit.iOS
                     for (int j = 0; j < 21; j++)
                     {
                         JointName jointName = (JointName)j;
-                        m_HandJoints[i][jointName].transform.position = m_HandPoseDetector.HandPoses3D[i][jointName];
+                        m_HandJoints[i][jointName].transform.position = poses[i][jointName];
                     }
                 }
                 else
@@ -150,6 +193,7 @@ namespace HoloKit.iOS
 
         private void OnHandPoseLost()
         {
+            m_Smoother.Reset();
             foreach (var hand in m_Hands)
             {
                 hand.SetActive(false);
@@ -166,7 +210,7 @@ namespace HoloKit.iOS
         {
             if (handIndex < HandCount)
             {
-                return m_HandPoseDetector.HandPoses3D[handIndex][jointName];
+                return HandPoses3D[handIndex][jointName];
             }
             else
             {
