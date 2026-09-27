@@ -10,7 +10,8 @@ namespace HoloKit.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_recordIn4K"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_stereoResolution"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_captureCameraIn4K"));
             var mode = serializedObject.FindProperty("_audioMode");
             EditorGUILayout.PropertyField(mode);
             bool game = mode.enumValueIndex == (int)RecordingAudioMode.GameAndMicrophone;

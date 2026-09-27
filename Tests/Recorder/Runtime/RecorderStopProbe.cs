@@ -158,7 +158,7 @@ public class RecorderStopProbe : MonoBehaviour
 
     IEnumerator Run(string scenario, bool fourK, bool sync, float duration, int requestedPending)
     {
-        recorder.RecordIn4K = fourK;
+        recorder.CaptureCameraIn4K = fourK;
         recorder.StartRecording();
         float prepareDeadline = Time.realtimeSinceStartup + 5;
         while (recorder.IsPreparing && Time.realtimeSinceStartup < prepareDeadline) yield return null;
@@ -248,7 +248,7 @@ public class RecorderStopProbe : MonoBehaviour
 
     IEnumerator BackgroundRun()
     {
-        recorder.RecordIn4K = true;
+        recorder.CaptureCameraIn4K = true;
         recorder.StartRecording();
         yield return new WaitForSeconds(2);
         Check(recorder.IsRecording && recorder.UsesGpuPath, "background recording started on GPU");

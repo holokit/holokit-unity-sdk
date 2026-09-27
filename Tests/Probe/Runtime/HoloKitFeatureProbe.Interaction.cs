@@ -45,15 +45,15 @@ public partial class HoloKitFeatureProbe
         Button quality = canvas.RecordIn4KButton;
         if (Check("E2.4k-button", quality != null, "standard canvas has a 4K button"))
         {
-            bool was4K = recorder.RecordIn4K;
+            bool was4K = recorder.CaptureCameraIn4K;
             quality.onClick.Invoke();
             yield return null;
             string qualityLabel = quality.GetComponentInChildren<Text>()?.text;
-            Check("E2.4k-toggle", recorder.RecordIn4K != was4K && qualityLabel == (recorder.RecordIn4K ? "4K" : "2K"),
-                $"{was4K}->{recorder.RecordIn4K} label='{qualityLabel}'");
+            Check("E2.4k-toggle", recorder.CaptureCameraIn4K != was4K && qualityLabel == (recorder.CaptureCameraIn4K ? "4K" : "HD"),
+                $"{was4K}->{recorder.CaptureCameraIn4K} label='{qualityLabel}'");
             quality.onClick.Invoke();
             yield return null;
-            Check("E2.4k-restore", recorder.RecordIn4K == was4K, $"recordIn4K={recorder.RecordIn4K}");
+            Check("E2.4k-restore", recorder.CaptureCameraIn4K == was4K, $"captureCameraIn4K={recorder.CaptureCameraIn4K}");
         }
 
         Button record = FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b =>

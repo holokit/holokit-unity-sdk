@@ -153,5 +153,67 @@ public class RecordingStateTests
         Assert.That(ARBackgroundVideoEnhancementManager.ShouldEnhance(preferred, false, mode, false),
             Is.EqualTo(mode == ScreenRenderMode.Stereo || preferred));
     }
+
+    [Test]
+    public void OutputSize_MonoIsTheScreen_StereoIs16x9()
+    {
+        // iPhone 15 Pro landscape: the screen, rounded down to multiples of 16.
+        Assert.That(HoloKitVideoRecorder.OutputSize(false, StereoRecordingResolution.UHD4K, 2556, 1179),
+            Is.EqualTo(new Vector2Int(2544, 1168)));
+        Assert.That(HoloKitVideoRecorder.OutputSize(false, StereoRecordingResolution.QHD2K, 1179, 2556),
+            Is.EqualTo(new Vector2Int(1168, 2544)), "portrait Mono");
+        Assert.That(HoloKitVideoRecorder.OutputSize(true, StereoRecordingResolution.QHD2K, 2556, 1179),
+            Is.EqualTo(new Vector2Int(2560, 1440)), "Stereo 2K, as the Swift SDK");
+        Assert.That(HoloKitVideoRecorder.OutputSize(true, StereoRecordingResolution.UHD4K, 2556, 1179),
+            Is.EqualTo(new Vector2Int(3840, 2160)), "Stereo 4K, as the Swift SDK");
+    }
+
+    [TestCase(2556, 1179, 2560, 1440)]
+    [TestCase(2556, 1179, 3840, 2160)]
+    [TestCase(2796, 1290, 3840, 2160)]
+    [TestCase(2048, 1536, 2560, 1440)]
+    public void CoverSize_KeepsTheScreenAspectAndCoversTheMovie(int screenW, int screenH, int outW, int outH)
+    {
+        var cover = HoloKitVideoRecorder.CoverSize(screenW, screenH, outW, outH);
+        Assert.That(cover.x, Is.GreaterThanOrEqualTo(outW));
+        Assert.That(cover.y, Is.GreaterThanOrEqualTo(outH));
+        Assert.That(cover.x == outW || cover.y == outH, "no larger than needed");
+        Assert.That((float)cover.x / cover.y, Is.EqualTo((float)screenW / screenH).Within(0.002f), "undistorted");
+    }
+
+    [Test]
+    public void CropToFill_CutsTheCentreAndFlips()
+    {
+        // Same aspect: the plain vertical flip the encoder always had.
+        HoloKitVideoRecorder.CropToFill(16f / 9, 16f / 9, out var scale, out var offset);
+        Assert.That(scale, Is.EqualTo(new Vector2(1, -1)));
+        Assert.That(offset, Is.EqualTo(new Vector2(0, 1)));
+
+        // A 19.5:9 camera render into a 16:9 movie: its centre columns, full height.
+        float source = 2556f / 1179, output = 16f / 9;
+        HoloKitVideoRecorder.CropToFill(source, output, out scale, out offset);
+        float left = offset.x, right = offset.x + scale.x;
+        Assert.That(right - left, Is.EqualTo(output / source).Within(1e-5f));
+        Assert.That((left + right) / 2, Is.EqualTo(0.5f).Within(1e-5f), "centred");
+        Assert.That(offset.y + scale.y * 1, Is.EqualTo(0).Within(1e-5f), "top row maps to the bottom (flip)");
+        Assert.That(offset.y, Is.EqualTo(1).Within(1e-5f));
+
+        // A 4:3 render into 16:9: full width, centre rows.
+        HoloKitVideoRecorder.CropToFill(4f / 3, output, out scale, out offset);
+        Assert.That(scale.x, Is.EqualTo(1));
+        Assert.That(-scale.y, Is.EqualTo((4f / 3) / output).Within(1e-5f));
+        Assert.That(offset.y + scale.y / 2, Is.EqualTo(0.5f).Within(1e-5f), "centred");
+    }
+
+    [Test]
+    public void CaptureCameraIn4K_KeepsTheFormerRecordIn4KValue()
+    {
+        var field = typeof(HoloKitVideoRecorder).GetField("_captureCameraIn4K",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null);
+        var former = (UnityEngine.Serialization.FormerlySerializedAsAttribute)System.Attribute.GetCustomAttribute(
+            field, typeof(UnityEngine.Serialization.FormerlySerializedAsAttribute));
+        Assert.That(former?.oldName, Is.EqualTo("_recordIn4K"), "scenes saved with RecordIn4K keep their choice");
+    }
 }
 #endif

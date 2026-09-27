@@ -46,7 +46,7 @@ public partial class HoloKitFeatureProbe
             recorder.EnvironmentProcessing = processing == MicrophoneProcessing.EchoCancellation ? MicrophoneProcessing.Environment : processing;
             recorder.IncludeMicrophone = true;
             if (mode == RecordingAudioMode.GameAndMicrophone) recorder.GameAudioListener = listener;
-            recorder.RecordIn4K = false;
+            recorder.CaptureCameraIn4K = false;
             recorder.StartRecording();
             deadline = Time.realtimeSinceStartup + 8;
             while (!recorder.IsRecording && Time.realtimeSinceStartup < deadline) yield return null;

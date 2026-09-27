@@ -80,7 +80,7 @@ public sealed class RecorderAudioProbe : MonoBehaviour
         var manager = recorder.GetComponentInParent<HoloKitCameraManager>();
         manager.ScreenRenderMode = ScreenRenderMode.Mono;
         Screen.orientation = ScreenOrientation.LandscapeLeft;
-        recorder.RecordIn4K = false;
+        recorder.CaptureCameraIn4K = false;
         if (NativeReference)
         {
             yield return RecordNativeReference();

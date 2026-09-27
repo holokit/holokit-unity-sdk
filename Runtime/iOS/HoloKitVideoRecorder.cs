@@ -10,11 +10,24 @@ using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.XR.ARFoundation;
 
 namespace HoloKit.iOS
 {
     public enum RecordingAudioMode { Environment, GameAndMicrophone }
+
+    /// <summary>
+    /// Output size of Stereo recordings (landscape, 16:9), as in the HoloKit Swift SDK. Mono
+    /// recordings use the screen size.
+    /// </summary>
+    public enum StereoRecordingResolution
+    {
+        /// <summary>2560 × 1440.</summary>
+        QHD2K = 0,
+        /// <summary>3840 × 2160.</summary>
+        UHD4K = 1,
+    }
 
     [DisallowMultipleComponent]
     public sealed class HoloKitVideoRecorder : MonoBehaviour
@@ -60,11 +73,26 @@ namespace HoloKit.iOS
         HoloKitMicrophoneCapture _leasedMicrophone;
         HoloKitGameAudioTap _gameTap;
         double _recordingOrigin;
-        [SerializeField] bool _recordIn4K = true;
-        public bool RecordIn4K { get => _recordIn4K; set => _recordIn4K = value; }
+        [Header("Video")]
+        [Tooltip("Stereo recordings: movie size, 2K (2560 × 1440) or 4K (3840 × 2160), 16:9, filled from the AR camera view. Mono recordings use the screen size.")]
+        [SerializeField] StereoRecordingResolution _stereoResolution = StereoRecordingResolution.QHD2K;
+        [Tooltip("Switch ARKit to its 4K camera format while recording, so the real scene is not upscaled. The movie then runs at 30 fps.")]
+        [FormerlySerializedAs("_recordIn4K")]
+        [SerializeField] bool _captureCameraIn4K = true;
+
+        /// <summary>Stereo movie size (2K or 4K, 16:9); takes effect at the next recording.</summary>
+        public StereoRecordingResolution StereoResolution { get => _stereoResolution; set => _stereoResolution = value; }
+
+        /// <summary>ARKit's 4K camera format while recording (the movie runs at 30 fps); takes effect at the next recording.</summary>
+        public bool CaptureCameraIn4K { get => _captureCameraIn4K; set => _captureCameraIn4K = value; }
+
+        [Obsolete("Renamed to CaptureCameraIn4K: it switches the ARKit camera feed to 4K. For a 4K movie in Stereo, set StereoResolution.")]
+        public bool RecordIn4K { get => _captureCameraIn4K; set => _captureCameraIn4K = value; }
         ARBackgroundVideoEnhancementManager _enhancement;
 
         public bool IsRecording { get; private set; }
+        /// <summary><c>Time.unscaledTime</c> when the current or last recording started.</summary>
+        public float RecordingStartTime { get; private set; }
         public string LastRecordingPath { get; private set; }
         public string LastSharingPath { get; private set; }
         public bool IsFinishing => _draining || (!Application.isEditor && HoloKitVideoRecorder_IsFinishing() != 0);
@@ -159,8 +187,12 @@ namespace HoloKit.iOS
             { Fail("Assign an active game AudioListener."); return; }
             int sources = (game ? 1 : 0) | (needsMicrophone ? 2 : 0);
             _recordingOrigin = HoloKit_AudioClockTime();
-            int frameRate = _recordIn4K ? 30 : 60;
-            int width = Screen.width & ~15, height = Screen.height & ~15;
+            int frameRate = _captureCameraIn4K ? 30 : 60;
+            // Mono records the screen; Stereo a 16:9 movie filled from the mono AR camera view.
+            bool stereo = _cameraManager.ScreenRenderMode == ScreenRenderMode.Stereo;
+            var size = OutputSize(stereo, _stereoResolution, Screen.width, Screen.height);
+            int width = size.x, height = size.y;
+            var cameraSize = stereo ? CoverSize(Screen.width, Screen.height, width, height) : size;
             LastRecordingPath = Path.Combine(Application.temporaryCachePath,
                 $"Record_{DateTime.Now:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}.mp4");
             if (HoloKitVideoRecorder_StartRecording(LastRecordingPath, width, height, frameRate, rate, channels, sources, needsMicrophone ? _microphoneInput.SampleRate : 0, _recordingOrigin, _gameGain, _microphoneGain, _createMixedSharingCopy ? 1 : 0) != 0)
@@ -172,7 +204,7 @@ namespace HoloKit.iOS
             _startedNative = true;
             LastSharingPath = _createMixedSharingCopy && sources == 3
                 ? Path.ChangeExtension(LastRecordingPath, "share.mp4") : LastRecordingPath;
-            _cameraRt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGBHalf);
+            _cameraRt = new RenderTexture(cameraSize.x, cameraSize.y, 24, RenderTextureFormat.ARGBHalf);
             bool bgra = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.BGRA32);
             _frameRt = new RenderTexture(width, height, 0, bgra ? RenderTextureFormat.BGRA32 : RenderTextureFormat.ARGB32);
             _cameraRt.Create();
@@ -189,6 +221,7 @@ namespace HoloKit.iOS
             _frameInterval = 1.0 / frameRate;
             _nextCaptureTime = 0;
             IsRecording = true;
+            RecordingStartTime = Time.unscaledTime;
             HoloKitVideoRecorder_SetAudioGain(_gameGain, _microphoneGain);
             if (game)
             {
@@ -198,7 +231,7 @@ namespace HoloKit.iOS
                 { EndRecording(); Fail("Game audio tap is unavailable or already in use."); return; }
             }
             _enhancement = FindFirstObjectByType<ARBackgroundVideoEnhancementManager>();
-            if (_enhancement != null) _enhancement.RecordingOverride = _recordIn4K;
+            if (_enhancement != null) _enhancement.RecordingOverride = _captureCameraIn4K;
             ApplyRenderMode(_cameraManager.ScreenRenderMode);
             _capture = StartCoroutine(CaptureFrames());
             Debug.Log($"[Recorder] START {width}x{height} fps={frameRate} GPU={_useGpuPath} sources={sources} game={rate}/{channels} mic={_microphoneInput?.SampleRate ?? 0} path={LastRecordingPath}");
@@ -340,7 +373,10 @@ namespace HoloKit.iOS
                 _camera.Render();
             }
             finally { _camera.targetTexture = target; _camera.rect = rect; }
-            Graphics.Blit(_cameraRt, _frameRt, new Vector2(1, -1), new Vector2(0, 1));
+            // Flip for the encoder; in Stereo also crop the wider camera render to the movie's 16:9.
+            CropToFill((float)_cameraRt.width / _cameraRt.height, (float)_frameRt.width / _frameRt.height,
+                out var scale, out var offset);
+            Graphics.Blit(_cameraRt, _frameRt, scale, offset);
             if (!_useGpuPath)
             {
                 int id = ++_readbackId;
@@ -366,6 +402,37 @@ namespace HoloKit.iOS
             if (timestamp + interval * 0.5 < nextTime) return false;
             nextTime += Math.Max(1, Math.Floor((timestamp - nextTime) / interval + 0.5) + 1) * interval;
             return true;
+        }
+
+        /// <summary>The movie size: the screen in Mono (multiples of 16), the chosen 16:9 size in Stereo.</summary>
+        public static Vector2Int OutputSize(bool stereo, StereoRecordingResolution resolution, int screenWidth, int screenHeight)
+        {
+            if (!stereo)
+                return new Vector2Int(screenWidth & ~15, screenHeight & ~15);
+            return resolution == StereoRecordingResolution.UHD4K ? new Vector2Int(3840, 2160) : new Vector2Int(2560, 1440);
+        }
+
+        /// <summary>
+        /// The smallest render at the screen's aspect that covers `output`: the AR camera renders
+        /// undistorted at its own aspect, then <see cref="CropToFill"/> cuts the movie from its centre.
+        /// </summary>
+        public static Vector2Int CoverSize(int screenWidth, int screenHeight, int outputWidth, int outputHeight)
+        {
+            float screen = (float)screenWidth / screenHeight, output = (float)outputWidth / outputHeight;
+            return screen >= output
+                ? new Vector2Int(Mathf.CeilToInt(outputHeight * screen) & ~1, outputHeight)
+                : new Vector2Int(outputWidth, Mathf.CeilToInt(outputWidth / screen) & ~1);
+        }
+
+        /// <summary>
+        /// Blit scale and offset that take the centre of a `sourceAspect` image at `outputAspect`,
+        /// flipped vertically for the encoder.
+        /// </summary>
+        public static void CropToFill(float sourceAspect, float outputAspect, out Vector2 scale, out Vector2 offset)
+        {
+            float sx = Mathf.Min(1f, outputAspect / sourceAspect), sy = Mathf.Min(1f, sourceAspect / outputAspect);
+            scale = new Vector2(sx, -sy);
+            offset = new Vector2((1f - sx) / 2f, (1f + sy) / 2f);
         }
 
         public static Rect FitViewport(float sourceAspect, float outputAspect)

@@ -200,7 +200,7 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
 
     IEnumerator DeviceSuite()
     {
-        bool lidar = DeviceData.SupportLiDAR();
+        bool lidar = DeviceData.SupportsLiDAR();
         Check("A9.lidar", lidar == s_ExpectLiDAR, $"supportLiDAR={lidar} expected={s_ExpectLiDAR}");
         var apple = new AppleNativeProvider();
         AppleThermalState state = apple.GetThermalState();
