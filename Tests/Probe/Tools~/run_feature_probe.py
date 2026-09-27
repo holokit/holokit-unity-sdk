@@ -53,6 +53,14 @@ def video_start_delay(received, timeout=5.0):
     return None
 
 
+def stop_speaker(process):
+    import os, signal
+    try:
+        os.killpg(process.pid, signal.SIGTERM)   # speech loop runs in its own process group
+    except (ProcessLookupError, PermissionError):
+        process.terminate()
+
+
 def open_safari():
     # Only brings Safari forward; the window stays where the user placed it (facing the phone).
     subprocess.run(['osascript', '-e', 'tell application "Safari" to activate'], capture_output=True)
@@ -110,7 +118,7 @@ def run(args):
                 name = line.split('[SDK-STIM]')[1].split()[0]
                 stimuli.append((time.time(), name))
                 if speaker:
-                    speaker.terminate()
+                    stop_speaker(speaker)
                     speaker = None
                 received = time.time()
                 set_stimulus(name)
@@ -118,6 +126,10 @@ def run(args):
                     timing['handvideo'] = video_start_delay(received)
                 if name == 'tone-440' and args.allow_speaker:
                     speaker = subprocess.Popen(['afplay', str(tone)])
+                if name == 'speech' and args.allow_speaker:
+                    # Continuous speech until the next stimulus (Mac voice, current volume).
+                    speaker = subprocess.Popen(['bash', '-c', 'while true; do say "HoloKit microphone test. One, two, three, four, five."; done'],
+                                               start_new_session=True)
             if '[SDK-TEST]' in line and ('PASS' in line or 'FAIL' in line or 'SUITE' in line):
                 print(line.strip()[line.find('[SDK-TEST]'):], flush=True)
             if '[SDK-TEST] COMPLETE' in line:
@@ -125,7 +137,7 @@ def run(args):
                 break
     finally:
         if speaker:
-            speaker.terminate()
+            stop_speaker(speaker)
         time.sleep(2)
         process.terminate()
         set_stimulus('done')

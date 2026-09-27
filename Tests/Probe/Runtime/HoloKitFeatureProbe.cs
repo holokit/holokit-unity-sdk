@@ -25,13 +25,13 @@ namespace HoloKit.Tests
 public partial class HoloKitFeatureProbe : MonoBehaviour
 {
     static readonly string[] AllSuites =
-        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze" };
+        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze", "coexist" };
     static readonly Dictionary<string, string> Scenes = new()
     {
         ["device"] = "StereoscopicRendering", ["rendering"] = "StereoscopicRendering",
         ["orientation"] = "StereoscopicRendering", ["ui"] = "StereoscopicRendering",
         ["tracking"] = "ResetWorldOrigin", ["enhancement"] = "ARBackgroundVideoEnhancement",
-        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking",
+        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking", ["coexist"] = "StereoscopicRendering",
         ["gesture"] = "HandGestureRecognition", ["gaze"] = "GazeGestureInteraction",
     };
     const float Settle = 1.5f;
@@ -105,6 +105,7 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
                 "hand" => HandSuite(),
                 "handmotion" => HandMotionSuite(),
                 "handvideo" => HandVideoSuite(),
+                "coexist" => CoexistSuite(),
                 "gesture" => GestureSuite(),
                 "gaze" => GazeSuite(),
                 _ => null,
