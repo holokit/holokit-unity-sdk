@@ -36,6 +36,11 @@
       "path": "Samples~/HandTracking"
     },
     {
+      "displayName": "Pinch To Place",
+      "description": "Pinch the thumb with any finger to place an object where they meet: a sphere for the index finger, a cube for the middle, a capsule for the ring and a cylinder for the little finger.",
+      "path": "Samples~/PinchToPlace"
+    },
+    {
       "displayName": "Hand Gesture Recognition",
       "description": "Provides a demonstration of the SDK's hand gesture recognition feature.",
       "path": "Samples~/HandGestureRecognition"

@@ -205,6 +205,23 @@ Hand tracking and gesture recognition use Apple Vision (iOS 14 and later; handed
 
 You can use hand tracking and hand gesture recognition at the same time, simply add both `HandTrackingManager` and `HandGestureRecognitionManager` components to your scene.
 
+`FingerPinchDetector` tells which finger the thumb pinches (index, middle, ring or little), once per pinch. The **Pinch To Place** sample places an object wherever you pinch, a different one per finger:
+
+```csharp
+readonly FingerPinchDetector m_Pinch = new();
+
+void OnHandPoseUpdated()   // HandTrackingManager.HandPoseDetector.OnHandPoseUpdated
+{
+    var detector = m_HandTracking.HandPoseDetector;
+    if (m_Pinch.Update(detector.HandPoses2D[0], detector.HandPosesConfidence[0], out var began, out _) &&
+        began != PinchFinger.None)
+    {
+        var world = m_HandTracking.HandPoses3D[0];
+        Place(began, (world[JointName.ThumbTip] + world[FingerPinchDetector.TipOf(began)]) / 2);
+    }
+}
+```
+
 ## Quick Scene Setup
 
 HoloKit Unity SDK is based on ARFoundation. For a minimal ARFoundation scene requires two primary objects: an `AR Session` object and an `XR Origin` object with the Main Camera Object as its child.

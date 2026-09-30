@@ -145,6 +145,37 @@ namespace HoloKit.Hands.Tests
         }
 
         [Test]
+        public void EachFingerPinchBeginsAndEndsOnce()
+        {
+            var detector = new FingerPinchDetector();
+            var sequence = new[] { PinchFinger.None, PinchFinger.Middle, PinchFinger.Middle, PinchFinger.None,
+                PinchFinger.Middle, PinchFinger.Middle, PinchFinger.Middle, PinchFinger.Middle, PinchFinger.None };
+            var events = new List<string>();
+            foreach (var observed in sequence)
+                if (detector.Update(observed, out var began, out var ended))
+                    events.Add($"{ended}->{began}");
+            Assert.AreEqual(new[] { "None->Middle" }, events, "one stray frame neither begins nor ends a pinch");
+            Assert.AreEqual(PinchFinger.Middle, detector.Pinched);
+            for (int i = 0; i < 3; i++) detector.Update(PinchFinger.Ring, out _, out _);
+            Assert.AreEqual(PinchFinger.Ring, detector.Pinched, "sliding from middle to ring");
+            Assert.IsTrue(detector.Reset(out var released));
+            Assert.AreEqual(PinchFinger.Ring, released, "a lost hand releases its pinch");
+            Assert.IsFalse(detector.Reset(out _));
+        }
+
+        [Test]
+        public void TheClosestFingerIsThePinchedOne()
+        {
+            var hand = OpenHand(90f, new Vector2(0.5f, 0.5f));
+            // Thumb between index and middle tips, a little nearer the middle one.
+            hand[JointName.IndexTip] = hand[JointName.MiddleTip] + new Vector2(-0.02f, 0f);
+            hand[JointName.ThumbTip] = hand[JointName.MiddleTip] + new Vector2(-0.008f, 0f);
+            Assert.AreEqual(PinchFinger.Middle, FingerPinchDetector.Observe(hand, Confident(hand)));
+            var open = OpenHand(90f, new Vector2(0.5f, 0.5f));
+            Assert.AreEqual(PinchFinger.None, FingerPinchDetector.Observe(open, Confident(open)));
+        }
+
+        [Test]
         public void TinyFingersAreNotJudgedStraight()
         {
             var hand = OpenHand(90f, new Vector2(0.5f, 0.5f), scale: 0.03f);

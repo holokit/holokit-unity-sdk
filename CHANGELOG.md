@@ -26,6 +26,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   (`AlignmentGuideAutoHideDelay`), and the marker hides while a stereo bar control is held.
 - Stereo frame rate follows the thermal state as in the Swift SDK: Serious caps it at 40 fps,
   Critical at 30 (`AdaptStereoFrameRateToThermalState`, on by default).
+- `FingerPinchDetector`: which finger the thumb pinches (the closest under `PinchRatio`), once per
+  pinch after three matching observations; the **Pinch To Place** sample places a different object
+  per finger where the thumb and finger meet.
 - Hand tracking and gestures ported from the HoloKit Swift SDK. `HandGestureClassifier`: Five
   needs every finger straight (tip-to-base over length at least 0.82) whichever way the hand points
   (it required fingers pointing up in the image), and joints below 0.35 confidence are ignored;
