@@ -29,6 +29,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - Hand tracking and gestures ported from the HoloKit Swift SDK. `HandGestureClassifier`: Five
   needs every finger straight (tip-to-base over length at least 0.82) whichever way the hand points
   (it required fingers pointing up in the image), and joints below 0.35 confidence are ignored;
+  Pinched is thumb-to-fingertip below 0.25 of the hand's size (`PinchRatio`; the Swift SDK's
+  fixed 0.12 image units called small, distant hands pinched), for any finger with `IsPinching`;
   `HandGestureFilter` holds a gesture until four matching observations. Joint depth
   (`HoloKitHandDepth`, host tests in `Tests/Hands`): a 3x3 consistent LiDAR depth within 10 cm of
   the hand's median depth, else the hand's depth remembered for 0.5 s, else a 0.65 m plane.

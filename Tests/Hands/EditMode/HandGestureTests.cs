@@ -74,17 +74,18 @@ namespace HoloKit.Hands.Tests
         public void ThumbTouchingIndexIsPinched()
         {
             var hand = OpenHand(90f, new Vector2(0.5f, 0.5f));
-            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.05f, 0f);
+            // The fixture hand is 0.108 image units long (index finger bones).
+            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.02f, 0f);
             Assert.AreEqual(HandGesture.Pinched, HandGestureClassifier.Classify(hand, Confident(hand)));
-            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.13f, 0f);
-            Assert.AreNotEqual(HandGesture.Pinched, HandGestureClassifier.Classify(hand, Confident(hand)), "0.13 apart is open");
+            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.05f, 0f);
+            Assert.AreNotEqual(HandGesture.Pinched, HandGestureClassifier.Classify(hand, Confident(hand)), "half a hand apart is open");
         }
 
         [Test]
         public void UnconfidentJointsDoNotCount()
         {
             var hand = OpenHand(90f, new Vector2(0.5f, 0.5f));
-            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.05f, 0f);
+            hand[JointName.ThumbTip] = hand[JointName.IndexTip] + new Vector2(0.02f, 0f);
             var confidences = Confident(hand);
             confidences[JointName.ThumbTip] = 0.2f;
             Assert.AreNotEqual(HandGesture.Pinched, HandGestureClassifier.Classify(hand, confidences), "a guessed thumb tip is no pinch");
@@ -93,6 +94,54 @@ namespace HoloKit.Hands.Tests
             low[JointName.LittleTip] = 0.1f;
             Assert.AreEqual(HandGesture.None, HandGestureClassifier.Classify(open, low), "Five needs every finger seen");
             Assert.AreEqual(HandGesture.Five, HandGestureClassifier.Classify(open, null), "no confidences: all trusted");
+        }
+
+        /// A hand far from the camera is small in the image: its thumb and index tips are close in
+        /// image units although the hand is open (the Swift SDK's fixed 0.12 called it pinched).
+        [Test]
+        public void PinchIsRelativeToHandSize()
+        {
+            var far = OpenHand(90f, new Vector2(0.5f, 0.5f), scale: 0.06f);
+            float gap = Vector2.Distance(far[JointName.ThumbTip], far[JointName.IndexTip]);
+            Assert.Less(gap, HandGestureClassifier.PinchThreshold, "closer than the fixed threshold");
+            Assert.AreNotEqual(HandGesture.Pinched, HandGestureClassifier.Classify(far, Confident(far)), "an open far hand");
+
+            var farPinch = OpenHand(90f, new Vector2(0.5f, 0.5f), scale: 0.06f);
+            farPinch[JointName.ThumbTip] = farPinch[JointName.IndexTip] + new Vector2(0.004f, 0f);
+            Assert.AreEqual(HandGesture.Pinched, HandGestureClassifier.Classify(farPinch, Confident(farPinch)), "a far pinch");
+
+            var near = OpenHand(90f, new Vector2(0.5f, 0.5f), scale: 0.8f);
+            near[JointName.ThumbTip] = near[JointName.IndexTip] + new Vector2(0.09f, 0f);
+            Assert.AreEqual(HandGesture.Pinched, HandGestureClassifier.Classify(near, Confident(near)),
+                "a near pinch 0.09 apart in the image is 0.2 of the hand");
+        }
+
+        [Test]
+        public void ThumbPinchesEachFinger()
+        {
+            var tips = new[] { JointName.IndexTip, JointName.MiddleTip, JointName.RingTip, JointName.LittleTip };
+            foreach (var touched in tips)
+            {
+                var hand = OpenHand(90f, new Vector2(0.5f, 0.5f));
+                hand[JointName.ThumbTip] = hand[touched] + new Vector2(0.01f, 0f);
+                foreach (var tip in tips)
+                    Assert.AreEqual(tip == touched, HandGestureClassifier.IsPinching(hand, Confident(hand), tip),
+                        $"thumb on {touched}, asked about {tip}");
+            }
+        }
+
+        [Test]
+        public void HandSizeUsesTheLongestConfidentMeasure()
+        {
+            var hand = OpenHand(90f, new Vector2(0.5f, 0.5f));
+            var confidences = Confident(hand);
+            float size = HandGestureClassifier.HandSize(hand, confidences);
+            Assert.AreEqual(0.108f, size, 0.002f, "the index finger's bones");
+            confidences[JointName.Wrist] = 0f;
+            confidences[JointName.IndexTip] = 0f;
+            Assert.AreEqual(0.108f, HandGestureClassifier.HandSize(hand, confidences), 0.002f, "the middle finger without wrist and index");
+            foreach (var name in hand.Keys) confidences[name] = 0f;
+            Assert.AreEqual(0f, HandGestureClassifier.HandSize(hand, confidences), "nothing seen");
         }
 
         [Test]

@@ -180,7 +180,7 @@ Please note, the hand tracking feature is only compatible with iOS 18.0 or highe
 
 ### Hand Gesture Recognition
 
-The SDK can also recognizes user's hand gesture, which can serve as input triggers in your project. The gestures are `HandGesture.None`, `HandGesture.Pinched` (thumb tip to index tip) and `HandGesture.Five` (an open hand). Classification follows the HoloKit Swift SDK (`HandGestureClassifier`): joints Vision is unsure of (confidence below 0.35) are ignored, and Five needs every finger straight whichever way the hand points, so a tilted or sideways open hand counts. A gesture changes after four matching observations and survives a tracking dropout shorter than 0.2 s.
+The SDK can also recognizes user's hand gesture, which can serve as input triggers in your project. The gestures are `HandGesture.None`, `HandGesture.Pinched` (thumb tip on index tip, closer than a quarter of the hand's size, so a hand far from the camera is not pinched just for being small) and `HandGesture.Five` (an open hand). Classification follows the HoloKit Swift SDK (`HandGestureClassifier`): joints Vision is unsure of (confidence below 0.35) are ignored, and Five needs every finger straight whichever way the hand points, so a tilted or sideways open hand counts. A gesture changes after four matching observations and survives a tracking dropout shorter than 0.2 s. `HandGestureClassifier.IsPinching(joints, confidences, JointName.MiddleTip)` asks the same for the middle, ring or little finger.
 
 <img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/0fe0010f-7854-41ad-b9b8-95ee8039fb4c" alt="Hand Gesture Recognition" width="600"/>
 
