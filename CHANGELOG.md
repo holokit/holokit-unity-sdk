@@ -26,6 +26,12 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   (`AlignmentGuideAutoHideDelay`), and the marker hides while a stereo bar control is held.
 - Stereo frame rate follows the thermal state as in the Swift SDK: Serious caps it at 40 fps,
   Critical at 30 (`AdaptStereoFrameRateToThermalState`, on by default).
+- `HandTrackingManager.FrameInterval` / `HandGestureRecognitionManager.FrameInterval`: Vision on
+  every third AR frame (about 20 Hz) as in the Swift SDK; it ran on every frame.
+- The device probe builds from the package (`HoloKit.Tests.Editor.HoloKitProbeBuild.Build`) and
+  first copies `Samples~` into the carrier project (`HoloKitSampleSync`), so it never runs stale
+  sample copies; new `lowlatency` and `pinchtoplace` suites. Sample scenes re-saved through Unity
+  so their files carry the new and renamed fields.
 - `FingerPinchDetector`: which finger the thumb pinches (the closest under `PinchRatio`), once per
   pinch after three matching observations; the **Pinch To Place** sample places a different object
   per finger where the thumb and finger meet.
@@ -101,6 +107,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Removed
 
+- The Apple Native Provider Test sample (never listed in package.json): the device probe's `device`
+  suite checks the thermal state, its event and the uptime clock.
 - `libHoloKitLowLatencyTracking.a`: the closed tracking library, replaced by the source in
   `Runtime/iOS/NativeCode/HoloKitTracking*`.
 - `ENABLE_BITCODE` build settings (bitcode was removed in Xcode 14).

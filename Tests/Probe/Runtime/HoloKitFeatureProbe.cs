@@ -25,13 +25,14 @@ namespace HoloKit.Tests
 public partial class HoloKitFeatureProbe : MonoBehaviour
 {
     static readonly string[] AllSuites =
-        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze", "coexist", "stereobar" };
+        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze", "coexist", "stereobar", "lowlatency", "pinchtoplace" };
     static readonly Dictionary<string, string> Scenes = new()
     {
         ["device"] = "StereoscopicRendering", ["rendering"] = "StereoscopicRendering",
         ["orientation"] = "StereoscopicRendering", ["ui"] = "StereoscopicRendering",
         ["tracking"] = "ResetWorldOrigin", ["enhancement"] = "ARBackgroundVideoEnhancement",
         ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking", ["coexist"] = "StereoscopicRendering", ["stereobar"] = "StereoscopicRendering",
+        ["lowlatency"] = "LowLatencyTracking", ["pinchtoplace"] = "PinchToPlace",
         ["gesture"] = "HandGestureRecognition", ["gaze"] = "GazeGestureInteraction",
     };
     const float Settle = 1.5f;
@@ -107,6 +108,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
                 "handvideo" => HandVideoSuite(),
                 "coexist" => CoexistSuite(),
                 "stereobar" => StereoBarSuite(),
+                "lowlatency" => LowLatencySuite(),
+                "pinchtoplace" => PinchToPlaceSuite(),
                 "gesture" => GestureSuite(),
                 "gaze" => GazeSuite(),
                 _ => null,
@@ -212,6 +215,18 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         double elapsed = apple.GetSystemUptime() - uptime0;
         float realElapsed = Time.realtimeSinceStartup - real0;
         Check("A9.uptime", Math.Abs(elapsed - realElapsed) < 0.05, $"uptime={elapsed:F3}s realtime={realElapsed:F3}s");
+        // Formerly the AppleNativeProviderTest sample: the thermal-state event can be subscribed and
+        // removed (it cannot be triggered on demand).
+        bool subscribed;
+        try
+        {
+            Action<AppleThermalState> onThermal = _ => { };
+            apple.OnThermalStateChanged += onThermal;
+            apple.OnThermalStateChanged -= onThermal;
+            subscribed = true;
+        }
+        catch (Exception e) { subscribed = false; Debug.LogException(e); }
+        Check("A9.thermal-event", subscribed, "OnThermalStateChanged subscribes and unsubscribes");
         apple.Dispose();
     }
 

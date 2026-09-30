@@ -1036,6 +1036,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MaxHandCount: 2
   m_HandJointsVisibility: 0
+  m_FrameInterval: 3
   m_SmoothJoints: 1
   m_Smoothing:
     MinimumCutoff: 1.5

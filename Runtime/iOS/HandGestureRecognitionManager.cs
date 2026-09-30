@@ -23,6 +23,21 @@ namespace HoloKit.iOS
         // Vision dropout shorter than 0.2 s keeps it, so one pinch is not Pinched/None/Pinched.
         readonly HandGestureFilter m_Filter = new();
 
+        [Tooltip("Without a HandTrackingManager in the scene: run Vision on every Nth AR frame (3, the Swift SDK's default, is about 20 Hz).")]
+        [SerializeField, Min(1)] int m_FrameInterval = 3;
+
+        int m_FrameIndex;
+
+        /// <summary>
+        /// Vision runs on every <c>FrameInterval</c>-th AR frame when this manager runs its own detector
+        /// (with a HandTrackingManager in the scene, that manager's FrameInterval applies).
+        /// </summary>
+        public int FrameInterval
+        {
+            get => m_FrameInterval;
+            set => m_FrameInterval = Mathf.Max(1, value);
+        }
+
         private void Start()
         {
             m_HandTrackingManager = FindFirstObjectByType<HandTrackingManager>();
@@ -55,7 +70,7 @@ namespace HoloKit.iOS
 
         private void OnFrameReceived(ARCameraFrameEventArgs args)
         {
-            if (m_HandTrackingManager == null && enabled)
+            if (m_HandTrackingManager == null && enabled && ++m_FrameIndex % Mathf.Max(1, m_FrameInterval) == 0)
             {
                 m_HandPoseDetector.ProcessCurrentFrame2D();
             }

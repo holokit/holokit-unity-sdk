@@ -20,6 +20,8 @@ The probe loads the HoloKit sample scenes and checks:
 | `handvideo` | real hand video (Pexels, first-person style) played in Safari; the runner compares phone tracking with Vision on the source frames: detection recall, affine trajectory R², pinch-distance correlation, two-hand agreement, alignment lag |
 | `gesture` | pinch and five gestures against alternating photos |
 | `stereobar` | stereo bar controls and millimetre layout, Default UI Canvas giving way, alignment guide auto-hide, TRIGGER event and custom label, thermal frame rate, Stereo 2K / 4K takes through RECORD (the runner checks each movie's size and frame rate with ffprobe), MONO |
+| `lowlatency` | Low Latency Tracking sample in Stereo: prediction on, render-to-present latency, prediction lead, IMU sample age, frame rate |
+| `pinchtoplace` | Pinch To Place sample: fingertip dots, a placement from a synthetic pinch, objects placed on the pinch photo and not on the open hand |
 | `gaze` | gaze enter/select/exit, gaze + pinch selection, no selection off target |
 
 Scene names default to the sample scenes. Override one with a mode line
@@ -44,5 +46,12 @@ On-screen photos stand in for real hands. They exercise Vision/LiDAR integration
 gesture logic, not real-hand latency or accuracy. Grant camera and microphone permission to
 the bundle once before unattended runs.
 
-The boilerplate project builds a probe player with
-`HoloKitProbeBuild.Build` (see `holokit-unity-sdk-boilerplate/Assets/Editor`).
+Build the probe player from a carrier project that lists this package in `testables`:
+
+```sh
+Unity -batchmode -quit -projectPath <carrier> -buildTarget iOS \
+  -executeMethod HoloKit.Tests.Editor.HoloKitProbeBuild.Build -buildOutput Build_Probe [-probeBundleId <id>]
+```
+
+It first copies the package's `Samples~` into `Assets/Samples` (`HoloKitSampleSync`, also under
+**HoloKit > Samples**), so the probe always runs the current sample scenes.

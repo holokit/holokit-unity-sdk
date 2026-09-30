@@ -1,0 +1,8 @@
+{
+  "name": "HoloKit.Probe.Editor",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}

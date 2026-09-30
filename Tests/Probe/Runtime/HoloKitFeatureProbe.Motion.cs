@@ -69,7 +69,10 @@ public partial class HoloKitFeatureProbe
 
         float seconds = 14 - Settle;
         float rate = (updates.TryGetValue("motion", out int u) ? u : 0) / 14f;
-        Check("M1.update-rate", rate >= 20, $"poseUpdates={rate:F1}/s medianFrame={Median(frameTimes):F1}ms");
+        // Vision runs on every FrameInterval-th AR frame (ARKit delivers 60 per second).
+        float expected = 60f / tracking.FrameInterval;
+        Check("M1.update-rate", rate >= 0.8f * expected,
+            $"poseUpdates={rate:F1}/s expected={expected:F0}/s (frameInterval={tracking.FrameInterval}) medianFrame={Median(frameTimes):F1}ms");
         latencies.Sort();
         float p50 = latencies.Count > 0 ? latencies[latencies.Count / 2] : float.NaN;
         float p95 = latencies.Count > 0 ? latencies[(int)(latencies.Count * 0.95f)] : float.NaN;

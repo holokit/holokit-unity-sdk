@@ -67,7 +67,9 @@ public partial class HoloKitFeatureProbe
         tracking.HandPoseDetector.OnHandPoseLost -= onLost;
         // Vision must run whether or not a hand is in view.
         float requestRate = (tracking.HandPoseDetector.CompletedRequests - requestsBefore) / (Time.realtimeSinceStartup - suiteStart);
-        Check("B0.vision-runs", requestRate >= 15, $"visionRequests={requestRate:F1}/s secondDetector={both.CompletedRequests}");
+        float expectedRequests = 60f / tracking.FrameInterval;
+        Check("B0.vision-runs", requestRate >= 0.75f * expectedRequests,
+            $"visionRequests={requestRate:F1}/s expected={expectedRequests:F0}/s secondDetector={both.CompletedRequests}");
         both.Dispose();
 
         float Fraction(string stimulus, Func<HandSample, bool> predicate)

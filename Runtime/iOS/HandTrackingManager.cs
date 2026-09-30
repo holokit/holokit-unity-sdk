@@ -30,6 +30,19 @@ namespace HoloKit.iOS
 
         List<Dictionary<JointName, GameObject>> m_HandJoints = new();
 
+        [Tooltip("Run Vision on every Nth AR frame. 3 (the Swift SDK's default) is about 20 Hz at ARKit's 60 Hz: " +
+                 "enough for gestures at a third of the cost of every frame. 1 runs it on every frame.")]
+        [SerializeField, Min(1)] int m_FrameInterval = 3;
+
+        int m_FrameIndex;
+
+        /// <summary>Vision runs on every <c>FrameInterval</c>-th AR frame (3 by default, about 20 Hz).</summary>
+        public int FrameInterval
+        {
+            get => m_FrameInterval;
+            set => m_FrameInterval = Mathf.Max(1, value);
+        }
+
         [Tooltip("Smooth each joint's world position with a 1€ filter, as the HoloKit Swift SDK does: a still hand stops jittering, a moving one lags little.")]
         [SerializeField] bool m_SmoothJoints = true;
 
@@ -153,7 +166,7 @@ namespace HoloKit.iOS
 
         private void OnFrameReceived(ARCameraFrameEventArgs args)
         {
-            if (enabled)
+            if (enabled && ++m_FrameIndex % Mathf.Max(1, m_FrameInterval) == 0)
             {
                 m_HandPoseDetector.ProcessCurrentFrame3D();
             }
