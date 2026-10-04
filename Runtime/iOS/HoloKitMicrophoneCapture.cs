@@ -36,6 +36,11 @@ namespace HoloKit.iOS
         public int ConsumerCount => consumers.Count;
         public MicrophoneProcessing Processing => processing;
 
+        /// <summary>Whether iOS has granted microphone permission; false in the Editor. Use this rather than
+        /// Unity's Application.HasUserAuthorization, which stays false in a build that does not use Unity's
+        /// Microphone class (Unity then compiles its permission check out).</summary>
+        public static bool HasPermission => !Application.isEditor && HoloKit_MicrophonePermission() == 1;
+
         /// <summary>Call on the main thread. Repeated acquisition by the same owner is idempotent.</summary>
         public bool Acquire(UnityEngine.Object owner, MicrophoneProcessing requested)
         {

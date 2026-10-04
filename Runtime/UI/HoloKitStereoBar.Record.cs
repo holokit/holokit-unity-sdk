@@ -120,7 +120,7 @@ namespace HoloKit.UI
             var mode = recorder.AudioMode;
             bool microphone = recorder.IncludeMicrophone;
             bool voice = mode == RecordingAudioMode.Environment || microphone;
-            if (voice && !Application.isEditor && !Application.HasUserAuthorization(UserAuthorization.Microphone))
+            if (voice && !Application.isEditor && !HoloKitMicrophoneCapture.HasPermission)
             {
                 Debug.Log("[HoloKitStereoBar] No microphone permission yet; recording game audio only. " +
                           "Record once in Mono to grant it.");
