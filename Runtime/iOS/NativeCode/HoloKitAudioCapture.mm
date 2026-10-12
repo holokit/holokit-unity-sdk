@@ -168,7 +168,11 @@ void HoloKit_MicrophoneRequestPermission() {
     else [AVAudioSession.sharedInstance requestRecordPermission:^(BOOL granted) {}];
 }
 int HoloKit_MicrophoneStart(int processing) {
-    if (processing < 0 || processing > 2) return -1;
+    // MicrophoneProcessing: 0 Environment, 1 EchoCancellation, 2 Default, 3 Voice.
+    if (processing < 0 || processing > 3) {
+        Microphone().error = [NSString stringWithFormat:@"Unknown microphone processing %d.", processing];
+        return -1;
+    }
     if (![Microphone() start:processing]) return -1;
     Microphone().users++;
     return 0;
