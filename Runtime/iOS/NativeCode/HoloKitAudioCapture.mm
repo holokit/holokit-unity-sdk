@@ -94,8 +94,13 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     self.previousMode = session.mode;
     self.previousOptions = session.categoryOptions;
     NSError* error = nil;
+    // Bluetooth hands-free (HFP) only for voice processing. With HFP and DefaultToSpeaker together, iOS
+    // kept other apps' music paused for as long as the input ran; with A2DP (or without Bluetooth) their
+    // music resumes within a few seconds and stays on Bluetooth headphones (iPhone 15 Pro, iOS 27,
+    // 2026-10-12, EchoVision's listen-session probe).
     AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionDefaultToSpeaker |
-        AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionMixWithOthers;
+        AVAudioSessionCategoryOptionMixWithOthers |
+        (aec || voice ? AVAudioSessionCategoryOptionAllowBluetoothHFP : AVAudioSessionCategoryOptionAllowBluetoothA2DP);
     if (![session setCategory:AVAudioSessionCategoryPlayAndRecord
                         mode:aec || voice ? AVAudioSessionModeVoiceChat
                             : processing == 2 ? AVAudioSessionModeDefault : AVAudioSessionModeMeasurement
