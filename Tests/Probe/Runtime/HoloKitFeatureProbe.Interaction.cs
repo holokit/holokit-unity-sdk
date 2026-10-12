@@ -49,7 +49,7 @@ public partial class HoloKitFeatureProbe
             quality.onClick.Invoke();
             yield return null;
             string qualityLabel = quality.GetComponentInChildren<Text>()?.text;
-            Check("E2.4k-toggle", recorder.CaptureCameraIn4K != was4K && qualityLabel == (recorder.CaptureCameraIn4K ? "4K" : "HD"),
+            Check("E2.4k-toggle", recorder.CaptureCameraIn4K != was4K && qualityLabel == (recorder.CaptureCameraIn4K ? "4K30" : "HD60"),
                 $"{was4K}->{recorder.CaptureCameraIn4K} label='{qualityLabel}'");
             quality.onClick.Invoke();
             yield return null;

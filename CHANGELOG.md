@@ -92,7 +92,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   (3840 × 2160), cut from the centre of the AR camera view rendered at the screen's aspect (it was
   screen-sized). `RecordIn4K` is renamed `CaptureCameraIn4K` (serialized values kept): it only
   switches ARKit's camera feed to 4K, and the movie then runs at 30 fps. The Default UI Canvas
-  button toggles it and reads HD / 4K; the stereo bar's OPTIONS has VIDEO RECORDING 2K / 4K and
+  button toggles it and reads HD60 / 4K30, the movie's frame rate with each camera feed; the
+  stereo bar's OPTIONS has VIDEO RECORDING 2K / 4K and
   CAMERA HD / 4K.
 - Renamed with `[Obsolete]` forwarders: `Utils` → `HoloKitScreenUtils` (`InchToMeter`,
   `MeterToInch`), `DeviceData.SupportLiDAR` → `DeviceData.SupportsLiDAR`.

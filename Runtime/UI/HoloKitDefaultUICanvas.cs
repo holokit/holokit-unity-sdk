@@ -120,7 +120,7 @@ namespace HoloKit.UI
             RecordIn4KButton.interactable = m_VideoRecorder != null &&
                 !m_VideoRecorder.IsRecording && !m_VideoRecorder.IsFinishing && !m_VideoRecorder.IsPreparing;
             if (m_RecordIn4KButtonText != null)
-                m_RecordIn4KButtonText.text = m_VideoRecorder != null && m_VideoRecorder.CaptureCameraIn4K ? "4K" : "HD";
+                m_RecordIn4KButtonText.text = m_VideoRecorder != null && m_VideoRecorder.CaptureCameraIn4K ? "4K30" : "HD60"; // the movie's frame rate
         }
 
         public void ToggleRecording()
