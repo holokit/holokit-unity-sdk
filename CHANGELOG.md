@@ -71,6 +71,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 - `MicrophoneProcessing.Default`: iOS default input processing with automatic gain (as Unity's
   `Microphone`), about 17 dB louder than raw `Environment` in a measured room. The recorder's
   Environment mode can use it (`EnvironmentProcessing`), so sound-reactive apps keep their thresholds.
+- `MicrophoneProcessing.Voice`: voice processing with automatic gain (chat session mode), for apps that
+  react to the user's voice. Under `Default`, speech 5 cm from the microphone still reads about
+  -47 dBFS (iPhone 15 Pro, iOS 27), below typical sound-reactive thresholds.
 - Standard `HoloKit Default UI Canvas` prefab (`Assets/Prefabs`) with render mode, record and 4K
   buttons; the GameObject > UI > HoloKit menu now places it. Every interactive sample uses it and has
   a `HoloKitVideoRecorder`.

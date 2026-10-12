@@ -39,8 +39,8 @@ namespace HoloKit.iOS
         [SerializeField] AudioListener _gameAudioListener;
         [Tooltip("In GameAndMicrophone mode, turn off for game-only recording without microphone permission.")]
         [SerializeField] bool _includeMicrophone = true;
-        [Tooltip("Environment mode only: Environment records the raw level; Default uses iOS automatic gain " +
-                 "(louder quiet sounds, like Unity's Microphone). Must match other consumers of the shared input.")]
+        [Tooltip("Environment mode only: Environment records the raw level; Default the iOS default input (about " +
+                 "17 dB louder); Voice adds voice processing with automatic gain, for speech. Must match other consumers of the shared input.")]
         [SerializeField] MicrophoneProcessing _environmentProcessing = MicrophoneProcessing.Environment;
         [Range(0, 2)] [SerializeField] float _gameGain = 1;
         [Range(0, 2)] [SerializeField] float _microphoneGain = 1;
@@ -50,7 +50,7 @@ namespace HoloKit.iOS
         public HoloKitMicrophoneCapture MicrophoneInput { get => _microphoneInput; set => _microphoneInput = value; }
         public AudioListener GameAudioListener { get => _gameAudioListener; set => _gameAudioListener = value; }
         public bool IncludeMicrophone { get => _includeMicrophone; set => _includeMicrophone = value; }
-        /// <summary>Microphone processing in Environment mode (Environment raw level or Default automatic gain).
+        /// <summary>Microphone processing in Environment mode (Environment raw level, Default, or Voice with automatic gain).
         /// Takes effect at the next recording.</summary>
         public MicrophoneProcessing EnvironmentProcessing
         {

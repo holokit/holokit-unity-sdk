@@ -59,6 +59,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
 }
 - (BOOL)start:(int)processing {
     const BOOL aec = processing == 1;
+    const BOOL voice = processing == 3;  // voice processing with automatic gain
     if (self.engine.isRunning) {
         if (processing == self.processing) return YES;
         self.error = @"Cannot change microphone processing while the shared input is running.";
@@ -74,7 +75,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionDefaultToSpeaker |
         AVAudioSessionCategoryOptionAllowBluetoothHFP | AVAudioSessionCategoryOptionMixWithOthers;
     if (![session setCategory:AVAudioSessionCategoryPlayAndRecord
-                        mode:aec ? AVAudioSessionModeVoiceChat
+                        mode:aec || voice ? AVAudioSessionModeVoiceChat
                             : processing == 2 ? AVAudioSessionModeDefault : AVAudioSessionModeMeasurement
                      options:options error:&error]) return [self fail:error.localizedDescription];
     if (![session setActive:YES error:&error]) return [self fail:error.localizedDescription];
@@ -82,10 +83,10 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     self.engine = [AVAudioEngine new];
     AVAudioInputNode* input = self.engine.inputNode;
     // Setting the chat session mode alone does NOT enable echo cancellation.
-    if (aec) {
+    if (aec || voice) {
         if (![input setVoiceProcessingEnabled:YES error:&error] || !input.isVoiceProcessingEnabled)
             return [self fail:error.localizedDescription ?: @"Voice processing is unavailable."];
-        input.voiceProcessingAGCEnabled = NO;
+        input.voiceProcessingAGCEnabled = voice;
         if (@available(iOS 17.0, *)) {
             AVAudioVoiceProcessingOtherAudioDuckingConfiguration ducking = {
                 .enableAdvancedDucking = NO, .duckingLevel = AVAudioVoiceProcessingOtherAudioDuckingLevelMin
@@ -133,7 +134,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     NSLog(@"[Microphone] latency input=%.6f output=%.6f IO=%.6f node=%.6f inputPresentation=%.6f outputPresentation=%.6f AGC=%d",
         session.inputLatency, session.outputLatency, session.IOBufferDuration, input.latency,
         input.presentationLatency, aec ? self.engine.outputNode.presentationLatency : session.outputLatency,
-        aec ? input.voiceProcessingAGCEnabled : NO);
+        aec || voice ? input.voiceProcessingAGCEnabled : NO);
     NSLog(@"[Microphone] running aec=%d bypass=%d rate=%.0f input=%@ output=%@ volume=%.3f inputGain=%.3f",
         input.isVoiceProcessingEnabled, input.isVoiceProcessingBypassed, format.sampleRate,
         session.currentRoute.inputs, session.currentRoute.outputs, session.outputVolume, session.inputGain);

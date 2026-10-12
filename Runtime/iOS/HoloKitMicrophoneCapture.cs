@@ -15,9 +15,14 @@ namespace HoloKit.iOS
         Environment,
         /// <summary>Voice processing with echo cancellation, for recording game audio and voice together.</summary>
         EchoCancellation,
-        /// <summary>iOS default input processing with automatic gain, like Unity's Microphone class.
-        /// Quiet sounds read louder; levels are not calibrated.</summary>
+        /// <summary>iOS default input processing, without voice processing: about 17 dB above
+        /// Environment, but speech still reads low, about -47 dBFS 5 cm from the microphone
+        /// (iPhone 15 Pro, iOS 27). Use Voice to react to speech.</summary>
         Default,
+        /// <summary>Voice processing with automatic gain: speech at a steady level whatever the
+        /// distance, the app's own sound cancelled and steady noise suppressed. For apps that react to
+        /// the user's voice; levels are not calibrated.</summary>
+        Voice,
     }
 
     /// <summary>One shared native input for recording and application analysis.</summary>
