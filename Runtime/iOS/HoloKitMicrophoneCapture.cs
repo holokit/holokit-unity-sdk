@@ -25,6 +25,17 @@ namespace HoloKit.iOS
         Voice,
     }
 
+    /// <summary>Which built-in microphone to prefer. Values are serialized; append only.</summary>
+    public enum MicrophonePosition
+    {
+        /// <summary>iOS chooses (usually the bottom microphone).</summary>
+        Automatic,
+        Bottom,
+        Front,
+        /// <summary>Beside the rear cameras, facing what the camera sees.</summary>
+        Back,
+    }
+
     /// <summary>One shared native input for recording and application analysis.</summary>
     [DefaultExecutionOrder(-100), DisallowMultipleComponent]
     public sealed class HoloKitMicrophoneCapture : MonoBehaviour
@@ -34,6 +45,11 @@ namespace HoloKit.iOS
         Coroutine preparing;
         bool ownsNativeReference, paused;
         MicrophoneProcessing processing;
+        [SerializeField, Tooltip("Built-in microphone to prefer (omnidirectional where supported). Applies to " +
+            "Environment and Default processing; iOS chooses the input under voice processing.")]
+        MicrophonePosition _position = MicrophonePosition.Automatic;
+        /// <summary>Takes effect the next time the input starts.</summary>
+        public MicrophonePosition Position { get => _position; set => _position = value; }
         public bool IsReady { get; private set; }
         public bool IsPreparing => preparing != null;
         public string LastError { get; private set; }
@@ -94,7 +110,7 @@ namespace HoloKit.iOS
                 Debug.Log($"[Microphone] Native permission={HoloKit_MicrophonePermission()} mode={processing}");
                 if (HoloKit_MicrophonePermission() != 1)
                     LastError = "Microphone permission was denied.";
-                else if (HoloKit_MicrophoneStart((int)processing) != 0)
+                else if (SetPositionAndStart() != 0)
                     LastError = NativeError() ?? "Could not start the microphone.";
                 else
                 {
@@ -114,6 +130,12 @@ namespace HoloKit.iOS
                 HoloKit_MicrophoneStop();
                 ownsNativeReference = false;
             }
+        }
+
+        int SetPositionAndStart()
+        {
+            HoloKit_MicrophoneSetPosition((int)_position);
+            return HoloKit_MicrophoneStart((int)processing);
         }
 
         public int ReadLatestSamples(float[] samples)
@@ -175,6 +197,7 @@ namespace HoloKit.iOS
         [DllImport(Library)] static extern int HoloKit_MicrophonePermission();
         [DllImport(Library)] static extern void HoloKit_MicrophoneRequestPermission();
         [DllImport(Library)] static extern int HoloKit_MicrophoneStart(int processing);
+        [DllImport(Library)] static extern void HoloKit_MicrophoneSetPosition(int position);
         [DllImport(Library)] static extern void HoloKit_MicrophoneStop();
         [DllImport(Library)] static extern int HoloKit_MicrophoneIsRunning();
         [DllImport(Library)] static extern int HoloKit_MicrophoneSampleRate();

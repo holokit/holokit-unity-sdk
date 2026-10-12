@@ -28,7 +28,8 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
 @property(nonatomic, copy) NSString* previousCategory;
 @property(nonatomic, copy) NSString* previousMode;
 @property(nonatomic) AVAudioSessionCategoryOptions previousOptions;
-@property(nonatomic) int processing; // 0 raw (Measurement), 1 echo cancellation, 2 iOS default (system gain)
+@property(nonatomic) int processing; // 0 raw (Measurement), 1 echo cancellation, 2 iOS default, 3 voice
+@property(nonatomic) int position;   // 0 automatic, 1 bottom, 2 front, 3 back built-in microphone
 @property(nonatomic) BOOL tapInstalled;
 @property(nonatomic) NSUInteger users;
 @end
@@ -51,6 +52,27 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     microphoneRate.store(0, std::memory_order_release);
     microphoneWritten.store(0, std::memory_order_release);
     [self restoreSession];
+}
+// Prefers one of the built-in microphones; on failure iOS keeps its own choice and the reason is logged.
+- (void)selectPosition {
+    if (self.position <= 0 || self.position > 3) return;
+    NSString* orientation = self.position == 1 ? AVAudioSessionOrientationBottom
+        : self.position == 2 ? AVAudioSessionOrientationFront : AVAudioSessionOrientationBack;
+    AVAudioSession* session = AVAudioSession.sharedInstance;
+    for (AVAudioSessionPortDescription* port in session.availableInputs) {
+        if (![port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) continue;
+        for (AVAudioSessionDataSourceDescription* source in port.dataSources) {
+            if (![source.orientation isEqualToString:orientation]) continue;
+            NSError* error = nil;
+            if ([source.supportedPolarPatterns containsObject:AVAudioSessionPolarPatternOmnidirectional])
+                [source setPreferredPolarPattern:AVAudioSessionPolarPatternOmnidirectional error:&error];
+            if (!error) [port setPreferredDataSource:source error:&error];
+            if (!error) [session setPreferredInput:port error:&error];
+            if (error) NSLog(@"[Microphone] could not select the %@ microphone: %@", orientation, error.localizedDescription);
+            return;
+        }
+    }
+    NSLog(@"[Microphone] this device has no %@ built-in microphone", orientation);
 }
 - (BOOL)fail:(NSString*)message {
     self.error = message ?: @"Microphone capture failed.";
@@ -79,6 +101,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
                             : processing == 2 ? AVAudioSessionModeDefault : AVAudioSessionModeMeasurement
                      options:options error:&error]) return [self fail:error.localizedDescription];
     if (![session setActive:YES error:&error]) return [self fail:error.localizedDescription];
+    if (!aec && !voice) [self selectPosition];
 
     self.engine = [AVAudioEngine new];
     AVAudioInputNode* input = self.engine.inputNode;
@@ -177,6 +200,7 @@ int HoloKit_MicrophoneStart(int processing) {
     Microphone().users++;
     return 0;
 }
+void HoloKit_MicrophoneSetPosition(int position) { Microphone().position = position; }
 int HoloKit_MicrophoneRetain() {
     if (!Microphone().engine.isRunning) return -1;
     Microphone().users++;
