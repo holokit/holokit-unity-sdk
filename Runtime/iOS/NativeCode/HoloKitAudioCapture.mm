@@ -31,18 +31,34 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
 @property(nonatomic) int processing; // 0 raw (Measurement), 1 echo cancellation, 2 iOS default, 3 voice
 @property(nonatomic) int position;   // 0 automatic, 1 bottom, 2 front, 3 back built-in microphone
 @property(nonatomic) BOOL tapInstalled;
+@property(nonatomic) BOOL othersWerePlaying;
 @property(nonatomic) NSUInteger users;
 @end
 
 @implementation HoloKitMicrophone
+// Switching to PlayAndRecord interrupts another app's non-mixable playback (Apple Music, YouTube), even
+// with MixWithOthers; audiomxd logs "category 'PlayAndRecord' INTERRUPTING ... 'MediaPlayback'". That app
+// stays paused while this session is active and, after a plain deactivation, is told the interruption
+// is not resumable. Deactivating with NotifyOthersOnDeactivation ends it as resumable: the other app
+// resumes within half a second and then keeps playing alongside the microphone (iPhone 15 Pro, iOS 27).
+- (void)letOthersResume {
+    AVAudioSession* session = AVAudioSession.sharedInstance;
+    NSError* error = nil;
+    if (![session setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error])
+        NSLog(@"[Microphone] could not hand playback back to other apps: %@", error.localizedDescription);
+    if (![session setActive:YES error:&error])
+        NSLog(@"[Microphone] could not reactivate the audio session: %@", error.localizedDescription);
+}
 - (void)restoreSession {
     if (!self.previousCategory) return;
     AVAudioSession* session = AVAudioSession.sharedInstance;
-    // Do not deactivate the shared session: Unity may still be playing game audio.
     [session setCategory:self.previousCategory mode:self.previousMode
                  options:self.previousOptions error:nil];
     self.previousCategory = nil;
     self.previousMode = nil;
+    // Reactivated at once: Unity may still be playing game audio.
+    if (self.othersWerePlaying || session.isOtherAudioPlaying) [self letOthersResume];
+    self.othersWerePlaying = NO;
 }
 - (void)stop {
     [self.engine stop];
@@ -93,11 +109,10 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     self.previousCategory = session.category;
     self.previousMode = session.mode;
     self.previousOptions = session.categoryOptions;
+    self.othersWerePlaying = session.isOtherAudioPlaying;
     NSError* error = nil;
-    // Bluetooth hands-free (HFP) only for voice processing. With HFP and DefaultToSpeaker together, iOS
-    // kept other apps' music paused for as long as the input ran; with A2DP (or without Bluetooth) their
-    // music resumes within a few seconds and stays on Bluetooth headphones (iPhone 15 Pro, iOS 27,
-    // 2026-10-12, EchoVision's listen-session probe).
+    // Bluetooth hands-free (HFP) only for voice processing, which needs a headset microphone. Otherwise
+    // A2DP, so music on Bluetooth headphones keeps its quality while the built-in microphone listens.
     AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionDefaultToSpeaker |
         AVAudioSessionCategoryOptionMixWithOthers |
         (aec || voice ? AVAudioSessionCategoryOptionAllowBluetoothHFP : AVAudioSessionCategoryOptionAllowBluetoothA2DP);
@@ -107,6 +122,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
                      options:options error:&error]) return [self fail:error.localizedDescription];
     if (![session setActive:YES error:&error]) return [self fail:error.localizedDescription];
     if (!aec && !voice) [self selectPosition];
+    if (self.othersWerePlaying) [self letOthersResume];
 
     self.engine = [AVAudioEngine new];
     AVAudioInputNode* input = self.engine.inputNode;
