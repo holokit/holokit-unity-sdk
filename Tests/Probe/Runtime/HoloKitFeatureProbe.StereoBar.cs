@@ -67,6 +67,19 @@ public partial class HoloKitFeatureProbe
         manager.OnStereoTrigger -= onTrigger;
         manager.StereoTriggerLabel = "TRIGGER";
 
+        // Holding TRIGGER through its touch handler leaves the other controls and the marker shown.
+        var trigger = bar.transform.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "TRIGGER");
+        var triggerArea = trigger != null ? trigger.GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(b => b.GetType().Name == "HoloKitBarTouchArea") : null;
+        var triggerHeld = triggerArea != null ? triggerArea.GetType().GetField("Held", Any).GetValue(triggerArea) as Action<bool> : null;
+        if (Check("S3.trigger-control", triggerHeld != null, "TRIGGER has a hold handler"))
+        {
+            triggerHeld(true);
+            yield return null;
+            var press = (HoloKitBarPress)typeof(HoloKitStereoBar).GetField("m_Press", Any).GetValue(bar);
+            Check("S3.trigger-keeps-bar", press.Held == null, $"held control={press.Held?.ToString() ?? "none"} while TRIGGER is down");
+            triggerHeld(false);
+        }
+
         // Frame rate follows the thermal state.
         var apple = new AppleNativeProvider();
         int thermal = (int)apple.GetThermalState();

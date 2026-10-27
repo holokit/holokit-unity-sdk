@@ -234,10 +234,11 @@ namespace HoloKit.UI
         {
             var control = Control("TRIGGER", m_BarLayer, HoloKitBarControl.Trigger);
             var touch = TouchArea(control, m_Layout.TriggerHitArea, out m_TriggerHighlight);
+            // Unlike the other controls, TRIGGER leaves the bar and the alignment marker as they are:
+            // it is pressed often and quickly, and hiding the rest made the whole bar blink.
             touch.Held = held =>
             {
                 m_TriggerHeld = held;
-                Press(held ? HoloKitBarControl.Trigger : null);
                 if (held)
                     FireTrigger();
             };

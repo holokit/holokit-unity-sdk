@@ -148,7 +148,7 @@ namespace HoloKit.UI
 
     /// <summary>
     /// Which stereo control is held. As in the HoloKit app, holding one hides the others
-    /// (and the alignment marker).
+    /// (and the alignment marker); TRIGGER is never held here, so it leaves the bar as it is.
     /// </summary>
     public sealed class HoloKitBarPress
     {
