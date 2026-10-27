@@ -58,8 +58,9 @@ camera (iPhone 15 Pro, wide head motion, ARKit 60 Hz; Swift SDK, same algorithm)
 
 ## Frame rate: required settings
 
-Stereo needs the display rate. `HoloKitCameraManager` sets `Application.targetFrameRate`
-to the display maximum in Stereo (`m_StereoFrameRate`, 0 = display maximum) and turns off
+Stereo needs a steady frame rate. `HoloKitCameraManager` sets `Application.targetFrameRate`
+to 60 fps in Stereo by default (`m_StereoFrameRate`, 0 = 60, as in the Swift SDK; 120 is allowed on
+ProMotion iPhones but heats the phone) and turns off
 `ARSession.matchFrameRateRequested`, which otherwise blocks every frame until the next
 ARKit frame (30 Hz on a warm phone). Both are restored in Mono.
 

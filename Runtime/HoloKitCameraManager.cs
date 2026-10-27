@@ -220,9 +220,12 @@ namespace HoloKit
         [Tooltip("The list of supported screen orientations under Mono mode.")]
         [SerializeField] MonoScreenOrientation m_SupportedMonoScreenOrientations = MonoScreenOrientation.Portrait | MonoScreenOrientation.LandscapeLeft;
 
-        [Tooltip("Target frame rate in Stereo mode. 0 uses the display's maximum (120 Hz on ProMotion iPhones). " +
-                 "Unity's iOS default of 30 fps makes world-locked content step visibly.")]
+        [Tooltip("Target frame rate in Stereo mode. 0 uses 60 fps, the HoloKit Swift SDK's default; 120 uses " +
+                 "ProMotion's maximum but heats the phone. Unity's iOS default of 30 fps makes world-locked content step visibly.")]
         [SerializeField] int m_StereoFrameRate = 0;
+
+        /// <summary>The Stereo frame rate when <c>m_StereoFrameRate</c> is 0.</summary>
+        public const int DefaultStereoFrameRate = 60;
 
         [Tooltip("Lower the Stereo frame rate as the phone heats up: Serious caps it at 40 fps, Critical at 30 " +
                  "(divisors of 120 Hz, so frames stay evenly paced). Fewer frames is the main way to cool down.")]
@@ -298,9 +301,7 @@ namespace HoloKit
             if (session != null)
                 session.matchFrameRateRequested = false;
             m_StereoFrameRateApplied = true;
-            int maximum = m_StereoFrameRate > 0
-                ? m_StereoFrameRate
-                : Mathf.Max(60, (int)Math.Round(Screen.currentResolution.refreshRateRatio.value));
+            int maximum = m_StereoFrameRate > 0 ? m_StereoFrameRate : DefaultStereoFrameRate;
             Application.targetFrameRate = StereoFrameRate(maximum, m_ThermalState, m_AdaptStereoFrameRateToThermalState);
         }
 

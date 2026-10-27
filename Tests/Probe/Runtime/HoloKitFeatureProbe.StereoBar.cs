@@ -84,11 +84,12 @@ public partial class HoloKitFeatureProbe
         var apple = new AppleNativeProvider();
         int thermal = (int)apple.GetThermalState();
         apple.Dispose();
-        int maximum = Mathf.Max(60, (int)Math.Round(Screen.currentResolution.refreshRateRatio.value));
+        int configured = Field<int>(manager, "m_StereoFrameRate");
+        int maximum = configured > 0 ? configured : HoloKitCameraManager.DefaultStereoFrameRate;
         int expected = HoloKitCameraManager.StereoFrameRate(maximum, thermal, manager.AdaptStereoFrameRateToThermalState);
         yield return new WaitForSecondsRealtime(1.5f);
         Check("S4.framerate", Application.targetFrameRate == expected,
-            $"target={Application.targetFrameRate} expected={expected} thermal={thermal} display={maximum}");
+            $"target={Application.targetFrameRate} expected={expected} thermal={thermal} maximum={maximum}");
 
         // Stereo takes through the bar's RECORD handler: 2K with the HD camera, 4K with the 4K camera.
         var recorder = manager.GetComponentInChildren<HoloKitVideoRecorder>();

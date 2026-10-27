@@ -60,9 +60,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
   `CAMetalDrawable.presentedTime` plus scan-out, and smooths frame-to-frame jumps. Host tests
   (`Tests/Tracking`) include parity with the Swift SDK on an iPhone 15 Pro trace. See
   `Documentation~/LowLatencyTracking.md`.
-- Stereo mode renders at the display rate: `HoloKitCameraManager` sets `targetFrameRate` to the
-  display maximum (`m_StereoFrameRate`) and turns off `ARSession.matchFrameRateRequested`, which
-  otherwise blocks each frame on the next ARKit frame; both are restored in Mono.
+- Stereo mode renders at 60 fps by default, as the Swift SDK does: `HoloKitCameraManager` sets
+  `targetFrameRate` (`m_StereoFrameRate`, 0 = 60; 120 on ProMotion if set, but the phone heats up)
+  and turns off `ARSession.matchFrameRateRequested`, which otherwise blocks each frame on the next
+  ARKit frame; both are restored in Mono.
 - HoloKit Project Validation rules (Project Settings > XR Plug-in Management > Project
   Validation, with Fix buttons), also checked before every build: the iOS thermal frame-rate
   cap that drops stereo to 30 fps (an error: the build stops), the microphone usage
