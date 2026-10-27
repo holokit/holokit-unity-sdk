@@ -170,6 +170,8 @@ You can now build the project onto an iPhone to view the results.
 
 <img src="https://github.com/holokit/holokit-unity-sdk/assets/44870300/aba052ed-6433-41ba-9329-a6219364f7ea" alt="Hand Tracking Result" width="600"/>
 
+With **Hand Joints Visibility** on (the default), the first hand shows as the Swift SDK's skeleton: yellow joints and cyan bones, drawn over the real hand so AR occlusion never hides it.
+
 `HandTrackingManager` can be configured to track either one hand or both hands. As hand tracking is energy-intensive, if dual hand tracking isn't necessary, we advise tracking only one hand to conserve energy. Set `HandTrackingManager.MaxHandCount` in its inspector within the Unity editor.
 
 To obtain specific hand joint positions in code, use `HandTrackingManager.GetHandJointPosition(int handIndex, JointName jointName)` or `HandTrackingManager.HandPoses3D`. The parameter `handIndex` is the hand detection sequence; `HandPoseDetector.HandChiralities[handIndex]` tells left from right (iOS 15 and later). When only one hand is detected, `handIndex` should always be 0. If two hands are detected, `handIndex` can be either 0 or 1. The number of detected hands can be accessed via `HandTrackingManager.HandCount`.

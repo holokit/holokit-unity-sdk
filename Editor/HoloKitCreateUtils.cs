@@ -43,6 +43,10 @@ namespace HoloKit.Editor
             var origin = originGo.GetComponent<XROrigin>();
             origin.CameraFloorOffsetObject = offsetGo;
             origin.Camera = arCamera;
+            // As in every SDK sample: no standing-height offset. XROrigin's default 1.1176 m Camera Y
+            // Offset lifted the whole rig above ARKit's session space.
+            origin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
+            origin.CameraYOffset = 0f;
 
             holokitCameraGo.AddComponent<HoloKitCameraManager>();
 

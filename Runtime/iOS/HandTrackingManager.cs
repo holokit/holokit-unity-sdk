@@ -23,7 +23,8 @@ namespace HoloKit.iOS
         [Tooltip("The maximum number of hands to be detected. We recommend to set this value to 1 to save energy if you don't need to detect both hands.")]
         [SerializeField] MaxHandCount m_MaxHandCount = MaxHandCount.One;
 
-        [Tooltip("Set this value to true to show the position of each hand joint. Set this value to false the hide hand joints.")]
+        [Tooltip("Show the first tracked hand as the HoloKit Swift SDK's skeleton (yellow joints, cyan bones), " +
+                 "drawn over the real hand so AR occlusion never hides it (HandSkeletonView).")]
         [SerializeField] bool m_HandJointsVisibility = true;
 
         List<GameObject> m_Hands = new();
@@ -140,13 +141,22 @@ namespace HoloKit.iOS
                 {
                     var joint = hand.GetChild(j);
                     m_HandJoints[i].Add((JointName)j, joint.gameObject);
-                    if (!m_HandJointsVisibility)
-                        joint.GetComponent<MeshRenderer>().enabled = false;
+                    // The joint objects stay as positioned markers for code that reads them;
+                    // HandSkeletonView draws the visible hand.
+                    if (joint.TryGetComponent<MeshRenderer>(out var jointRenderer))
+                        jointRenderer.enabled = false;
                 }
             }
+            if (m_HandJointsVisibility && !TryGetComponent<HandSkeletonView>(out _))
+                gameObject.AddComponent<HandSkeletonView>();
 
             arCameraManager.frameReceived += OnFrameReceived;
             m_HandPoseDetector = new(m_MaxHandCount);
+            // Joints arrive in ARKit session space, like the AR camera's pose: the XR Origin's camera offset.
+            var origin = arCameraManager.GetComponentInParent<Unity.XR.CoreUtils.XROrigin>();
+            m_HandPoseDetector.SessionSpace = origin != null && origin.CameraFloorOffsetObject != null
+                ? origin.CameraFloorOffsetObject.transform
+                : arCameraManager.transform.parent;
             m_HandPoseDetector.OnHandPoseUpdated += OnHandPoseUpdated;
             m_HandPoseDetector.OnHandPoseLost += OnHandPoseLost;
         }

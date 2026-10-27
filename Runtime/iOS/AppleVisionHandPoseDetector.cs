@@ -17,7 +17,17 @@ namespace HoloKit.iOS
 
         public List<Dictionary<JointName, Vector2>> HandPoses2D => m_HandPoses2D;
 
+        /// <summary>
+        /// Joint world positions. Vision and LiDAR give them in ARKit session space; they go through
+        /// <see cref="SessionSpace"/> (the XR Origin's camera offset) when it is set.
+        /// </summary>
         public List<Dictionary<JointName, Vector3>> HandPoses3D => m_HandPoses3D;
+
+        /// <summary>
+        /// The transform of ARKit session space, as for the AR camera's pose: the XR Origin's Camera
+        /// Floor Offset Object. <see cref="HandTrackingManager"/> sets it; null keeps session space.
+        /// </summary>
+        public Transform SessionSpace { get; set; }
 
         public List<Dictionary<JointName, float>> HandPosesConfidence => m_HandPosesConfidence;
 
@@ -152,11 +162,15 @@ namespace HoloKit.iOS
                     int length = 3 * 21 * handCount;
                     float[] results = new float[length];
                     Marshal.Copy(results3DPtr, results, 0, length);
+                    var sessionSpace = detector.SessionSpace;
                     for (int i = 0; i < handCount; i++)
                     {
                         for (int j = 0; j < 21; j++)
                         {
-                            detector.m_HandPoses3D[i][(JointName)j] = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                            var position = new Vector3(results[i * 3 * 21 + j * 3], results[i * 3 * 21 + j * 3 + 1], results[i * 3 * 21 + j * 3 + 2]);
+                            // Session space to world, as the AR camera's pose is: without this the hand
+                            // sat the XR Origin's camera offset (1.12 m by default) below the real hand.
+                            detector.m_HandPoses3D[i][(JointName)j] = sessionSpace != null ? sessionSpace.TransformPoint(position) : position;
                         }
                     }
                 }

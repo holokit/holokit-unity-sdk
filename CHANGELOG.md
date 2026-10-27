@@ -34,6 +34,11 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
   first copies `Samples~` into the carrier project (`HoloKitSampleSync`), so it never runs stale
   sample copies; new `lowlatency` and `pinchtoplace` suites. Sample scenes re-saved through Unity
   so their files carry the new and renamed fields.
+- Hand skeleton from the Swift SDK: `HandTrackingManager` (Hand Joints Visibility, on by default) shows
+  the first hand as yellow joints and cyan bones (`HandSkeletonView`, topology in `HandSkeleton`), drawn
+  over the real hand so AR occlusion never hides it. It replaces the white joint spheres, which the
+  real hand's own depth covered with an `AROcclusionManager` in the scene; the joint objects stay as
+  positioned markers.
 - `FingerPinchDetector`: which finger the thumb pinches (the closest under `PinchRatio`), once per
   pinch after three matching observations; the **Pinch To Place** sample places a different object
   per finger where the thumb and finger meet.
@@ -125,6 +130,12 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 ### Fixed
 
+- Hand joints ignored the XR Origin: they were placed in ARKit session space, so with the XR Origin's
+  default Camera Y Offset (1.1176 m) the hand skeleton, pinch points and gestures sat 1.12 m below the
+  real hand. `AppleVisionHandPoseDetector.SessionSpace` (set by `HandTrackingManager` to the XR
+  Origin's camera offset) now takes them to world space, as the AR camera's pose is.
+- GameObject > XR > HoloKit > HoloKit XR Origin left XROrigin's 1.1176 m Camera Y Offset in place; it
+  now uses Floor and 0 m, as every sample does.
 - Phone model lists failed to load when the package was installed from git or a tarball: they are
   now loaded by GUID instead of a `Packages/` path.
 
