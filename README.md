@@ -40,7 +40,7 @@ We aim to continually test and verify compatibility with newer versions of these
 ## Phone Compatibility
 
 ### iOS
-- iOS 26.0 or higher
+- iOS 27.0 or higher (Player Settings > Target minimum iOS Version 27.0; Project Validation checks it and blocks older targets)
 
 HoloKit was primarily built for iOS devices. Please see the [Supported iOS Devices](Documentation~/Supported_iOS_Devices.md) to check if your iPhone is supported.
 
@@ -178,7 +178,7 @@ To obtain specific hand joint positions in code, use `HandTrackingManager.GetHan
 
 Hand tracking follows the HoloKit Swift SDK. Vision runs on a background queue, so the main thread never waits for it, and on every third AR frame (**Frame Interval**, about 20 Hz): enough for gestures at a third of the cost. Each joint takes its own LiDAR depth only when the 3x3 neighbourhood agrees and it lies within 10 cm of the hand's median depth; otherwise it takes the hand's depth (remembered for 0.5 s per hand), else a 0.65 m plane. So a fingertip over the background no longer jumps to the wall. Joint world positions are smoothed with a 1€ filter (**Smooth Joints**, **Smoothing**); `HandPoseDetector.HandPoses3D` keeps the raw ones.
 
-Please note, the hand tracking feature is only compatible with iOS 18.0 or higher devices equipped with a LiDAR depth sensor.
+Please note, the hand tracking feature needs a device with a LiDAR depth sensor.
 
 ### Hand Gesture Recognition
 

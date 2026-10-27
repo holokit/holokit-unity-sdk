@@ -22,9 +22,23 @@ namespace HoloKit.Editor
         const string Docs = "https://github.com/holokit/holokit-unity-sdk";
         const string ForceSpeakers = "Force IOS Speakers When Recording";
 
+        /// The oldest iOS HoloKit supports (Player Settings > Target minimum iOS Version).
+        public const string MinimumIOSVersion = "27.0";
+
         /// iOS rules, also run by <see cref="HoloKitBuildValidation"/>.
         public static readonly BuildValidationRule[] iOSRules =
         {
+            new()
+            {
+                Category = Category,
+                Message = $"Target minimum iOS Version is below {MinimumIOSVersion}. HoloKit requires iOS " +
+                          $"{MinimumIOSVersion} or later.",
+                CheckPredicate = TargetsMinimumIOS,
+                FixIt = () => PlayerSettings.iOS.targetOSVersionString = MinimumIOSVersion,
+                FixItMessage = $"Set Player Settings > iOS > Other Settings > Target minimum iOS Version to {MinimumIOSVersion}.",
+                HelpLink = Docs + "#ios",
+                Error = true,
+            },
             new()
             {
                 Category = Category,
@@ -99,6 +113,15 @@ namespace HoloKit.Editor
             BuildTargetGroup.Android => AndroidRules,
             _ => System.Array.Empty<BuildValidationRule>(),
         };
+
+        static bool TargetsMinimumIOS()
+        {
+            // Player Settings accepts "27" as well as "27.0"; System.Version needs a minor part.
+            string target = PlayerSettings.iOS.targetOSVersionString?.Trim() ?? "";
+            if (!target.Contains('.')) target += ".0";
+            return System.Version.TryParse(target, out var version) &&
+                   version >= System.Version.Parse(MinimumIOSVersion);
+        }
 
         static bool ThermalCapBelow60()
         {

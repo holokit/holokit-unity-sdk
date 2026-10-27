@@ -17,6 +17,7 @@ namespace HoloKit.Validation.Tests
         bool m_Adjust;
         int m_Serious;
         string m_Microphone;
+        string m_TargetIOS;
         bool m_ForceSpeakers;
         bool m_AndroidDefaultAPIs;
         GraphicsDeviceType[] m_AndroidAPIs;
@@ -28,6 +29,7 @@ namespace HoloKit.Validation.Tests
             m_Adjust = m_Settings.FindProperty("adjustIOSFPSUsingThermalState").boolValue;
             m_Serious = m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue;
             m_Microphone = PlayerSettings.iOS.microphoneUsageDescription;
+            m_TargetIOS = PlayerSettings.iOS.targetOSVersionString;
             m_ForceSpeakers = m_Settings.FindProperty("Force IOS Speakers When Recording").boolValue;
             m_AndroidDefaultAPIs = PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
             m_AndroidAPIs = PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
@@ -41,6 +43,7 @@ namespace HoloKit.Validation.Tests
             m_Settings.FindProperty("thermalStateSeriousIOSFPS").intValue = m_Serious;
             m_Settings.ApplyModifiedPropertiesWithoutUndo();
             PlayerSettings.iOS.microphoneUsageDescription = m_Microphone;
+            PlayerSettings.iOS.targetOSVersionString = m_TargetIOS;
             m_Settings.Update();
             m_Settings.FindProperty("Force IOS Speakers When Recording").boolValue = m_ForceSpeakers;
             m_Settings.ApplyModifiedPropertiesWithoutUndo();
@@ -70,6 +73,25 @@ namespace HoloKit.Validation.Tests
             Assert.IsTrue(rule.CheckPredicate(), "a 60 fps floor is acceptable");
             SetThermal(true, 30);
             rule.FixIt();
+            Assert.IsTrue(rule.CheckPredicate());
+        }
+
+        [Test]
+        public void MinimumIOSVersion_IsRequiredAndFixed()
+        {
+            var rule = Rule(BuildTargetGroup.iOS, "Target minimum iOS Version");
+            Assert.IsTrue(rule.Error, "an older iOS target must stop the build");
+            PlayerSettings.iOS.targetOSVersionString = "18.0";
+            Assert.IsFalse(rule.CheckPredicate(), "iOS 18 is below the minimum");
+            PlayerSettings.iOS.targetOSVersionString = "26.4";
+            Assert.IsFalse(rule.CheckPredicate(), "iOS 26.4 is below the minimum");
+            PlayerSettings.iOS.targetOSVersionString = "27";
+            Assert.IsTrue(rule.CheckPredicate(), "\"27\" is 27.0");
+            PlayerSettings.iOS.targetOSVersionString = "27.1";
+            Assert.IsTrue(rule.CheckPredicate());
+            PlayerSettings.iOS.targetOSVersionString = "18.0";
+            rule.FixIt();
+            Assert.AreEqual(HoloKitProjectValidation.MinimumIOSVersion, PlayerSettings.iOS.targetOSVersionString);
             Assert.IsTrue(rule.CheckPredicate());
         }
 

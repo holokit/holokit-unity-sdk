@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Previews: 0.6.0-preview.1 (2026-10-12), 0.6.0-preview.2 (2026-10-27).
 
-Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
+Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or later.
 
 ### Added
 
@@ -117,6 +117,8 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 ### Changed
 
+- HoloKit requires iOS 27.0 or later. Project Validation reports a Target minimum iOS Version below
+  27.0 as an error that blocks the build, with a fix that sets 27.0.
 - AR Foundation and ARKit XR Plugin 6.7.0 (were 6.4.3). ARKit XR Plugin 6.7.0 fixes AR content
   rotated 90 degrees in apps built with the iOS 27 SDK: it reads the interface orientation from
   `UIWindowScene`. A project that lists either package in its own manifest must raise it to 6.7.0.
