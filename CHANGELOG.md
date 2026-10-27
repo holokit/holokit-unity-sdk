@@ -13,15 +13,15 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 - Stereo bar, ported from the HoloKit Swift SDK: HoloKit's standard controls along the top edge
   in Stereo, in the band above the headset frame and sized in millimetres for each phone.
-  MORE (hold: fps, session and recording time, thermal state, `StereoInfo`), RECORD (slide left
-  to start or stop), MONO (tap), OPTIONS (slide right: audio VOICE / GAME / BOTH, HANDS ON / OFF,
-  CAMERA HD / 4K; closes after 4 s) and TRIGGER (hold: `HoloKitCameraManager.OnStereoTrigger`).
-  Holding MORE, RECORD or OPTIONS hides the others and the alignment marker; TRIGGER leaves the
-  bar as it is, so quick presses do not make it blink. iOS edge gestures are deferred while it
-  shows. `HoloKitCameraManager.StereoBarItems` picks the controls, and `StereoTriggerLabel` /
-  `StereoTriggerPressedLabel` rename TRIGGER. Off by default (None), so the Default UI Canvas keeps
-  its Stereo / Mono button in Stereo; with controls, the canvas hides its buttons in Stereo. Stereo
-  recordings never prompt for the microphone.
+  MORE (hold: fps, session and recording time, thermal state, `StereoInfo`, in the bar's bold
+  italic), RECORD (slide left to start or stop), MONO (tap), OPTIONS (slide right: audio
+  VOICE / GAME / BOTH, HANDS ON / OFF, CAMERA HD / 4K; closes after 4 s) and TRIGGER (hold:
+  `HoloKitCameraManager.OnStereoTrigger`). Holding MORE, RECORD or OPTIONS hides the others and
+  the alignment marker; TRIGGER leaves the bar as it is, so quick presses do not make it blink.
+  iOS edge gestures are deferred while it shows. `HoloKitCameraManager.StereoBarItems` picks the
+  controls, and `StereoTriggerLabel` / `StereoTriggerPressedLabel` rename TRIGGER. Off by default
+  (None), so the Default UI Canvas keeps its Stereo / Mono button in Stereo; with controls, the
+  canvas hides its buttons in Stereo. Stereo recordings never prompt for the microphone.
 - Stereo alignment guide from the HoloKit app and Swift SDK: the outline of HoloKit X's phone
   opening (1 mm around the viewports, from 2.5 mm above them, open at the bottom) and a grey
   marker line at the notch, replacing the white marker. It hides after 10 s without a touch

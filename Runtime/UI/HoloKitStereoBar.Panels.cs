@@ -64,13 +64,14 @@ namespace HoloKit.UI
             var black = band.gameObject.AddComponent<Image>();
             black.color = Color.black;
             black.raycastTarget = false;
+            // The same type as the bar's controls (bold italic), so MORE reads as part of the menu.
             m_InfoRow = Row("Info", layer, -50f, 0f);
-            m_FpsText = Label(m_InfoRow, "", style: FontStyle.Normal);
-            m_MainText = Label(m_InfoRow, "", style: FontStyle.Normal);
-            m_ClockText = Label(m_InfoRow, "", style: FontStyle.Normal);
-            m_RecText = Label(m_InfoRow, "", style: FontStyle.Normal, color: Accent);
+            m_FpsText = Label(m_InfoRow, "");
+            m_MainText = Label(m_InfoRow, "");
+            m_ClockText = Label(m_InfoRow, "");
+            m_RecText = Label(m_InfoRow, "", color: Accent);
             m_Thermal = Node("Thermal", m_InfoRow);
-            Label(m_Thermal, "Thermal", style: FontStyle.Normal);
+            Label(m_Thermal, "Thermal");
             m_ThermalDot = Glyph(m_Thermal, HoloKitBarGlyph.Kind.Dot, 1.6f, 1.6f);
             LayoutRow(m_Thermal, 0.8f);
             m_InfoLayer.SetActive(false);
@@ -121,7 +122,7 @@ namespace HoloKit.UI
 #endif
             var lines = m_Manager.StereoInfo ?? Array.Empty<string>();
             while (m_InfoLines.Count < lines.Length)
-                m_InfoLines.Add(Label(m_InfoRow, "", style: FontStyle.Normal));
+                m_InfoLines.Add(Label(m_InfoRow, ""));
             for (int i = 0; i < m_InfoLines.Count; i++)
             {
                 m_InfoLines[i].gameObject.SetActive(i < lines.Length);
