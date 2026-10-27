@@ -29,6 +29,16 @@ public partial class HoloKitFeatureProbe
         manager.ScreenRenderMode = ScreenRenderMode.Stereo;
         yield return new WaitForSecondsRealtime(3);
 
+        // HoloKitCameraManager requests LandscapeLeft again on any frame that reports another orientation;
+        // iOS must report it back, or Unity rebuilds its root view controller every frame.
+        int landscape = 0;
+        for (int i = 0; i < 30; i++)
+        {
+            if (Screen.orientation == ScreenOrientation.LandscapeLeft) landscape++;
+            yield return null;
+        }
+        Check("S1.landscape", landscape == 30, $"LandscapeLeft in {landscape}/30 frames, now {Screen.orientation}");
+
         // Bar geometry on this phone: millimetres from the profile, pixels from the screen.
         var bar = manager.StereoBar;
         if (!Check("S1.bar", bar != null && bar.isActiveAndEnabled && bar.HasControls,
