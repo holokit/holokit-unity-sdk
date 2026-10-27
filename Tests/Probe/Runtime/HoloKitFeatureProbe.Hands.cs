@@ -83,7 +83,11 @@ public partial class HoloKitFeatureProbe
         var detected = samples.Where(s => s.stimulus == "one" && s.count > 0).ToList();
         bool finite = detected.All(s => s.finite);
         float depth = Median(detected.Select(s => s.depth).ToList());
-        Check("B2.one-hand", one >= 0.6f && finite, $"detectedFraction={one:F2} jointsFinite={finite}");
+        // The two-hand detector on the same frames separates "the camera cannot see a hand" from a
+        // failure of the scene's one-hand configuration.
+        float oneBoth = Fraction("one", s => s.bothCount >= 1);
+        Check("B2.one-hand", one >= 0.6f && finite,
+            $"detectedFraction={one:F2} (two-hand detector {oneBoth:F2}) jointsFinite={finite}");
         Check("B2.depth", depth > 0.15f && depth < 2.5f, $"medianWristDistance={depth:F3}m");
         float two = Fraction("two", s => s.bothCount == 2);
         Check("B3.two-hands", two >= 0.4f, $"twoHandFraction={two:F2}");
@@ -108,31 +112,40 @@ public partial class HoloKitFeatureProbe
             Debug.Log($"[SDK-GESTURE] {g} during={m_Stimulus} t={StimulusAge:F2}");
         };
         recognition.OnHandGestureChanged += onChanged;
+        // The recognizer finds or creates its detector in Start, after the scene's first frame.
+        yield return null;
         // Diagnostics use the same 2D joints the recognizer reads.
         AppleVisionHandPoseDetector detector = Field<AppleVisionHandPoseDetector>(recognition, "m_HandPoseDetector");
         var tracking = Field<HandTrackingManager>(recognition, "m_HandTrackingManager");
         if (tracking != null) detector = tracking.HandPoseDetector;
-        var diagnostics = new Dictionary<string, (int frames, int hands, List<float> pinch, List<float> straight, List<float> indexAngle)>();
+        Debug.Log($"[SDK-GESTURE-DIAG] detector={(detector != null ? "found" : "missing")}");
+        var diagnostics = new Dictionary<string, (int frames, int hands, List<float> pinch, List<float> straight, List<float> confidence, int pinched, int five)>();
         yield return During(() =>
         {
             if (!Settled || detector == null) return;
-            if (!diagnostics.TryGetValue(m_Stimulus, out var d)) d = (0, 0, new(), new(), new());
+            if (!diagnostics.TryGetValue(m_Stimulus, out var d)) d = (0, 0, new(), new(), new(), 0, 0);
             d.frames++;
             if (detector.HandCount > 0)
             {
                 var j = detector.HandPoses2D[0];
+                var c = detector.HandPosesConfidence[0];
                 d.hands++;
                 d.pinch.Add(Vector2.Distance(j[JointName.ThumbTip], j[JointName.IndexTip]));
                 d.straight.Add(StraightFingers(j));
-                Vector2 index = j[JointName.IndexTip] - j[JointName.IndexMCP];
-                d.indexAngle.Add(Mathf.Atan2(index.y, index.x) * Mathf.Rad2Deg);
+                // The weakest fingertip: the classifier ignores joints below its minimum confidence.
+                d.confidence.Add(new[] { JointName.ThumbTip, JointName.IndexTip, JointName.MiddleTip, JointName.RingTip, JointName.LittleTip }
+                    .Min(name => c.TryGetValue(name, out float value) ? value : 0));
+                HandGesture observed = HandGestureClassifier.Classify(j, c);
+                if (observed == HandGesture.Pinched) d.pinched++;
+                if (observed == HandGesture.Five) d.five++;
             }
             diagnostics[m_Stimulus] = d;
         }, ("blank", 5), ("open", 5), ("pinch", 5), ("open", 5), ("pinch", 5), ("open", 5), ("pinch", 5), ("blank", 4));
         recognition.OnHandGestureChanged -= onChanged;
         foreach (var (stimulus, d) in diagnostics)
             Debug.Log($"[SDK-GESTURE-DIAG] {stimulus} frames={d.frames} handFrames={d.hands} pinchDistance={Median(d.pinch):F3} " +
-                $"straightFingers={Median(d.straight):F1} indexAngle={Median(d.indexAngle):F0}deg");
+                $"straightFingers={Median(d.straight):F1} weakestTipConfidence={Median(d.confidence):F2} " +
+                $"classified pinched={d.pinched} five={d.five}");
         int pinchedIn = events.Count(e => e.gesture == HandGesture.Pinched && e.stimulus == "pinch");
         int pinchedOut = events.Count(e => e.gesture == HandGesture.Pinched && e.stimulus != "pinch" && e.time > Settle);
         Check("C1.pinch", pinchedIn >= 2 && pinchedOut == 0, $"pinchedInPinch={pinchedIn} pinchedElsewhere={pinchedOut}");

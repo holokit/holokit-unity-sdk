@@ -1,5 +1,5 @@
 // Ground truth for the hand-video tests: Apple Vision on every frame of the source clip.
-// Usage: swift video_ground_truth.swift hand-test.mp4 > hand-test.truth.json
+// Usage: swift video_ground_truth.swift gesture-test.mp4 > gesture-test.truth.json
 import AVFoundation
 import Vision
 

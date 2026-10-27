@@ -207,6 +207,14 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         }
     }
 
+    // A screenshot once `stimulus` has run `seconds`: what the camera saw, for the runner's report.
+    IEnumerator CaptureDuring(string stimulus, float seconds, string name)
+    {
+        yield return new WaitUntil(() => m_Stimulus == stimulus && StimulusAge >= seconds);
+        using (HideUI())
+            yield return Capture(name);
+    }
+
     IEnumerator Capture(string name)
     {
         string file = $"sdk-{name}.png";
@@ -249,6 +257,15 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         return new Restore(() => shown.ForEach(g => { if (g != null) g.SetActive(true); }));
     }
 
+    // The scene's virtual objects (e.g. the Stereoscopic Rendering cube) otherwise cover part of the
+    // stimulus window in the aim screenshots.
+    IDisposable HideVirtualObjects()
+    {
+        var shown = FindObjectsByType<Renderer>(FindObjectsSortMode.None).Where(r => r.enabled).ToList();
+        shown.ForEach(r => r.enabled = false);
+        return new Restore(() => shown.ForEach(r => { if (r != null) r.enabled = true; }));
+    }
+
     sealed class Restore : IDisposable
     {
         readonly Action m_Action;
@@ -262,10 +279,42 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
     {
         var manager = FindFirstObjectByType<HoloKitCameraManager>();
         if (manager != null) manager.ScreenRenderMode = ScreenRenderMode.Mono;
-        yield return Stimulus("frame", 2);
-        using (HideUI())
-            yield return Capture("aim");
-        Check("aim.captured", true, $"thermal={m_Apple.GetThermalState()}");
+        // The same view with and without the corner marks: only the marks differ, whatever the room shows.
+        // The blank page also shows anything covering the window, such as a notification.
+        using (HideVirtualObjects())
+        {
+            yield return Stimulus("blank", 2);
+            using (HideUI())
+                yield return Capture("aim-blank");
+            yield return Stimulus("frame", 2);
+            using (HideUI())
+                yield return Capture("aim");
+        }
+        // The screenshot's vertical field of view lets the runner turn the window's size in it into
+        // the distance at which the stimulus hands look like a real hand.
+        yield return new WaitForEndOfFrame();
+        var fov = MeasureFov(FindFirstObjectByType<ARCameraManager>()?.GetComponent<Camera>());
+        Check("aim.captured", true, $"thermal={m_Apple.GetThermalState()} verticalFov={fov.unityV:F2}");
+        // The hand photo must be large and clear enough in the camera for Vision: seeing the whole
+        // window is not enough when the phone is far from the screen.
+        var arCamera = FindFirstObjectByType<ARCameraManager>();
+        if (arCamera == null) yield break;
+        var detector = new AppleVisionHandPoseDetector(MaxHandCount.Both);
+        Action<ARCameraFrameEventArgs> process = _ => detector.ProcessCurrentFrame2D();
+        arCamera.frameReceived += process;
+        int frames = 0, detected = 0;
+        yield return During(() =>
+        {
+            if (m_Stimulus != "one" || !Settled) return;
+            frames++;
+            if (detector.HandCount > 0) detected++;
+        }, ("one", 5));
+        arCamera.frameReceived -= process;
+        int requests = detector.CompletedRequests;
+        detector.Dispose();
+        float fraction = frames > 0 ? detected / (float)frames : 0;
+        // requests=0 means Vision never ran (a probe or session problem), not a hand too small to see.
+        Check("aim.hand", fraction >= 0.8f, $"handDetected={fraction:F2} over {frames} frames visionRequests={requests}");
     }
 
     static T Field<T>(object target, string name) =>

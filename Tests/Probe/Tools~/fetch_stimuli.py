@@ -35,9 +35,10 @@ def api(params):
 # Vision on every frame of the clip.
 VIDEOS = pathlib.Path(__file__).resolve().parent / 'videos'
 TEST_VIDEOS = {
-    'hand-test': [(10373882, None), (4662096, None), (11878748, None)],
-    # Hands making Pinched / Five / other shapes while they move, for the gesturevideo suite.
-    # Both are first-person-like: the arm enters from the side, the back of the hand faces the camera.
+    # Hands making Pinched / Five / other shapes while they move, for the handvideo and gesturevideo
+    # suites. Both are first-person-like: the arm enters from the side, the back of the hand faces the
+    # camera, and the hand is about as large as one at arm's length (the earlier hand-test clips were
+    # wide shots whose hands looked 1-2 m away).
     'gesture-test': [(10204151, (0, 36)), (10210107, None)],
 }
 

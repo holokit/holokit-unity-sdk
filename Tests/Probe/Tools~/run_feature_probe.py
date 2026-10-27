@@ -6,7 +6,9 @@ file into the app container, launches the app with its console attached, switche
 stimulus page when the probe asks for it, then collects results and screenshots.
 
 Before camera suites a short preflight run checks that the camera sees all four corners of the
-stimulus window and that the phone is not thermally Serious; it stops with what to fix otherwise.
+stimulus window, that its hands look as large as a real hand at arm's length (the view of a head-worn
+HoloKit) and that Vision finds one, and that the phone is not thermally Serious; it stops with what to
+fix otherwise.
 Failures caused by the environment are reported as untested with the reason, not as SDK failures:
 suites during which the phone was touched (the probe's overlay blocks and counts touches), and
 rate checks while the phone was Serious or hotter (ARKit drops to 30 Hz).
@@ -20,8 +22,10 @@ Usage:
 import argparse
 import json
 import math
+import os
 import pathlib
 import queue
+import re
 import threading
 import struct
 import subprocess
@@ -45,6 +49,13 @@ RATE_CHECKS = {'A6.native-frames', 'B0.vision-runs', 'M1.update-rate', 'M2.laten
                'V1.detection', 'V3.latency', 'W1.gesture-agreement', 'W2.pinch-events'}
 THERMAL = ['Nominal', 'Fair', 'Serious', 'Critical']
 SERIOUS = 2
+# A head-worn HoloKit sees a real hand (wrist to middle fingertip about 18.5 cm) at arm's length,
+# 0.25-0.65 m from its camera. Every hand stimulus spans HAND_HEIGHT of the window's height
+# (sdk_stimuli.html), so the window's size in the camera says how far away its hands look.
+HAND_LENGTH_M, ARM_REACH_M, HAND_HEIGHT = 0.185, 0.65, 0.85
+CORNER_SIZE = 0.14  # the aim corner marks are 14vmin squares
+# The videos are zoomed VIDEO_ZOOM times in a crop VIDEO_CROP_WIDTH window-heights wide (16:9 clips).
+VIDEO_ZOOM, VIDEO_CROP_WIDTH = 1.4, 1.6
 
 
 def devicectl(*args, check=True):
@@ -86,6 +97,49 @@ def open_safari(run_id):
     set_stimulus('blank')
 
 
+def stimulus_cover(windows):
+    """(fraction, owners): how much of the Safari stimulus window (Safari's largest normal window) the
+    windows in front of it cover, on a 32 x 20 grid of points."""
+    safari = [(i, w) for i, w in enumerate(windows) if w['owner'] == 'Safari' and w['layer'] == 0]
+    if not safari:
+        return 1.0, ['Safari window not on screen']
+    index, s = max(safari, key=lambda iw: iw[1]['w'] * iw[1]['h'])
+    gx, gy = np.meshgrid(s['x'] + (np.arange(32) + 0.5) * s['w'] / 32, s['y'] + (np.arange(20) + 0.5) * s['h'] / 20)
+    covered, owners = np.zeros(gx.shape, bool), []
+    for w in windows[:index]:
+        inside = (gx >= w['x']) & (gx < w['x'] + w['w']) & (gy >= w['y']) & (gy < w['y'] + w['h'])
+        if w['alpha'] >= 0.1 and inside.any():
+            covered |= inside
+            owners.append(w['owner'] or w['title'])
+    return float(covered.mean()), owners
+
+
+class StimulusWatch:
+    """Polls the window stack about once a second during a run: another app brought in front of the
+    Safari stimulus (someone using the Mac, a notification) hides it from the phone."""
+
+    def __init__(self):
+        self.samples, self.stop = [], threading.Event()
+        self.binary = pathlib.Path(tempfile.gettempdir()) / 'holokit-probe-windows'
+        built = subprocess.run(['swiftc', '-O', str(HERE / 'windows.swift'), '-o', str(self.binary)], capture_output=True)
+        if built.returncode == 0:
+            threading.Thread(target=self.poll, daemon=True).start()
+        else:
+            print('WARNING: cannot watch the stimulus window:', built.stderr.decode(errors='replace')[:200], flush=True)
+
+    def poll(self):
+        while not self.stop.wait(1.0):
+            try:
+                listed = subprocess.run([str(self.binary)], capture_output=True, text=True, timeout=5)
+                self.samples.append((time.time(), *stimulus_cover(json.loads(listed.stdout))))
+            except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError):
+                continue
+
+    def covered(self, start, end, threshold=0.02):
+        """Apps that covered more than `threshold` of the stimulus between start and end."""
+        return sorted({o for t, fraction, owners in self.samples if start <= t < end and fraction > threshold for o in owners})
+
+
 def write_tone(path, seconds=8.0, frequency=440.0, rate=44100):
     with wave.open(str(path), 'w') as out:
         out.setnchannels(1)
@@ -100,8 +154,7 @@ def write_tone(path, seconds=8.0, frequency=440.0, rate=44100):
 def run(args):
     out = pathlib.Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
-    if not (HERE / 'stimuli' / 'person.jpg').exists() or not all((HERE / 'videos' / f'{v}.truth.json').exists()
-                                                                for v in ('hand-test', 'gesture-test')):
+    if not (HERE / 'stimuli' / 'person.jpg').exists() or not (HERE / 'videos' / 'gesture-test.truth.json').exists():
         subprocess.run(['python3', str(HERE / 'fetch_stimuli.py')], check=True)
     run_id = uuid.uuid4().hex[:12]
     mode = tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False)
@@ -117,7 +170,8 @@ def run(args):
     speaker = None
     stimuli = []
     timing = {}
-    completed = False
+    completed, suite, interruption, suites = False, None, None, []
+    watch = StimulusWatch()
     process = subprocess.Popen(['xcrun', 'devicectl', 'device', 'process', 'launch', '--device', args.device,
                                 '--terminate-existing', '--console', args.bundle_id],
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
@@ -152,10 +206,20 @@ def run(args):
                                                start_new_session=True)
             if '[SDK-TEST]' in line and ('PASS' in line or 'FAIL' in line or 'SUITE' in line):
                 print(line.strip()[line.find('[SDK-TEST]'):], flush=True)
+            if '[SDK-TEST] SUITE' in line:
+                suite = line.split('[SDK-TEST] SUITE')[1].strip()
+                suites.append((time.time(), suite))
+            # The probe cannot go on in the background; waiting for the timeout would only hide why.
+            if 'applicationDidEnterBackground' in line:
+                interruption = (f'the app went to the background during suite {suite}: the phone was locked, swiped '
+                                f'to Home, or a call or another app came to the front; later suites were not run')
+                print('STOPPED:', interruption, flush=True)
+                break
             if '[SDK-TEST] COMPLETE' in line:
                 completed = True
                 break
     finally:
+        watch.stop.set()
         if speaker:
             stop_speaker(speaker)
         time.sleep(2)
@@ -169,7 +233,10 @@ def run(args):
                   '--domain-identifier', args.bundle_id, '--source', f'Documents/{name}',
                   '--destination', str(out / name), check=False)
     (out / 'stimulus-timing.json').write_text(json.dumps(timing))
-    return summarize(out, run_id, completed, args)
+    ends = [start for start, _ in suites[1:]] + [time.time()]
+    covered = {name: owners for (start, name), end in zip(suites, ends)
+               if name in CAMERA_SUITES and (owners := watch.covered(start, end))}
+    return summarize(out, run_id, completed, args, interruption, covered)
 
 
 def mark_centroids(path):
@@ -241,8 +308,9 @@ def video_frames(t, lag, fps, count):
 
 
 def video_lag(t, n, x, y, gt_n, gt_x, gt_y, fps):
-    """(R^2, lag): the lag whose affine fit of source wrist to phone wrist explains the phone best."""
-    best = (-1.0, 0.0)
+    """(R^2, lag, coef): the lag whose affine fit of source wrist to phone wrist explains the phone
+    best; coef maps [source x, source y, 1] to the phone's image point."""
+    best = (-1.0, 0.0, None)
     for lag in np.arange(0, 2.5, 0.01):
         idx, valid = video_frames(t, lag, fps, len(gt_n))
         m = valid.copy()
@@ -256,8 +324,29 @@ def video_lag(t, n, x, y, gt_n, gt_x, gt_y, fps):
         total = ((target - target.mean(axis=0)) ** 2).sum()
         r2 = 1 - residual / total if total > 0 else 0
         if r2 > best[0]:
-            best = (r2, lag)
+            best = (r2, lag, coef)
     return best
+
+
+def foreign_hands(x, y, coef, margin=0.1):
+    """Phone rows whose hand lies outside the crop of the video the window shows, mapped back to the
+    source through the alignment: a real hand in the camera's view, e.g. one at the Mac's keyboard."""
+    outside = np.zeros(len(x), bool)
+    if coef is None or abs(np.linalg.det(coef[:2])) < 1e-9:
+        return outside
+    seen = ~np.isnan(x) & ~np.isnan(y)
+    source = (np.column_stack([x[seen], y[seen]]) - coef[2]) @ np.linalg.inv(coef[:2])
+    half = np.array([VIDEO_CROP_WIDTH / 2 / (VIDEO_ZOOM * 16 / 9), 0.5 / VIDEO_ZOOM]) * (1 + margin)
+    outside[seen] = (np.abs(source - 0.5) > half).any(axis=1)
+    return outside
+
+
+def real_hand_note(foreign, hands):
+    """(untested, note) for a video suite: a real hand tracked in more than a tenth of the phone's
+    hand frames leaves too little to judge the SDK by."""
+    share = foreign.sum() / max(1, hands.sum())
+    note = f'; {int(foreign.sum())} phone frames tracked a hand outside the video (a real hand in view) and are left out'
+    return share > 0.1, note if foreign.any() else ''
 
 
 # HandGestureClassifier and HandGestureFilter (Runtime/iOS/HandGestureClassifier.cs), applied to Vision's
@@ -344,13 +433,33 @@ def episodes(times, values, target, minimum=0.2):
     return runs
 
 
+def crop_truth(frames):
+    """Source-frame ground truth as the window shows it: hands wholly inside the zoomed crop stay,
+    hands wholly outside it go. Also returns, per frame, whether a hand is cut by the crop's edge;
+    neither answer is right for those frames, so the checks leave them out."""
+    half_x, half_y = VIDEO_CROP_WIDTH / 2 / (VIDEO_ZOOM * 16 / 9), 0.5 / VIDEO_ZOOM
+    shown, cut = [], []
+    for frame in frames:
+        kept, partial = [], False
+        for hand in frame['hands']:
+            inside = [abs(x - 0.5) <= half_x and abs(y - 0.5) <= half_y
+                      for x, y, confidence in hand['joints'] if confidence >= MIN_CONFIDENCE]
+            if inside and all(inside):
+                kept.append(hand)
+            elif any(inside):
+                partial = True
+        shown.append({**frame, 'hands': kept})
+        cut.append(partial)
+    return shown, np.array(cut)
+
+
 def handvideo_checks(out):
     """Compare phone tracking of the real hand video with Vision on the source frames."""
-    rows_path, truth_path = out / 'sdk-handvideo.csv', HERE / 'videos' / 'hand-test.truth.json'
+    rows_path, truth_path = out / 'sdk-handvideo.csv', HERE / 'videos' / 'gesture-test.truth.json'
     if not rows_path.exists() or not truth_path.exists():
         return []
     truth = json.loads(truth_path.read_text())
-    fps, frames = truth['fps'], truth['frames']
+    fps, (frames, cut) = truth['fps'], crop_truth(truth['frames'])
     gt_n = np.array([len(f['hands']) for f in frames])
     first = [f['hands'][0] if f['hands'] else {'x': np.nan, 'y': np.nan, 'pinch': np.nan} for f in frames]
     gt_x, gt_y, gt_p = (np.array([h[k] for h in first]) for k in ('x', 'y', 'pinch'))
@@ -361,26 +470,36 @@ def handvideo_checks(out):
     num = lambda i: np.array([float(r[i]) if r[i] else np.nan for r in rows])
     x, y, p = num(3), num(4), num(5)
 
-    r2, lag = video_lag(t, n, x, y, gt_n, gt_x, gt_y, fps)
+    r2, lag, coef = video_lag(t, n, x, y, gt_n, gt_x, gt_y, fps)
+    foreign = foreign_hands(x, y, coef) if r2 >= 0.8 else np.zeros(len(t), bool)
+    interfered, note = real_hand_note(foreign, n >= 1)
     timing_path = out / 'stimulus-timing.json'
     switch = json.loads(timing_path.read_text()).get('handvideo') if timing_path.exists() else None
     idx, valid = video_frames(t, lag, fps, len(frames))
+    valid[valid] &= ~cut[idx[valid]]
+    valid &= ~foreign
     gi = idx[valid]
     recall = float(np.mean(n[valid][gt_n[gi] >= 1] >= 1)) if np.any(gt_n[gi] >= 1) else 0.0
     two = gt_n[gi] >= 2
     two_agree = float(np.mean(both[valid][two] >= 2)) if two.any() else float('nan')
     pm = (gt_n[gi] == 1) & (n[valid] >= 1) & ~np.isnan(p[valid]) & ~np.isnan(gt_p[gi])
     pinch_r = float(np.corrcoef(p[valid][pm], gt_p[gi][pm])[0, 1]) if pm.sum() > 20 else float('nan')
-    return [
-        {'id': 'V1.detection', 'pass': bool(recall >= 0.9), 'detail': f'recall={recall:.2f} over {valid.sum()} phone frames'},
+    checks = [
+        {'id': 'V1.detection', 'pass': bool(recall >= 0.9),
+         'detail': f'recall={recall:.2f} on {int((gt_n[gi] >= 1).sum())} phone frames with a whole hand in view '
+                   f'({valid.sum()} phone frames; frames with a hand cut by the crop left out){note}'},
         {'id': 'V2.trajectory', 'pass': bool(r2 >= 0.8), 'detail': f'affine-fit R2={r2:.3f} (wrist, phone vs source video)'},
-        {'id': 'V3.latency', 'pass': None if switch is None else bool(lag - switch <= 0.25),
+        {'id': 'V3.latency', 'pass': None if switch is None or r2 < 0.8 else bool(lag - switch <= 0.25),
          'detail': (f'display-to-pose latency={(lag - switch) * 1000:.0f} ms (alignment lag {lag * 1000:.0f} ms '
                     f'minus stimulus switch {switch * 1000:.0f} ms; includes log transport)') if switch is not None
                    else f'alignment lag={lag * 1000:.0f} ms; stimulus switch delay not measured'},
         {'id': 'V4.pinch-distance', 'pass': bool(pinch_r >= 0.7), 'detail': f'pinch distance correlation r={pinch_r:.2f} (n={int(pm.sum())})'},
-        {'id': 'V5.two-hands', 'pass': bool(two_agree >= 0.6), 'detail': f'two-hand agreement={two_agree:.2f} on {int(two.sum())} two-hand frames'},
+        # The arm's-length clips rarely show two hands; B3 covers two hands with a photo.
+        {'id': 'V5.two-hands', 'pass': None if two.sum() < 50 else bool(two_agree >= 0.6),
+         'detail': f'two-hand agreement={two_agree:.2f} on {int(two.sum())} two-hand frames'},
     ]
+    return [{**c, 'pass': None, 'detail': 'UNTESTED (a real hand in view); ' + c['detail']} if interfered else c
+            for c in checks]
 
 
 def gesturevideo_checks(out):
@@ -390,7 +509,7 @@ def gesturevideo_checks(out):
     if not rows_path.exists() or not truth_path.exists():
         return []
     truth = json.loads(truth_path.read_text())
-    fps, frames = truth['fps'], truth['frames']
+    fps, (frames, cut) = truth['fps'], crop_truth(truth['frames'])
     gt_t = np.array([f['t'] for f in frames])
     gt_n = np.array([len(f['hands']) for f in frames])
     first = [f['hands'][0] if f['hands'] else {'x': np.nan, 'y': np.nan} for f in frames]
@@ -401,13 +520,18 @@ def gesturevideo_checks(out):
     n = np.array([int(r[1]) for r in rows])
     g = np.array([int(r[2]) for r in rows])
     num = lambda i: np.array([float(r[i]) if r[i] else np.nan for r in rows])
-    r2, lag = video_lag(t, n, num(3), num(4), gt_n, gt_x, gt_y, fps)
+    x, y = num(3), num(4)
+    r2, lag, coef = video_lag(t, n, x, y, gt_n, gt_x, gt_y, fps)
+    foreign = foreign_hands(x, y, coef) if r2 >= 0.8 else np.zeros(len(t), bool)
+    interfered, note = real_hand_note(foreign, n >= 1)
     idx, valid = video_frames(t, lag, fps, len(frames))
+    valid &= ~foreign
 
-    # Agreement where the source gesture is settled: one hand and the same gesture 0.3 s either side.
+    # Agreement where the source gesture is settled: one hand and the same gesture 0.3 s either side,
+    # with no hand cut by the crop's edge in that time.
     w = int(round(0.3 * fps))
     settled = np.array([w <= i < len(gt_g) - w and gt_g[i] >= 0 and bool(np.all(gt_g[i - w:i + w + 1] == gt_g[i]))
-                        for i in range(len(gt_g))])
+                        and not cut[i - w:i + w + 1].any() for i in range(len(gt_g))])
     m = valid.copy()
     m[valid] &= settled[idx[valid]]
     truth_g, phone_g = gt_g[idx[m]], g[m]
@@ -424,13 +548,15 @@ def gesturevideo_checks(out):
     correct = sum(any(overlaps(b, a) for a in truth_pinches) for b in phone_pinches)
     recall = found / len(truth_pinches) if truth_pinches else float('nan')
     precision = correct / len(phone_pinches) if phone_pinches else 0.0
-    return [
+    checks = [
         {'id': 'W1.gesture-agreement', 'pass': None if m.sum() < 100 or r2 < 0.8 else bool(agreement >= 0.8),
          'detail': f'agreement={agreement:.2f} over {int(m.sum())} settled frames ({classes}); '
-                   f'alignment R2={r2:.3f} lag={lag * 1000:.0f} ms'},
+                   f'alignment R2={r2:.3f} lag={lag * 1000:.0f} ms{note}'},
         {'id': 'W2.pinch-events', 'pass': None if len(truth_pinches) < 3 or r2 < 0.8 else bool(recall >= 0.8 and precision >= 0.8),
          'detail': f'recall={found}/{len(truth_pinches)} precision={correct}/{len(phone_pinches)} (slack {slack:.1f} s)'},
     ]
+    return [{**c, 'pass': None, 'detail': 'UNTESTED (a real hand in view); ' + c['detail']} if interfered else c
+            for c in checks]
 
 
 def movie_checks(out):
@@ -457,37 +583,149 @@ def movie_checks(out):
     return results
 
 
-def frame_corners(path):
-    """Which of the aim stimulus's four corner marks the screenshot shows (at least 150 pixels each)."""
-    rgb = np.asarray(Image.open(path).convert('RGB')).astype(int)
+CORNER_MARKS = ['top-left green', 'top-right magenta', 'bottom-left cyan', 'bottom-right yellow']
+
+
+def _patches(mask, block=8):
+    """[(pixels, centre x, centre y, width, height)] of the mask's connected patches, found on a
+    block x block grid."""
+    h, w = mask.shape
+    grid = mask[:h - h % block, :w - w % block].reshape(h // block, block, w // block, block).sum(axis=(1, 3))
+    filled = grid >= block * block // 2
+    seen = np.zeros_like(filled)
+    patches = []
+    for y0, x0 in zip(*np.nonzero(filled)):
+        if seen[y0, x0]:
+            continue
+        seen[y0, x0] = True
+        stack, cells = [(y0, x0)], []
+        while stack:
+            y, x = stack.pop()
+            cells.append((y, x))
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < filled.shape[0] and 0 <= nx < filled.shape[1] and filled[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    stack.append((ny, nx))
+        ys, xs = np.array(cells).T
+        patches.append((len(cells) * block * block, (xs.mean() + 0.5) * block, (ys.mean() + 0.5) * block,
+                        (np.ptp(xs) + 1) * block, (np.ptp(ys) + 1) * block))
+    return patches
+
+
+def corner_marks(path, blank_path):
+    """Centre of each of the aim stimulus's four corner marks, or None. Only pixels that changed from
+    the blank-page screenshot taken from the same pose count, so the room, wallpaper and virtual
+    objects do not; a mark is a square, solid patch of its hue among them (at least 150 pixels, at most
+    a fifth of the image wide). The four must sit in their own corners relative to each other."""
+    rgb = np.asarray(Image.open(path).convert('RGB')).astype(float) / 255
+    blank = np.asarray(Image.open(blank_path).convert('RGB').resize(Image.open(path).size)).astype(float) / 255
+    changed = np.abs(rgb - blank).max(axis=2) > 0.2
+    high, low = rgb.max(axis=2), rgb.min(axis=2)
+    chroma = high - low
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    masks = {'top-left green': (g > 120) & (r < 90) & (b < 90), 'top-right magenta': (r > 140) & (b > 140) & (g < 90),
-             'bottom-left cyan': (g > 140) & (b > 140) & (r < 90), 'bottom-right yellow': (r > 140) & (g > 140) & (b < 90)}
-    return {name: int(mask.sum()) >= 150 for name, mask in masks.items()}
+    with np.errstate(divide='ignore', invalid='ignore'):
+        hue = np.where(high == r, (g - b) / chroma % 6, np.where(high == g, (b - r) / chroma + 2, (r - g) / chroma + 4)) * 60
+    vivid = changed & (chroma > 0.25)
+    marks = {}
+    for name, centre in zip(CORNER_MARKS, [120, 300, 180, 60]):  # green, magenta, cyan, yellow
+        mask = vivid & (np.abs((hue - centre + 180) % 360 - 180) < 30)
+        squares = [p for p in _patches(mask) if p[0] >= 150 and 1 / 3 <= p[3] / p[4] <= 3
+                   and p[0] >= 0.4 * p[3] * p[4] and p[3] <= 0.2 * mask.shape[1]]
+        best = max(squares, default=None)
+        marks[name] = (float(best[1]), float(best[2])) if best else None
+    tl, tr, bl, br = (marks[name] for name in CORNER_MARKS)
+    pairs = [(tl, tr, 0), (bl, br, 0), (tl, bl, 1), (tr, br, 1)]  # first must be left of / above second
+    if any(first and second and first[axis] >= second[axis] for first, second, axis in pairs):
+        return dict.fromkeys(CORNER_MARKS)
+    return marks
+
+
+def window_cover(blank_path, marks, block=16):
+    """(fraction, where): how much of the stimulus window something covers in the blank-page
+    screenshot (a notification, another window), and where its middle is. The blank page is one
+    colour, so blocks far from the window's median colour are covered; only blocks inside the
+    quadrilateral through the four mark centres count."""
+    rgb = np.asarray(Image.open(blank_path).convert('RGB')).astype(float) / 255
+    rows, cols = rgb.shape[0] // block, rgb.shape[1] // block
+    means = rgb[:rows * block, :cols * block].reshape(rows, block, cols, block, 3).mean(axis=(1, 3))
+    y, x = (np.mgrid[0:rows, 0:cols] + 0.5) * block
+    quad = [marks[name] for name in ('top-left green', 'top-right magenta', 'bottom-right yellow', 'bottom-left cyan')]
+    inside = np.ones((rows, cols), bool)
+    for (x0, y0), (x1, y1) in zip(quad, quad[1:] + quad[:1]):  # clockwise on screen: inside is to the right
+        inside &= (x1 - x0) * (y - y0) - (y1 - y0) * (x - x0) >= 0
+    if not inside.any():
+        return 0.0, ''
+    deviation = np.abs(means - np.median(means[inside], axis=0)).max(axis=-1)
+    covered = inside & (deviation > 0.3)
+    if not covered.any():
+        return 0.0, ''
+    left, right = min(p[0] for p in quad), max(p[0] for p in quad)
+    top, bottom = min(p[1] for p in quad), max(p[1] for p in quad)
+    u, v = (x[covered].mean() - left) / (right - left), (y[covered].mean() - top) / (bottom - top)
+    where = f'{["top", "middle", "bottom"][min(int(v * 3), 2)]} {["left", "middle", "right"][min(int(u * 3), 2)]}'
+    return covered.sum() / inside.sum(), where
+
+
+def hand_distance(marks, image_height, vertical_fov):
+    """How far from the camera a real hand would be to look as large as the stimulus hands (metres),
+    from the window's height between the corner marks (corner_marks) and the screenshot's height and
+    vertical field of view; None without a mark on the left or right side."""
+    tl, tr, bl, br = (marks[name] for name in CORNER_MARKS)
+    spans = [bottom[1] - top[1] for top, bottom in ((tl, bl), (tr, br)) if top and bottom]
+    if not spans:
+        return None
+    window = np.mean(spans) / (1 - CORNER_SIZE)  # mark centres sit half a mark (7vh) inside each edge
+    focal = image_height / 2 / math.tan(math.radians(vertical_fov) / 2)
+    return HAND_LENGTH_M * focal / (HAND_HEIGHT * window)
 
 
 def preflight(args):
-    """Before a long run: the camera must see the whole stimulus window and the phone must not be hot.
-    Returns the problems, each with what to do."""
+    """Before a long run: the camera must see the whole stimulus window, its hands must look like a
+    hand within arm's reach and be found by Vision, and the phone must not be hot. Returns the
+    problems, each with what to do."""
     out = pathlib.Path(args.output) / 'preflight'
-    run(argparse.Namespace(**{**vars(args), 'suites': 'aim', 'output': str(out), 'screenshots': ['aim'], 'timeout': 120}))
+    run(argparse.Namespace(**{**vars(args), 'suites': 'aim', 'output': str(out), 'screenshots': ['aim', 'aim-blank'],
+                              'timeout': 120}))
     problems = []
-    shot = out / 'sdk-aim.png'
-    if not shot.exists():
-        problems.append(f'no aim screenshot (see {out / "device.log"})')
+    shot, blank = out / 'sdk-aim.png', out / 'sdk-aim-blank.png'
+    if not shot.exists() or not blank.exists():
+        problems.append(f'no aim screenshots (see {out / "device.log"})')
     else:
-        missing = [name for name, seen in frame_corners(shot).items() if not seen]
-        if missing:
+        marks = corner_marks(shot, blank)
+        missing = [name for name, centre in marks.items() if centre is None]
+        if len(missing) == 4:
+            problems.append(f'no corner of the stimulus window is visible: is the Mac screen locked or asleep, or '
+                            f'Safari not in front of the camera? (screenshot: {shot})')
+        elif missing:
             problems.append(f'the screenshot does not show the whole stimulus window (missing: {", ".join(missing)}); '
                             f'aim the camera so all four coloured corners of the Safari window are in view (screenshot: {shot})')
+        else:
+            cover, where = window_cover(blank, marks)
+            if cover > 0.01:
+                problems.append(f'something covers {cover:.0%} of the stimulus window ({where}), e.g. a notification or '
+                                f'another window: dismiss it and turn on Do Not Disturb for the run (screenshot: {blank})')
     results = json.loads((out / 'sdk-probe-results.json').read_text()).get('results', []) if (out / 'sdk-probe-results.json').exists() else []
+    captured = next((r for r in results if r['id'] == 'aim.captured'), {'detail': ''})
+    fov = re.search(r'verticalFov=([\d.]+)', captured['detail'])
+    distance = hand_distance(marks, Image.open(shot).size[1], float(fov[1])) if fov and float(fov[1]) > 0 and not problems else None
+    if distance is not None:
+        print(f'PREFLIGHT: the stimulus hands look like a real hand {distance:.2f} m away')
+    if distance is not None and distance > ARM_REACH_M:
+        problems.append(f'the stimulus hands look like a real hand {distance:.2f} m away, beyond arm\'s reach (a head-worn '
+                        f'HoloKit sees hands 0.25-{ARM_REACH_M} m away): move the phone to about {0.45 / distance:.0%} '
+                        f'of its distance from the screen, keeping all four corners in view')
+    hand = next((r for r in results if r['id'] == 'aim.hand'), None)
+    if hand is not None and not hand['pass'] and not problems:
+        seen = f'although they look like a hand {distance:.2f} m away' if distance is not None else 'with the hand distance unknown'
+        problems.append(f'Vision does not find the hand photo reliably ({hand["detail"]}) {seen}: check for glare, '
+                        f'blur or something covering the middle of the window (screenshot: {shot})')
     thermal = max((r.get('thermal', 0) for r in results), default=0)
     if thermal >= SERIOUS:
         problems.append(f'the phone is thermally {THERMAL[thermal]} (ARKit runs at 30 Hz); let it cool to Fair or Nominal')
     return problems
 
 
-def summarize(out, run_id, completed, args):
+def summarize(out, run_id, completed, args, interruption=None, covered=None):
     path = out / 'sdk-probe-results.json'
     report = json.loads(path.read_text()) if path.exists() else {'results': []}
     results = report.get('results', [])
@@ -495,7 +733,7 @@ def summarize(out, run_id, completed, args):
     if report.get('runId') != run_id:
         problems.append(f'stale or missing result file (runId={report.get("runId")}, expected {run_id})')
     if not completed or not report.get('completed'):
-        problems.append('probe did not complete')
+        problems.append(interruption or 'probe did not complete')
     if any(r['id'] == 'A4.orientation-captured' for r in results):
         ok, detail = orientation_check(out)
         results.append({'id': 'A4.orientation-mac', 'pass': ok, 'detail': detail, 'suite': 'orientation'})
@@ -508,12 +746,18 @@ def summarize(out, run_id, completed, args):
     hot = {r.get('suite') for r in results if r.get('thermal', 0) >= SERIOUS}
     if touched:
         problems.append(f'the phone was touched during: {", ".join(sorted(touched))}')
+    covered = covered or {}
+    if covered:
+        problems.append('another window covered the stimulus during: ' +
+                        ', '.join(f'{name} ({", ".join(owners)})' for name, owners in sorted(covered.items())))
     for r in results:
         reason = None
         if r['id'] in ('G2.tone-440', 'G3.default-gain') and not args.allow_speaker:
             reason = 'speaker not allowed'
         elif r['pass'] is False and r.get('suite') in touched:
             reason = 'phone touched during this suite'
+        elif r['pass'] is False and r.get('suite') in covered:
+            reason = f'stimulus covered by {", ".join(covered[r["suite"]])}'
         elif r['pass'] is False and r['id'] in RATE_CHECKS and r.get('suite') in hot:
             reason = 'phone thermally Serious or worse, ARKit at 30 Hz'
         if reason:
@@ -543,8 +787,11 @@ def main():
     parser.add_argument('--screenshots', nargs='*', default=[
         'stereo', 'mono', 'ui-Stereo', 'ui-Mono', 'ui-recording', 'stereobar', 'stereobar-recording-2k',
         'stereobar-recording-4k', 'hand-one', 'orient-Portrait', 'orient-LandscapeLeft',
-        'orient-LandscapeRight', 'orient-PortraitUpsideDown'])
+        'orient-LandscapeRight', 'orient-PortraitUpsideDown', 'handvideo-10s', 'handvideo-30s', 'gesturevideo-10s',
+        'gesturevideo-30s'])
     args = parser.parse_args()
+    # Keep the Mac's display awake for the whole run: a locked or sleeping screen hides the stimuli.
+    subprocess.Popen(['caffeinate', '-dimsu', '-w', str(os.getpid())])
     suites = set(args.suites.split(',')) if args.suites != 'all' else CAMERA_SUITES
     if suites & CAMERA_SUITES and not args.no_preflight:
         problems = preflight(args)
@@ -552,7 +799,7 @@ def main():
             for problem in problems:
                 print('PREFLIGHT:', problem)
             raise SystemExit(2)
-        print('PREFLIGHT: stimulus window fully in view, phone not hot')
+        print('PREFLIGHT: stimulus window fully in view, hands within arm\'s reach, phone not hot')
     raise SystemExit(run(args))
 
 

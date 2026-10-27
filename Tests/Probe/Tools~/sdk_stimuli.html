@@ -9,19 +9,28 @@
   .stage { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; }
   .stage.on { display: flex; }
   .stage img { max-height: 92vh; max-width: 92vw; }
-  /* Hands stay well inside the phone camera's view (first-person, back of hand). */
-  #one img, #open img, #pinch img { max-height: 70vh; }
-  #sweep img { position: absolute; height: 70vh; left: 0; animation: sweep 14s linear forwards; }
-  @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 70vh)); } }
-  /* First-person hand "video": known trajectory x(t) = 30vw * sin(2*pi*t / 4 s). */
-  #motion img, #motion-pinch img { position: absolute; height: 60vh; left: calc(50vw - 20vh); top: 20vh; }
+  /* Hands at arm's length. A head-worn HoloKit sees a real hand (wrist to middle fingertip about
+     18.5 cm) 0.25-0.65 m from its camera, so every hand stimulus spans about 85% of the window's
+     height (the runner's HAND_HEIGHT), and the preflight turns the window's size in the camera into
+     the distance that looks like. In the first-person photos the hand spans 0.656 of the height, and
+     its outline (thumb included) is about 0.38 of the width, centred 48-51% across and 43% down: at
+     130vh it spans 85vh and is about 90vh wide, centred in the window. Moving hands stay whole: the
+     window is at least 160vh wide. */
+  .stage img.hand { position: absolute; height: 130vh; max-width: none; max-height: none; top: -6vh; left: calc(50vw - 117vh); }
+  #sweep img.hand { left: calc(30vw - 117vh); animation: sweep 14s linear forwards; }
+  @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(40vw); } }
+  /* First-person hand "video": known trajectory x(t) = 16vw * sin(2*pi*t / 4 s) about the centre. */
+  /* Videos zoomed 1.4x in a 160vh-wide crop: the median hand (0.60 of the frame's height) spans 84vh.
+     The runner keeps only ground-truth hands wholly inside the crop (VIDEO_ZOOM, VIDEO_CROP_WIDTH);
+     the window must be at least 1.6 times as wide as it is tall. */
+  .crop { position: absolute; left: calc(50vw - 80vh); top: 0; width: 160vh; height: 100vh; overflow: hidden; background: #000; }
+  .crop video { position: absolute; height: 140vh; width: calc(140vh * 16 / 9); left: calc(80vh - 70vh * 16 / 9); top: -20vh; }
   /* Aim preflight: a coloured mark in each corner of the window; the camera must see all four. */
   #frame .corner { position: fixed; width: 14vmin; height: 14vmin; }
   #frame .tl { left: 0; top: 0; background: #00c800; }
   #frame .tr { right: 0; top: 0; background: #ff00ff; }
   #frame .bl { left: 0; bottom: 0; background: #00ffff; }
   #frame .br { right: 0; bottom: 0; background: #ffff00; }
-  #handvideo video, #gesturevideo video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
   #fiducial { background: #fff; }
   .mark { position: absolute; width: 22vh; height: 22vh; }
   .red { background: #e00000; top: 4vh; left: 4vh; }
@@ -35,15 +44,15 @@
 <body>
 <div class="stage" id="blank"></div>
 <div class="stage" id="frame"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></div>
-<div class="stage" id="one"><img src="first-person/open.jpg"></div>
-<div class="stage" id="open"><img src="first-person/open.jpg"></div>
-<div class="stage" id="pinch"><img src="first-person/pinch.jpg"></div>
-<div class="stage" id="two"><img src="first-person/both.jpg"></div>
-<div class="stage" id="sweep"><img src="first-person/open.jpg"></div>
-<div class="stage" id="motion"><img id="motion-img" src="first-person/open.jpg"></div>
-<div class="stage" id="motion-pinch"><img id="motion-pinch-img" src="first-person/open.jpg"></div>
-<div class="stage" id="handvideo"><video id="handvideo-video" src="videos/hand-test.mp4" muted playsinline preload="auto"></video></div>
-<div class="stage" id="gesturevideo"><video id="gesturevideo-video" src="videos/gesture-test.mp4" muted playsinline preload="auto"></video></div>
+<div class="stage" id="one"><img class="hand" src="first-person/open.jpg"></div>
+<div class="stage" id="open"><img class="hand" src="first-person/open.jpg"></div>
+<div class="stage" id="pinch"><img class="hand" src="first-person/pinch.jpg"></div>
+<div class="stage" id="two"><img class="hand" src="first-person/both.jpg"></div>
+<div class="stage" id="sweep"><img class="hand" src="first-person/open.jpg"></div>
+<div class="stage" id="motion"><img class="hand" id="motion-img" src="first-person/open.jpg"></div>
+<div class="stage" id="motion-pinch"><img class="hand" id="motion-pinch-img" src="first-person/open.jpg"></div>
+<div class="stage" id="handvideo"><div class="crop"><video id="handvideo-video" src="videos/gesture-test.mp4" muted playsinline preload="auto"></video></div></div>
+<div class="stage" id="gesturevideo"><div class="crop"><video id="gesturevideo-video" src="videos/gesture-test.mp4" muted playsinline preload="auto"></video></div></div>
 <div class="stage" id="person"><img src="stimuli/person.jpg"></div>
 <div class="stage" id="fiducial">
   <div class="mark red"></div><div class="mark green"></div><div class="mark blue"></div>
@@ -68,7 +77,7 @@
     if (name === 'motion' || name === 'motion-pinch') {
       const t = (now - motionStart) / 1000;
       const img = document.getElementById(name + '-img');
-      img.style.transform = `translateX(${30 * Math.sin(2 * Math.PI * t / 4)}vw)`;
+      img.style.transform = `translateX(${16 * Math.sin(2 * Math.PI * t / 4)}vw)`;
       if (name === 'motion-pinch') {
         const src = Math.floor(t) % 2 === 1 ? 'first-person/pinch.jpg' : 'first-person/open.jpg';
         if (!img.src.endsWith(src)) img.src = src;

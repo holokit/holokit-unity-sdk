@@ -53,12 +53,15 @@ namespace HoloKit.Tests.Editor
             var settings = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
             var thermalCap = settings.FindProperty("adjustIOSFPSUsingThermalState");
             bool previousCap = thermalCap.boolValue;
+            bool previousSplash = PlayerSettings.SplashScreen.show;
             try
             {
                 if (bundleId != null)
                     PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, bundleId);
                 thermalCap.boolValue = false;
                 settings.ApplyModifiedPropertiesWithoutUndo();
+                // The probe starts testing at launch; a splash screen only delays every run.
+                PlayerSettings.SplashScreen.show = false;
                 var options = new BuildPlayerOptions
                 {
                     scenes = scenes,
@@ -82,6 +85,7 @@ namespace HoloKit.Tests.Editor
                 PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, previousId);
                 thermalCap.boolValue = previousCap;
                 settings.ApplyModifiedPropertiesWithoutUndo();
+                PlayerSettings.SplashScreen.show = previousSplash;
                 AssetDatabase.SaveAssets();
             }
         }

@@ -25,7 +25,9 @@ public partial class HoloKitFeatureProbe
         if (!Check("M0.present", tracking != null && tracking.HandPoseDetector != null && arCamera != null,
                 "scene has HandTrackingManager and ARCameraManager")) yield break;
         var recognition = FindFirstObjectByType<HandGestureRecognitionManager>();
-        if (recognition == null) recognition = gameObject.AddComponent<HandGestureRecognitionManager>();
+        // On the scene's object, not the probe's (DontDestroyOnLoad): a manager left on the probe outlived
+        // this scene, stayed bound to its destroyed detector, and was what the gesture and gaze suites found.
+        if (recognition == null) recognition = tracking.gameObject.AddComponent<HandGestureRecognitionManager>();
         yield return null; // let it bind to the tracking detector
 
         var apple = new AppleNativeProvider();
@@ -106,7 +108,7 @@ public partial class HoloKitFeatureProbe
         Check("M6.pinch-while-moving", moving >= 3 && still == 0, $"pinchesWhileMoving={moving} (6 pinch phases) pinchesOnOpenHand={still}");
     }
 
-    const float HandVideoSeconds = 60f; // hand-test.mp4 (59.8 s)
+    const float HandVideoSeconds = 46f; // gesture-test.mp4 (45.7 s): the arm's-length clips, as for gesturevideo
 
     // Real first-person hand video on the Mac screen. Per-frame phone tracking is written to
     // Documents/sdk-handvideo.csv; the Mac runner compares it with Vision on the source frames.
@@ -121,6 +123,8 @@ public partial class HoloKitFeatureProbe
         arCamera.frameReceived += process;
         var csv = new System.Text.StringBuilder("t,hands,bothHands,x,y,pinch,depth\n");
         Transform camera = arCamera.transform;
+        StartCoroutine(CaptureDuring("handvideo", 10, "handvideo-10s"));
+        StartCoroutine(CaptureDuring("handvideo", 30, "handvideo-30s"));
         yield return During(() =>
         {
             if (m_Stimulus != "handvideo") return;
@@ -156,6 +160,8 @@ public partial class HoloKitFeatureProbe
         var gestures = tracking.gameObject.AddComponent<HandGestureRecognitionManager>();
         yield return null; // Start() subscribes to the tracking manager's detector
         var csv = new System.Text.StringBuilder("t,hands,gesture,x,y,pinchRatio\n");
+        StartCoroutine(CaptureDuring("gesturevideo", 10, "gesturevideo-10s"));
+        StartCoroutine(CaptureDuring("gesturevideo", 30, "gesturevideo-30s"));
         yield return During(() =>
         {
             if (m_Stimulus != "gesturevideo") return;

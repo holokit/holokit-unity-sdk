@@ -34,15 +34,27 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
   every third AR frame (about 20 Hz) as in the Swift SDK; it ran on every frame.
 - The device probe builds from the package (`HoloKit.Tests.Editor.HoloKitProbeBuild.Build`) and
   first copies `Samples~` into the carrier project (`HoloKitSampleSync`), so it never runs stale
-  sample copies; new `lowlatency` and `pinchtoplace` suites. Sample scenes re-saved through Unity
-  so their files carry the new and renamed fields.
+  sample copies; it builds without the Unity splash screen. New `lowlatency` and `pinchtoplace`
+  suites. Sample scenes re-saved through Unity so their files carry the new and renamed fields.
 - Device probe `gesturevideo` suite: real first-person hands making gestures while they move (Pexels
   clips); the runner applies the SDK's gesture classifier and filter to Vision on the source frames
   and checks the phone's `HandGestureRecognitionManager` (gesture agreement, pinch-event recall and
   precision). The runner first checks that the camera sees the whole stimulus window and the phone
   is not thermally Serious, and stops with what to fix; failures caused by a touch (now blocked by an
   overlay) or by heat are reported as untested. Hand and camera suites run first, while the phone is
-  cool.
+  cool. Hand stimuli are shown at arm's length, as a head-worn HoloKit sees hands (0.25-0.65 m):
+  every photo and video hand spans about 85% of the window's height, and the preflight turns the
+  window's size in the camera into the distance its hands look (it stops beyond 0.65 m and says how
+  far to move the phone). The earlier stimuli looked like hands 0.8-1.5 m away, beyond reach, which
+  made hand checks fail with the phone's position. The `handvideo` suite now uses the arm's-length
+  clips too, and both video suites score only hands wholly inside the shown crop. The preflight
+  also checks that Vision finds a hand photo and that nothing (e.g. a notification) covers the
+  window, and the runner keeps the Mac's display awake. During a run the runner watches for a window
+  in front of the stimulus (failures then are untested, naming the app), leaves out video frames where
+  the phone tracked a real hand outside the video, and stops at once when the app goes to the
+  background. The video suites' hands are not yet reliably detectable through the camera, so their
+  results and W1/W2 thresholds are provisional (Tests/Probe/README.md); `handmotion` and `gesture`
+  cover moving hands and gestures.
 - Hand skeleton from the Swift SDK: `HandTrackingManager` (Hand Joints Visibility, on by default) shows
   the first hand as yellow joints and cyan bones (`HandSkeletonView`, topology in `HandSkeleton`), drawn
   over the real hand so AR occlusion never hides it. It replaces the white joint spheres, which the
