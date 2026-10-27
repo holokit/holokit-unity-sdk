@@ -1,7 +1,9 @@
 #import <ARKit/ARKit.h>
 #import "HoloKitARKitNativeProvider.h"
 
-// Native pose and background reference for the iOS 27 compatibility path.
+// ARKit's own pose, projection and display transform for an interface orientation: the device
+// probe's reference for AR Foundation's camera (A4.fov-*). HoloKitProbeBuild appends this file to
+// the probe export's HoloKitARKitNativeProvider.mm; apps never contain it.
 extern "C" int HoloKit_GetARCameraReference(void* nativeSession, int orientation,
     int width, int height, float* view, float* projection, float* display) {
     if (!nativeSession || orientation < 1 || orientation > 4) return 0;

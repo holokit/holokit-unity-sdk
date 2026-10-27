@@ -33,7 +33,7 @@ HoloKit Unity SDK has been tested and found compatible with the following softwa
 - Unity 6000.3 LTS or higher
 
 ### ARFoundation
-- ARFoundation 6.4.3
+- ARFoundation and ARKit XR Plugin 6.7.0 (fixes AR content rotated 90° in apps built with the iOS 27 SDK)
 
 We aim to continually test and verify compatibility with newer versions of these softwares.
 

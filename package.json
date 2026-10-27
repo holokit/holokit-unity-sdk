@@ -16,8 +16,8 @@
     "url": "https://reality.design"
   },
   "dependencies": {
-    "com.unity.xr.arfoundation": "6.4.3",
-    "com.unity.xr.arkit": "6.4.3"
+    "com.unity.xr.arfoundation": "6.7.0",
+    "com.unity.xr.arkit": "6.7.0"
   },
   "samples": [
     {

@@ -10,7 +10,7 @@ The probe loads the HoloKit sample scenes and checks:
 | --- | --- |
 | `device` | LiDAR support, thermal state, native uptime clock |
 | `rendering` | phone-model profile, Mono/Stereo switching and events, eye viewports, eye separation, center-eye pose |
-| `orientation` | AR background in four interface orientations (the runner compares a fiducial across screenshots) |
+| `orientation` | AR background in four interface orientations (the runner compares a fiducial across screenshots), and the virtual camera's field of view against ARKit's own projection for each |
 | `ui` | `HoloKitDefaultUICanvas` render-mode button wiring and label (button invoked, not physically tapped) |
 | `tracking` | native ARSession frame callback rate/age, delegate restore, low-latency stereo pose, world-origin reset |
 | `enhancement` | 4K background on/off, stereo rule, recording override, restore |

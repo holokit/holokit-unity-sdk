@@ -72,6 +72,10 @@ namespace HoloKit.Tests.Editor
                 BuildReport report = BuildPipeline.BuildPlayer(options);
                 if (report.summary.result != BuildResult.Succeeded)
                     throw new Exception($"Probe build failed: {report.summary.result}");
+                // The orientation suite's ARKit reference goes into this export only, not into apps.
+                string package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(HoloKitProbeBuild).Assembly).resolvedPath;
+                File.AppendAllText(Path.Combine(output, "Libraries/io.holokit.unity-sdk/Runtime/iOS/NativeCode/HoloKitARKitNativeProvider.mm"),
+                    "\n" + File.ReadAllText(Path.Combine(package, "Tests/Probe/Native~/ARKitCameraReference.mm")));
             }
             finally
             {

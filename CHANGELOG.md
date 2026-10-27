@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - Unreleased
 
-Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
+Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 ### Added
 
@@ -78,8 +78,6 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   buttons; the GameObject > UI > HoloKit menu now places it. Every interactive sample uses it and has
   a `HoloKitVideoRecorder`.
 - Recording Audio sample: Environment and Game And Microphone (AEC) recorder presets.
-- `ARKitCameraCompatibility` and `HoloKit_GetARCameraReference`: AR background rendering that stays
-  correct across interface orientations on iOS 27.
 - Recorder regression tests (`Tests/Recorder`): EditMode tests, host-side native writer tests and
   opt-in device probes (`HOLOKIT_RECORDER_TESTS`) with artifact collectors.
 - Phone models iPhone 13 Mini (`iPhone14,4`), iPhone 16e/17 series (`iPhone17,5`, `iPhone18,x`) and
@@ -87,6 +85,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
 
 ### Changed
 
+- AR Foundation and ARKit XR Plugin 6.7.0 (were 6.4.3). ARKit XR Plugin 6.7.0 fixes AR content
+  rotated 90 degrees in apps built with the iOS 27 SDK: it reads the interface orientation from
+  `UIWindowScene`. A project that lists either package in its own manifest must raise it to 6.7.0.
 - Removed the `-ld64` linker flag, which fails to link with Xcode 27.
 - Gaze gesture interaction, default UI canvas and AR background video enhancement updated for the
   recorder and 4K handling.
@@ -117,19 +118,14 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.4.3.
   `Runtime/iOS/NativeCode/HoloKitTracking*`.
 - `ENABLE_BITCODE` build settings (bitcode was removed in Xcode 14).
 - Custom AR Background sample (empty scene) and three sample UI scripts no scene referenced.
+- `ARKitCameraCompatibility` (0.6.0-preview.1), which replaced AR Foundation's camera pose, projection
+  and background transform on iOS 27; ARKit XR Plugin 6.7.0 gets them right.
 
 ### Fixed
 
 - Phone model lists failed to load when the package was installed from git or a tarball: they are
   now loaded by GUID instead of a `Packages/` path.
 
-- iOS 27: `ARKitCameraCompatibility` was attached only to the first scene's AR camera, so scenes loaded
-  later lost the pose, background and projection corrections. It now attaches on every scene load.
-- iOS 27 portrait: the virtual camera kept AR Foundation's projection, which was scaled by the camera
-  image aspect ratio (4/3 at 1920x1440, 16/9 in 4K), while the background used ARKit's display
-  transform, so virtual content was misregistered. `ARKitCameraCompatibility` now also applies ARKit's
-  projection for the current orientation. Landscape already matched (e.g. 68.16° -> 70.66° horizontal
-  FOV when 4K is enabled).
 - Hand tracking (3D) could crash with `EXC_BAD_ACCESS` at address 0: Vision, depth and unprojection
   each re-read `ARSession.currentFrame` and could mix frames, including one without scene depth.
   Each call now uses one frame snapshot and clamps depth lookups to the depth map.
