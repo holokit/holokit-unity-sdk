@@ -35,6 +35,10 @@ public partial class HoloKitFeatureProbe
         string label = canvas.RenderModeButtonText != null ? canvas.RenderModeButtonText.text : "";
         string expected = after == ScreenRenderMode.Mono ? "Stereo" : "Mono";
         Check("E1.render-toggle", after != before && label == expected, $"{before}->{after} label='{label}'");
+        // By default Stereo keeps this button: the stereo bar is off (StereoBarItems None).
+        if (after == ScreenRenderMode.Stereo)
+            Check("E1.stereo-button", manager.StereoBar == null && canvas.GetComponent<Canvas>().enabled,
+                $"bar={manager.StereoBar != null} canvas={canvas.GetComponent<Canvas>().enabled}");
         yield return Capture($"ui-{after}");
         button.onClick.Invoke();
         yield return new WaitForSecondsRealtime(2);

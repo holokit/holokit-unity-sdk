@@ -24,6 +24,8 @@ public partial class HoloKitFeatureProbe
     {
         var manager = FindFirstObjectByType<HoloKitCameraManager>();
         if (!Check("S0.manager", manager != null, "scene has HoloKitCameraManager")) yield break;
+        HoloKitStereoBarItems items = manager.StereoBarItems;
+        manager.StereoBarItems = HoloKitStereoBarItems.All; // off by default
         manager.ScreenRenderMode = ScreenRenderMode.Stereo;
         yield return new WaitForSecondsRealtime(3);
 
@@ -100,6 +102,7 @@ public partial class HoloKitFeatureProbe
                 $"mode={manager.ScreenRenderMode} bar={bar.isActiveAndEnabled} canvas={canvas == null || canvas.GetComponent<Canvas>().enabled}");
         }
         manager.ScreenRenderMode = ScreenRenderMode.Mono;
+        manager.StereoBarItems = items;
     }
 
     IEnumerator StereoTake(HoloKitStereoBar bar, HoloKitVideoRecorder recorder, string name,

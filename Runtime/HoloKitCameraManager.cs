@@ -204,8 +204,9 @@ namespace HoloKit
         [Tooltip("Seconds without a touch before the alignment guide hides in Stereo mode (a touch brings it back); 0 keeps it.")]
         [SerializeField] float m_AlignmentGuideAutoHideDelay = 10f;
 
-        [Tooltip("The controls of the stereo bar along the screen's top edge in Stereo mode: MORE, RECORD, MONO, OPTIONS and TRIGGER. Nothing for none.")]
-        [SerializeField] HoloKitStereoBarItems m_StereoBarItems = HoloKitStereoBarItems.All;
+        [Tooltip("The controls of the stereo bar along the screen's top edge in Stereo mode: MORE, RECORD, MONO, OPTIONS and TRIGGER. " +
+                 "Nothing (the default) for none: the Default UI Canvas keeps its Stereo / Mono button in Stereo.")]
+        [SerializeField] HoloKitStereoBarItems m_StereoBarItems = HoloKitStereoBarItems.None;
 
         [Tooltip("TRIGGER's label in the stereo bar, e.g. FIRE. Keep it short: it sits in a 20 mm touch area.")]
         [SerializeField] string m_StereoTriggerLabel = "TRIGGER";

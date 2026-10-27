@@ -121,7 +121,7 @@ When the stereo mode is activated, the SDK shows the alignment guide, as in the 
 
 As the phone heats up, stereo mode lowers its frame rate: 40 fps at the Serious thermal state and 30 fps at Critical, as the HoloKit Swift SDK does (**Adapt Stereo Frame Rate To Thermal State**, on by default).
 
-In stereo mode the SDK also shows the stereo bar along the screen's top edge, in the band above the headset frame, as in the HoloKit app. The wearer touches the phone's top edge blind, so every control's touch area runs down to the frame:
+By default the Default UI Canvas keeps its Stereo / Mono button in stereo mode. Set **Stereo Bar Items** to show the stereo bar instead: HoloKit's controls along the screen's top edge, in the band above the headset frame, as in the HoloKit app. The Default UI Canvas then hides its buttons in stereo mode. The wearer touches the phone's top edge blind, so every control's touch area runs down to the frame:
 
 | Control | Gesture | Action |
 |---|---|---|
@@ -140,7 +140,7 @@ Configure the bar on `HoloKitCameraManager`:
 
 | Setting | Code | Default |
 |---|---|---|
-| Stereo Bar Items: which of MORE, RECORD, MONO, OPTIONS and TRIGGER to show | `StereoBarItems` | all five |
+| Stereo Bar Items: which of MORE, RECORD, MONO, OPTIONS and TRIGGER to show | `StereoBarItems` | none (`HoloKitStereoBarItems.All` for all five) |
 | Stereo Trigger Label | `StereoTriggerLabel` | `TRIGGER` |
 | Stereo Trigger Pressed Label | `StereoTriggerPressedLabel` | `TRIGGERED` |
 

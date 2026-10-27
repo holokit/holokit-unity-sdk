@@ -650,7 +650,7 @@ MonoBehaviour:
   m_FarClipPlane: 50
   m_ShowAlignmentMarkerInStereoMode: 1
   m_AlignmentGuideAutoHideDelay: 10
-  m_StereoBarItems: 31
+  m_StereoBarItems: 0
   m_StereoTriggerLabel: TRIGGER
   m_StereoTriggerPressedLabel: TRIGGERED
   m_ShowStereoBarTouchAreas: 0
