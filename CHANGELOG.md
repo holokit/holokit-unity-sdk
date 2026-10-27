@@ -82,6 +82,9 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 - `MicrophoneProcessing.Voice`: voice processing with automatic gain (chat session mode), for apps that
   react to the user's voice. Under `Default`, speech 5 cm from the microphone still reads about
   -47 dBFS (iPhone 15 Pro, iOS 27), below typical sound-reactive thresholds.
+- `HoloKitMicrophoneCapture.Position` (Automatic, Bottom, Front, Back): prefers one built-in
+  microphone, omnidirectional where supported, under Environment and Default processing; under voice
+  processing iOS owns the input.
 - Standard `HoloKit Default UI Canvas` prefab (`Assets/Prefabs`) with render mode, record and 4K
   buttons; the GameObject > UI > HoloKit menu now places it. Every interactive sample uses it and has
   a `HoloKitVideoRecorder`.
@@ -137,6 +140,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
   Origin's camera offset) now takes them to world space, as the AR camera's pose is.
 - GameObject > XR > HoloKit > HoloKit XR Origin left XROrigin's 1.1176 m Camera Y Offset in place; it
   now uses Floor and 0 m, as every sample does.
+- Other apps' music (Apple Music, YouTube) stopped while the microphone ran. Environment and Default
+  processing use Bluetooth A2DP instead of hands-free (HFP), and when other audio is playing the
+  microphone deactivates the session with NotifyOthersOnDeactivation after starting and stopping, so
+  that music resumes in 0.1-0.4 s and keeps playing (iPhone 15 Pro, iOS 27).
 - Phone model lists failed to load when the package was installed from git or a tarball: they are
   now loaded by GUID instead of a `Packages/` path.
 
