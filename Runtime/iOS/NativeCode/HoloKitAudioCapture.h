@@ -15,6 +15,8 @@ int HoloKit_MicrophoneStart(int processing);
 // where supported). iOS ignores the choice while voice processing (1, 3) owns the input.
 void HoloKit_MicrophoneSetPosition(int position);
 void HoloKit_MicrophoneStop(void);
+/// Rebuilds a stopped engine after another component reconfigured audio input; 0 on success.
+int HoloKit_MicrophoneRestart(void);
 int HoloKit_MicrophoneIsRunning(void);
 int HoloKit_MicrophoneSampleRate(void);
 int HoloKit_MicrophoneBufferedSamples(void);

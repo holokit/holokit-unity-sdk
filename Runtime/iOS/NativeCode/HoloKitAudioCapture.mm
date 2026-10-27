@@ -60,12 +60,15 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     if (self.othersWerePlaying || session.isOtherAudioPlaying) [self letOthersResume];
     self.othersWerePlaying = NO;
 }
-- (void)stop {
+- (void)teardownEngine {
     [self.engine stop];
     if (self.tapInstalled) [self.engine.inputNode removeTapOnBus:0];
     self.tapInstalled = NO;
     self.engine = nil;
     microphoneRate.store(0, std::memory_order_release);
+}
+- (void)stop {
+    [self teardownEngine];
     microphoneWritten.store(0, std::memory_order_release);
     [self restoreSession];
 }
@@ -96,8 +99,6 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     return NO;
 }
 - (BOOL)start:(int)processing {
-    const BOOL aec = processing == 1;
-    const BOOL voice = processing == 3;  // voice processing with automatic gain
     if (self.engine.isRunning) {
         if (processing == self.processing) return YES;
         self.error = @"Cannot change microphone processing while the shared input is running.";
@@ -110,6 +111,22 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     self.previousMode = session.mode;
     self.previousOptions = session.categoryOptions;
     self.othersWerePlaying = session.isOtherAudioPlaying;
+    return [self configureSession:processing] && [self startEngine:processing];
+}
+// iOS stops the engine when another component reconfigures audio input (Unity's Microphone.Start, a
+// route change) and does not restart it. Rebuild it on the new input format. The session saved by
+// start: is not restored first: switching back to that category would stop the other recording.
+- (BOOL)restart {
+    if (!self.users) return NO;
+    if (self.engine.isRunning) return YES;
+    self.error = nil;
+    [self teardownEngine];
+    return [self configureSession:self.processing] && [self startEngine:self.processing];
+}
+- (BOOL)configureSession:(int)processing {
+    const BOOL aec = processing == 1;
+    const BOOL voice = processing == 3;  // voice processing with automatic gain
+    AVAudioSession* session = AVAudioSession.sharedInstance;
     NSError* error = nil;
     // Bluetooth hands-free (HFP) only for voice processing, which needs a headset microphone. Otherwise
     // A2DP, so music on Bluetooth headphones keeps its quality while the built-in microphone listens.
@@ -123,7 +140,13 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     if (![session setActive:YES error:&error]) return [self fail:error.localizedDescription];
     if (!aec && !voice) [self selectPosition];
     if (self.othersWerePlaying) [self letOthersResume];
-
+    return YES;
+}
+- (BOOL)startEngine:(int)processing {
+    const BOOL aec = processing == 1;
+    const BOOL voice = processing == 3;
+    AVAudioSession* session = AVAudioSession.sharedInstance;
+    NSError* error = nil;
     self.engine = [AVAudioEngine new];
     AVAudioInputNode* input = self.engine.inputNode;
     // Setting the chat session mode alone does NOT enable echo cancellation.
@@ -231,6 +254,7 @@ void HoloKit_MicrophoneStop() {
     HoloKitMicrophone* microphone = Microphone();
     if (microphone.users && --microphone.users == 0) [microphone stop];
 }
+int HoloKit_MicrophoneRestart() { return [Microphone() restart] ? 0 : -1; }
 int HoloKit_MicrophoneIsRunning() { return Microphone().engine.isRunning ? 1 : 0; }
 int HoloKit_MicrophoneSampleRate() { return microphoneRate.load(std::memory_order_acquire); }
 int HoloKit_MicrophoneBufferedSamples() { return (int)std::min(uint64_t(RingSize), microphoneWritten.load(std::memory_order_acquire)); }

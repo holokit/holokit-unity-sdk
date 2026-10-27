@@ -143,6 +143,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 ### Fixed
 
+- `HoloKitMicrophoneCapture` stopped for good when the app called Unity's `Microphone.Start` after it
+  started (iOS stops an `AVAudioEngine` when another component reconfigures audio input). It now
+  rebuilds the engine on the new input format and keeps its consumers, up to three times in five
+  seconds; it keeps the audio session as configured, since restoring it would stop the other recording.
 - Hand Tracking, Pinch To Place and Glowing Orbs showed Unity's skybox instead of the camera image in
   Mono: `AROcclusionManager`'s `RequireComponent(Camera)` had added a default camera (Skybox, depth 0)
   beside it, which rendered after the AR camera (and could cover Stereo too). That camera is disabled;

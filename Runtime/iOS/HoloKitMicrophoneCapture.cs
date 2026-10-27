@@ -45,6 +45,12 @@ namespace HoloKit.iOS
         Coroutine preparing;
         bool ownsNativeReference, paused;
         MicrophoneProcessing processing;
+        // Restarts after another component stopped the engine; more than MaxRestarts within
+        // RestartWindow seconds means two inputs keep fighting, and the input reports an error instead.
+        const int MaxRestarts = 3;
+        const float RestartWindow = 5f;
+        int restarts;
+        float firstRestart;
         [SerializeField, Tooltip("Built-in microphone to prefer (omnidirectional where supported). Applies to " +
             "Environment and Default processing; iOS chooses the input under voice processing.")]
         MicrophonePosition _position = MicrophonePosition.Automatic;
@@ -158,11 +164,26 @@ namespace HoloKit.iOS
         {
             if (!IsReady) return;
             string error = NativeError();
+            // iOS stops the engine when another component reconfigures audio input, e.g. Unity's
+            // Microphone.Start after this input started, or a route change; rebuild it for the consumers.
+            if (error == null && HoloKit_MicrophoneIsRunning() == 0 && TryRestart()) return;
+            error ??= NativeError();
             if (error != null || HoloKit_MicrophoneIsRunning() == 0)
             {
                 LastError = error ?? "Microphone stopped after an audio-route change or interruption.";
                 IsReady = false;
             }
+        }
+        bool TryRestart()
+        {
+            if (Time.realtimeSinceStartup - firstRestart > RestartWindow)
+            {
+                restarts = 0;
+                firstRestart = Time.realtimeSinceStartup;
+            }
+            if (++restarts > MaxRestarts || HoloKit_MicrophoneRestart() != 0) return false;
+            Debug.Log($"[Microphone] restarted after an audio configuration change ({restarts} in {RestartWindow:F0} s)");
+            return true;
         }
         void StopInput()
         {
@@ -199,6 +220,7 @@ namespace HoloKit.iOS
         [DllImport(Library)] static extern int HoloKit_MicrophoneStart(int processing);
         [DllImport(Library)] static extern void HoloKit_MicrophoneSetPosition(int position);
         [DllImport(Library)] static extern void HoloKit_MicrophoneStop();
+        [DllImport(Library)] static extern int HoloKit_MicrophoneRestart();
         [DllImport(Library)] static extern int HoloKit_MicrophoneIsRunning();
         [DllImport(Library)] static extern int HoloKit_MicrophoneSampleRate();
         [DllImport(Library)] static extern int HoloKit_MicrophoneBufferedSamples();
