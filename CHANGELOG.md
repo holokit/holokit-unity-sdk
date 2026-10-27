@@ -134,6 +134,11 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
 
 ### Fixed
 
+- Hand Tracking, Pinch To Place and Glowing Orbs showed Unity's skybox instead of the camera image in
+  Mono: `AROcclusionManager`'s `RequireComponent(Camera)` had added a default camera (Skybox, depth 0)
+  beside it, which rendered after the AR camera (and could cover Stereo too). That camera is disabled;
+  the occlusion manager still provides the LiDAR depth for 3D hand joints. EditMode `SampleSceneTests`
+  fails if any camera draws over a sample's AR camera image.
 - Hand joints ignored the XR Origin: they were placed in ARKit session space, so with the XR Origin's
   default Camera Y Offset (1.1176 m) the hand skeleton, pinch points and gestures sat 1.12 m below the
   real hand. `AppleVisionHandPoseDetector.SessionSpace` (set by `HandTrackingManager` to the XR
