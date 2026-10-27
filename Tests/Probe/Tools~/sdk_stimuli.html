@@ -15,7 +15,13 @@
   @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 70vh)); } }
   /* First-person hand "video": known trajectory x(t) = 30vw * sin(2*pi*t / 4 s). */
   #motion img, #motion-pinch img { position: absolute; height: 60vh; left: calc(50vw - 20vh); top: 20vh; }
-  #handvideo video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
+  /* Aim preflight: a coloured mark in each corner of the window; the camera must see all four. */
+  #frame .corner { position: fixed; width: 14vmin; height: 14vmin; }
+  #frame .tl { left: 0; top: 0; background: #00c800; }
+  #frame .tr { right: 0; top: 0; background: #ff00ff; }
+  #frame .bl { left: 0; bottom: 0; background: #00ffff; }
+  #frame .br { right: 0; bottom: 0; background: #ffff00; }
+  #handvideo video, #gesturevideo video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
   #fiducial { background: #fff; }
   .mark { position: absolute; width: 22vh; height: 22vh; }
   .red { background: #e00000; top: 4vh; left: 4vh; }
@@ -28,6 +34,7 @@
 </head>
 <body>
 <div class="stage" id="blank"></div>
+<div class="stage" id="frame"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></div>
 <div class="stage" id="one"><img src="first-person/open.jpg"></div>
 <div class="stage" id="open"><img src="first-person/open.jpg"></div>
 <div class="stage" id="pinch"><img src="first-person/pinch.jpg"></div>
@@ -36,6 +43,7 @@
 <div class="stage" id="motion"><img id="motion-img" src="first-person/open.jpg"></div>
 <div class="stage" id="motion-pinch"><img id="motion-pinch-img" src="first-person/open.jpg"></div>
 <div class="stage" id="handvideo"><video id="handvideo-video" src="videos/hand-test.mp4" muted playsinline preload="auto"></video></div>
+<div class="stage" id="gesturevideo"><video id="gesturevideo-video" src="videos/gesture-test.mp4" muted playsinline preload="auto"></video></div>
 <div class="stage" id="person"><img src="stimuli/person.jpg"></div>
 <div class="stage" id="fiducial">
   <div class="mark red"></div><div class="mark green"></div><div class="mark blue"></div>
@@ -71,15 +79,19 @@
   window.addEventListener('hashchange', () => {
     motionStart = performance.now();
     show();
-    const video = document.getElementById('handvideo-video');
-    if (location.hash === '#handvideo') { video.currentTime = 0; video.play(); } else video.pause();
+    for (const name of ['handvideo', 'gesturevideo']) {
+      const video = document.getElementById(name + '-video');
+      if (location.hash === '#' + name) { video.currentTime = 0; video.play(); } else video.pause();
+    }
   });
   requestAnimationFrame(animate);
   show();
   // Report when frames actually start (wall clock) so the runner can remove the switch delay.
-  const handVideo = document.getElementById('handvideo-video');
-  handVideo.addEventListener('playing', () => { document.title = 'playing:' + Date.now(); });
-  handVideo.addEventListener('pause', () => { document.title = 'HoloKit probe stimuli'; });
+  for (const name of ['handvideo', 'gesturevideo']) {
+    const video = document.getElementById(name + '-video');
+    video.addEventListener('playing', () => { document.title = 'playing:' + Date.now(); });
+    video.addEventListener('pause', () => { document.title = 'HoloKit probe stimuli'; });
+  }
 </script>
 </body>
 </html>

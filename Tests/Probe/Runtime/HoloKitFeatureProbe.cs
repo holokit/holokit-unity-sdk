@@ -6,11 +6,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using HoloKit.iOS;
+using HoloKit.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 
 // Keep this assembly through managed code stripping; nothing in a scene references it.
@@ -24,26 +28,31 @@ namespace HoloKit.Tests
 [Preserve]
 public partial class HoloKitFeatureProbe : MonoBehaviour
 {
+    // Run order. Hand and camera suites come first, while the phone is cool: recording, 4K and Stereo
+    // heat it, and at the Serious thermal state ARKit drops to 30 Hz. Requested suites run in this order.
     static readonly string[] AllSuites =
-        { "device", "rendering", "orientation", "ui", "tracking", "enhancement", "microphone", "hand", "handmotion", "handvideo", "gesture", "gaze", "coexist", "stereobar", "lowlatency", "pinchtoplace" };
+        { "device", "rendering", "orientation", "ui", "tracking", "hand", "handmotion", "handvideo", "gesturevideo",
+          "gesture", "gaze", "pinchtoplace", "lowlatency", "enhancement", "microphone", "coexist", "stereobar" };
     static readonly Dictionary<string, string> Scenes = new()
     {
         ["device"] = "StereoscopicRendering", ["rendering"] = "StereoscopicRendering",
         ["orientation"] = "StereoscopicRendering", ["ui"] = "StereoscopicRendering",
         ["tracking"] = "ResetWorldOrigin", ["enhancement"] = "ARBackgroundVideoEnhancement",
-        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking", ["coexist"] = "StereoscopicRendering", ["stereobar"] = "StereoscopicRendering",
+        ["microphone"] = "StereoscopicRendering", ["hand"] = "HandTracking", ["handmotion"] = "HandTracking", ["handvideo"] = "HandTracking", ["gesturevideo"] = "HandTracking", ["coexist"] = "StereoscopicRendering", ["stereobar"] = "StereoscopicRendering",
         ["lowlatency"] = "LowLatencyTracking", ["pinchtoplace"] = "PinchToPlace",
-        ["gesture"] = "HandGestureRecognition", ["gaze"] = "GazeGestureInteraction",
+        ["gesture"] = "HandGestureRecognition", ["gaze"] = "GazeGestureInteraction", ["aim"] = "StereoscopicRendering",
     };
     const float Settle = 1.5f;
 
-    [Serializable] class Result { public string id, detail; public bool pass; }
+    // suite and thermal (AppleThermalState at the check) let the runner tell environment from SDK failures.
+    [Serializable] class Result { public string id, detail, suite; public bool pass; public int thermal; }
     [Serializable] class Report
     {
         public string runId, deviceModel, operatingSystem;
         public bool completed;
         public int failures;
         public List<Result> results = new();
+        public List<string> touchedSuites = new();
     }
 
     static string[] s_Suites;
@@ -54,6 +63,9 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
     float m_StimulusStart;
     int m_Exceptions;
     bool m_SequenceDone;
+    string m_Suite = "";
+    AppleNativeProvider m_Apple;
+    TouchShield m_Shield;
 
     float StimulusAge => Time.realtimeSinceStartup - m_StimulusStart;
     bool Settled => StimulusAge > Settle;
@@ -66,7 +78,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         string[] lines = File.ReadAllText(path).Trim().Split('\n');
         File.Delete(path);
         string first = lines[0].Trim();
-        s_Suites = first == "all" ? AllSuites : first.Split(',');
+        s_Suites = first == "all" ? AllSuites
+            : first.Split(',').OrderBy(suite => Array.IndexOf(AllSuites, suite)).ToArray(); // unknown (aim) first
         s_RunId = lines.Length > 1 ? lines[1].Trim() : "";
         // Optional "scene.<suite>=<scene>" and "expect.lidar=0" overrides.
         for (int i = 2; i < lines.Length; i++)
@@ -88,8 +101,12 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         Application.logMessageReceived += OnLog;
         // Unattended runs have no touches; keep the phone from auto-locking mid-suite.
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        m_Apple = new AppleNativeProvider();
+        m_Shield = TouchShield.Create();
         foreach (string suite in s_Suites)
         {
+            m_Suite = suite;
+            int touches = m_Shield.Touches;
             Debug.Log($"[SDK-TEST] SUITE {suite}");
             if (!Scenes.TryGetValue(suite, out string scene)) { Check(suite, false, "unknown suite"); continue; }
             yield return LoadScene(scene);
@@ -106,21 +123,30 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
                 "hand" => HandSuite(),
                 "handmotion" => HandMotionSuite(),
                 "handvideo" => HandVideoSuite(),
+                "gesturevideo" => GestureVideoSuite(),
                 "coexist" => CoexistSuite(),
                 "stereobar" => StereoBarSuite(),
                 "lowlatency" => LowLatencySuite(),
                 "pinchtoplace" => PinchToPlaceSuite(),
                 "gesture" => GestureSuite(),
                 "gaze" => GazeSuite(),
+                "aim" => AimSuite(),
                 _ => null,
             };
             Check($"{suite}.no-exceptions", m_Exceptions == 0, $"exceptions={m_Exceptions}");
+            if (m_Shield.Touches > touches)
+            {
+                m_Report.touchedSuites.Add(suite);
+                Debug.Log($"[SDK-TEST] TOUCHED {suite} touches={m_Shield.Touches - touches}");
+            }
         }
         yield return Stimulus("done", 0);
         m_Report.completed = true;
         Write();
         Debug.Log($"[SDK-TEST] COMPLETE failures={m_Report.failures}");
     }
+
+    void OnDestroy() => m_Apple?.Dispose();
 
     void OnLog(string message, string stack, LogType type)
     {
@@ -144,7 +170,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
 
     protected bool Check(string id, bool pass, string detail)
     {
-        m_Report.results.Add(new Result { id = id, pass = pass, detail = detail });
+        int thermal = m_Apple != null ? (int)m_Apple.GetThermalState() : 0;
+        m_Report.results.Add(new Result { id = id, pass = pass, detail = detail, suite = m_Suite, thermal = thermal });
         if (!pass) m_Report.failures++;
         Debug.Log($"[SDK-TEST] {(pass ? "PASS" : "FAIL")} {id} {detail}");
         Write();
@@ -186,6 +213,59 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
         ScreenCapture.CaptureScreenshot(file);
         yield return new WaitForSecondsRealtime(1);
         Debug.Log($"[SDK-SHOT] {file}");
+    }
+
+    // Unattended runs: an invisible overlay above every canvas takes all touches, so someone handling
+    // the phone cannot press the app's buttons mid-suite; the runner treats a touched suite's failures
+    // as untested.
+    sealed class TouchShield : MonoBehaviour, IPointerDownHandler
+    {
+        public int Touches;
+        public void OnPointerDown(PointerEventData data) => Touches++;
+
+        public static TouchShield Create()
+        {
+            var canvas = new GameObject("Probe Touch Shield", typeof(Canvas), typeof(GraphicRaycaster)).GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = short.MaxValue;
+            DontDestroyOnLoad(canvas.gameObject);
+            var image = new GameObject("Shield", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            image.transform.SetParent(canvas.transform, false);
+            var rect = (RectTransform)image.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            image.color = Color.clear; // still a raycast target
+            return image.gameObject.AddComponent<TouchShield>();
+        }
+    }
+
+    // Hides the Default UI Canvas until disposed: its red REC label would pass for a fiducial mark.
+    IDisposable HideUI()
+    {
+        var shown = FindObjectsByType<HoloKitDefaultUICanvas>(FindObjectsSortMode.None)
+            .Select(c => c.gameObject).Where(g => g.activeSelf).ToList();
+        shown.ForEach(g => g.SetActive(false));
+        return new Restore(() => shown.ForEach(g => { if (g != null) g.SetActive(true); }));
+    }
+
+    sealed class Restore : IDisposable
+    {
+        readonly Action m_Action;
+        public Restore(Action action) => m_Action = action;
+        public void Dispose() => m_Action();
+    }
+
+    // Runner preflight: four coloured corner marks bound the stimulus window; the screenshot shows
+    // whether the camera sees all of it before a long run starts.
+    IEnumerator AimSuite()
+    {
+        var manager = FindFirstObjectByType<HoloKitCameraManager>();
+        if (manager != null) manager.ScreenRenderMode = ScreenRenderMode.Mono;
+        yield return Stimulus("frame", 2);
+        using (HideUI())
+            yield return Capture("aim");
+        Check("aim.captured", true, $"thermal={m_Apple.GetThermalState()}");
     }
 
     static T Field<T>(object target, string name) =>
@@ -294,7 +374,8 @@ public partial class HoloKitFeatureProbe : MonoBehaviour
             Vector3 up = camera != null ? camera.up : Vector3.zero;
             Debug.Log($"[SDK-ORIENT] requested={orientation} effective={Screen.orientation} size={Screen.width}x{Screen.height} " +
                 $"pos={position.x:F4},{position.y:F4},{position.z:F4} fwd={forward.x:F4},{forward.y:F4},{forward.z:F4} up={up.x:F4},{up.y:F4},{up.z:F4}");
-            yield return Capture($"orient-{orientation}");
+            using (HideUI()) // the runner reads the fiducial colours; the UI's red REC label is not one
+                yield return Capture($"orient-{orientation}");
             if (Screen.orientation == orientation)
             {
                 // Read the projection that was actually rendered (AR Foundation sets it before render).

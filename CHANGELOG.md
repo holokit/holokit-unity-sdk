@@ -34,6 +34,13 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0.
   first copies `Samples~` into the carrier project (`HoloKitSampleSync`), so it never runs stale
   sample copies; new `lowlatency` and `pinchtoplace` suites. Sample scenes re-saved through Unity
   so their files carry the new and renamed fields.
+- Device probe `gesturevideo` suite: real first-person hands making gestures while they move (Pexels
+  clips); the runner applies the SDK's gesture classifier and filter to Vision on the source frames
+  and checks the phone's `HandGestureRecognitionManager` (gesture agreement, pinch-event recall and
+  precision). The runner first checks that the camera sees the whole stimulus window and the phone
+  is not thermally Serious, and stops with what to fix; failures caused by a touch (now blocked by an
+  overlay) or by heat are reported as untested. Hand and camera suites run first, while the phone is
+  cool.
 - Hand skeleton from the Swift SDK: `HandTrackingManager` (Hand Joints Visibility, on by default) shows
   the first hand as yellow joints and cyan bones (`HandSkeletonView`, topology in `HandSkeleton`), drawn
   over the real hand so AR occlusion never hides it. It replaces the white joint spheres, which the

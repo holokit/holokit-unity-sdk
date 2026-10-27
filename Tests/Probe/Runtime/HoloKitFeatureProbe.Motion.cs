@@ -142,6 +142,40 @@ public partial class HoloKitFeatureProbe
         Check("V0.recorded", csv.Length > 1000, $"csvBytes={csv.Length} (analysed by the Mac runner)");
     }
 
+    const float GestureVideoSeconds = 46f; // gesture-test.mp4 (45.7 s)
+
+    // Real hands making gestures while they move (gesture-test.mp4). The gesture a
+    // HandGestureRecognitionManager reports, with the first hand's wrist for time alignment, goes to
+    // Documents/sdk-gesturevideo.csv; the Mac runner applies the same classifier and filter to Vision
+    // on the source frames and compares.
+    IEnumerator GestureVideoSuite()
+    {
+        var tracking = FindFirstObjectByType<HandTrackingManager>();
+        if (!Check("W0.present", tracking != null && tracking.HandPoseDetector != null,
+                "scene has HandTrackingManager")) yield break;
+        var gestures = tracking.gameObject.AddComponent<HandGestureRecognitionManager>();
+        yield return null; // Start() subscribes to the tracking manager's detector
+        var csv = new System.Text.StringBuilder("t,hands,gesture,x,y,pinchRatio\n");
+        yield return During(() =>
+        {
+            if (m_Stimulus != "gesturevideo") return;
+            var detector = tracking.HandPoseDetector;
+            int n = tracking.HandCount;
+            string row = $"{StimulusAge:F4},{n},{(int)gestures.HandGesture}";
+            if (n > 0)
+            {
+                var j = detector.HandPoses2D[0];
+                float? ratio = HandGestureClassifier.PinchDistance(j, detector.HandPosesConfidence[0], JointName.IndexTip);
+                row += $",{j[JointName.Wrist].x:F5},{j[JointName.Wrist].y:F5},{(ratio.HasValue ? $"{ratio.Value:F4}" : "")}";
+            }
+            else row += ",,,";
+            csv.Append(row).Append('\n');
+        }, ("blank", 2), ("gesturevideo", GestureVideoSeconds + 1), ("blank", 1));
+        Destroy(gestures);
+        System.IO.File.WriteAllText(System.IO.Path.Combine(Application.persistentDataPath, "sdk-gesturevideo.csv"), csv.ToString());
+        Check("W0.recorded", csv.Length > 1000, $"csvBytes={csv.Length} (analysed by the Mac runner)");
+    }
+
     // R^2 of y ~ a*sin(wt) + b*cos(wt) + c at the stimulus frequency (phase-free).
     static float SineFit(List<float> t, List<float> v)
     {

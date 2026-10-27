@@ -30,34 +30,50 @@ def api(params):
     return json.load(urllib.request.urlopen(urllib.request.Request(url, headers=USER_AGENT)))
 
 
-# Real hand videos (Pexels License; downloaded, never committed). Order and trimming define the
-# test clip; video_ground_truth.swift runs Vision on every frame of it.
-PEXELS_VIDEOS = [10373882, 4662096, 11878748]
+# Real hand videos (Pexels License; downloaded, never committed). Each test clip is its sources in order,
+# each (Pexels id, (start s, duration s) or None for the whole video); video_ground_truth.swift runs
+# Vision on every frame of the clip.
 VIDEOS = pathlib.Path(__file__).resolve().parent / 'videos'
+TEST_VIDEOS = {
+    'hand-test': [(10373882, None), (4662096, None), (11878748, None)],
+    # Hands making Pinched / Five / other shapes while they move, for the gesturevideo suite.
+    # Both are first-person-like: the arm enters from the side, the back of the hand faces the camera.
+    'gesture-test': [(10204151, (0, 36)), (10210107, None)],
+}
 
 
-def build_hand_video():
+def pexels(video):
+    path = VIDEOS / f'pexels-{video}.mp4'
+    if not path.exists():
+        request = urllib.request.Request(f'https://www.pexels.com/download/video/{video}/', headers={'User-Agent': 'Mozilla/5.0'})
+        path.write_bytes(urllib.request.urlopen(request).read())
+    return path
+
+
+def build_video(name, sources):
     VIDEOS.mkdir(exist_ok=True)
-    clip, truth = VIDEOS / 'hand-test.mp4', VIDEOS / 'hand-test.truth.json'
-    if clip.exists() and truth.exists():
+    clip, truth = VIDEOS / f'{name}.mp4', VIDEOS / f'{name}.truth.json'
+    if not sources or (clip.exists() and truth.exists()):
         return
-    sources = []
-    for video in PEXELS_VIDEOS:
-        path = VIDEOS / f'pexels-{video}.mp4'
-        if not path.exists():
-            request = urllib.request.Request(f'https://www.pexels.com/download/video/{video}/', headers={'User-Agent': 'Mozilla/5.0'})
-            path.write_bytes(urllib.request.urlopen(request).read())
-        sources.append(path)
+    inputs = []
+    for video, span in sources:
+        inputs += (['-ss', str(span[0]), '-t', str(span[1])] if span else []) + ['-i', str(pexels(video))]
     scale = 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30,setsar=1'
     graph = ';'.join(f'[{i}:v]{scale}[v{i}]' for i in range(len(sources)))
     graph += ';' + ''.join(f'[v{i}]' for i in range(len(sources))) + f'concat=n={len(sources)}:v=1:a=0[v]'
-    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', *sum((['-i', str(s)] for s in sources), []),
+    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', *inputs,
                     '-filter_complex', graph, '-map', '[v]', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20',
                     '-movflags', '+faststart', str(clip)], check=True)
     with open(truth, 'w') as out:
         subprocess.run(['swift', str(VIDEOS.parent / 'video_ground_truth.swift'), str(clip)], stdout=out, check=True)
+
+
+def build_videos():
+    for name, sources in TEST_VIDEOS.items():
+        build_video(name, sources)
+    used = sorted({video for sources in TEST_VIDEOS.values() for video, _ in sources})
     (VIDEOS / 'CREDITS.txt').write_text(''.join(f'pexels-{v}.mp4: https://www.pexels.com/video/{v}/ (Pexels License)\n'
-                                                for v in PEXELS_VIDEOS))
+                                                for v in used))
 
 
 def main():
@@ -79,7 +95,7 @@ def main():
         credits.append(f"{name}.jpg: {title} | {meta.get('LicenseShortName', {}).get('value')} | {info['descriptionurl']}")
         print(name, image.size)
     (OUT / 'CREDITS.txt').write_text('\n'.join(credits) + '\n')
-    build_hand_video()
+    build_videos()
 
 
 if __name__ == '__main__':

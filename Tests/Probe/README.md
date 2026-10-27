@@ -18,6 +18,7 @@ The probe loads the HoloKit sample scenes and checks:
 | `hand` | no hand, one hand + 3D joints/depth, two hands, left-right sweep, lost event |
 | `handmotion` | first-person hand moving on a known 4 s sine: pose update rate, capture-to-pose latency, continuity, trajectory R², depth stability, pinch while moving |
 | `handvideo` | real hand video (Pexels, first-person style) played in Safari; the runner compares phone tracking with Vision on the source frames: detection recall, affine trajectory R², pinch-distance correlation, two-hand agreement, alignment lag |
+| `gesturevideo` | real hands making gestures while they move (Pexels clips in `gesture-test.mp4`); the runner applies the SDK's gesture classifier and filter to Vision on the source frames and compares the phone's `HandGestureRecognitionManager`: gesture agreement on settled frames (W1), pinch-event recall and precision (W2) |
 | `gesture` | pinch and five gestures against alternating photos |
 | `stereobar` | turns the stereo bar on; its controls and millimetre layout, Default UI Canvas giving way, alignment guide auto-hide, TRIGGER event and custom label, thermal frame rate, Stereo 2K / 4K takes through RECORD (the runner checks each movie's size and frame rate with ffprobe), MONO |
 | `lowlatency` | Low Latency Tracking sample in Stereo: prediction on, render-to-present latency, prediction lead, IMU sample age, frame rate |
@@ -32,7 +33,8 @@ Scene names default to the sample scenes. Override one with a mode line
 Mount the phone with its camera facing a Safari window on the Mac.
 
 ```sh
-python3 Tests/Probe/Tools~/fetch_stimuli.py        # once; downloads Commons photos (see stimuli/CREDITS.txt)
+python3 Tests/Probe/Tools~/fetch_stimuli.py        # once; Commons photos and Pexels hand videos, with Vision
+                                                   # ground truth (stimuli/ and videos/CREDITS.txt; needs ffmpeg)
 python3 Tests/Probe/Tools~/run_feature_probe.py --device UDID --bundle-id BUNDLE --output /tmp/sdk-probe
 ```
 
@@ -41,6 +43,13 @@ The runner copies the mode file, launches the app with `devicectl --console`, sw
 `sdk-probe-results.json` and screenshots, and writes `summary.json`. It never changes the
 system volume. The 440 Hz microphone check plays a tone only with `--allow-speaker`;
 otherwise it is reported as untested, not passed.
+
+Before camera suites the runner launches a short `aim` run: the phone must see all four coloured
+corners of the Safari window, and must not be thermally Serious, or the runner stops and says what
+to fix (`--no-preflight` skips it). Suites run hand and camera first, while the phone is cool.
+Failures caused by the environment are reported as untested with the reason: a suite during which
+the phone was touched (an invisible overlay blocks and counts touches), and rate or timing checks
+while the phone was Serious or hotter.
 
 On-screen photos stand in for real hands. They exercise Vision/LiDAR integration and the
 gesture logic, not real-hand latency or accuracy. Grant camera and microphone permission to
