@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - Unreleased
 
-Previews: 0.6.0-preview.1 (2026-10-12), 0.6.0-preview.2 (2026-10-27).
+Previews: 0.6.0-preview.1 (2026-10-12), 0.6.0-preview.2 (2026-10-27), 0.6.0-preview.3 (2026-10-28).
 
 Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or later.
 

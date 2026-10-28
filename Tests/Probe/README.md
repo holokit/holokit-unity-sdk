@@ -50,7 +50,7 @@ window's height and the videos are zoomed 1.4x in a crop where their median hand
 window must be at least 1.6 times as wide as it is tall). The video checks score only ground-truth
 hands wholly inside that crop.
 
-Known limitation (0.6.0-preview.2): through the phone's camera, the zoomed video hands are often
+Known limitation (0.6.0-preview.3): through the phone's camera, the zoomed video hands are often
 not detectable, not even by Vision on the Mac in the phone's own frames (`sdk-handvideo-10s.png`,
 `sdk-gesturevideo-30s.png`): hands cut by the crop and low contrast. So V1/V2 and W1/W2 fail or stay
 untested for stimulus reasons; their thresholds (0.8) are provisional until clips with whole,

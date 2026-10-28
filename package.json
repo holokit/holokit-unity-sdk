@@ -1,7 +1,7 @@
 {
   "name": "io.holokit.unity-sdk",
   "displayName": "HoloKit Unity SDK",
-  "version": "0.6.0-preview.2",
+  "version": "0.6.0-preview.3",
   "unity": "6000.3",
   "description": "HoloKit turns an iPhone into an optical see-through stereo AR headset. The HoloKit Unity SDK builds on AR Foundation and adds:\n\n- Stereoscopic rendering for the HoloKit headset, switchable with Mono (screen AR)\n- Low-latency tracking: Kalman-filtered IMU prediction to the frame's display time\n- Video recording with microphone and game audio\n- Hand tracking and hand gesture recognition (Apple Vision and LiDAR)\n- Gaze and gaze-gesture interaction\n\nAR Foundation features such as plane detection and image tracking keep working in Stereo.",
   "keywords": [
