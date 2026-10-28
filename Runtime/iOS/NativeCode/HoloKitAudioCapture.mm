@@ -168,8 +168,10 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
     microphoneRate.store((int)format.sampleRate, std::memory_order_release);
     microphoneWritten.store(0, std::memory_order_release);
     missingHostTime.store(false);
-    // Input is tapped but never connected to the output: no microphone monitoring.
-    [input installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer* buffer, AVAudioTime* time) {
+    // Input is tapped but never connected to the output: no microphone monitoring. iOS 27's error variant
+    // reports a tap that cannot be installed (e.g. a format mismatch) instead of raising an exception.
+    BOOL tapped = [input installTapOnBus:0 bufferSize:1024 format:format error:&error
+                                   block:^(AVAudioPCMBuffer* buffer, AVAudioTime* time) {
         if (!time.isHostTimeValid) { missingHostTime.store(true); return; }
         if (!buffer.floatChannelData) return;
         const int channels = (int)buffer.format.channelCount;
@@ -194,6 +196,7 @@ std::atomic<HoloKitAudioSink> recordingSink {nullptr};
                 sink(mono, frames, 1, rate, began + double(offset) / rate);
         }
     }];
+    if (!tapped) return [self fail:error.localizedDescription ?: @"Could not tap the microphone input."];
     self.tapInstalled = YES;
     [self.engine prepare];
     if (![self.engine startAndReturnError:&error]) return [self fail:error.localizedDescription];
@@ -217,22 +220,14 @@ static HoloKitMicrophone* Microphone() {
 }
 
 int HoloKit_MicrophonePermission() {
-    if (@available(iOS 17.0, *)) {
-        switch (AVAudioApplication.sharedInstance.recordPermission) {
-            case AVAudioApplicationRecordPermissionGranted: return 1;
-            case AVAudioApplicationRecordPermissionDenied: return -1;
-            default: return 0;
-        }
-    }
-    switch (AVAudioSession.sharedInstance.recordPermission) {
-        case AVAudioSessionRecordPermissionGranted: return 1;
-        case AVAudioSessionRecordPermissionDenied: return -1;
+    switch (AVAudioApplication.sharedInstance.recordPermission) {
+        case AVAudioApplicationRecordPermissionGranted: return 1;
+        case AVAudioApplicationRecordPermissionDenied: return -1;
         default: return 0;
     }
 }
 void HoloKit_MicrophoneRequestPermission() {
-    if (@available(iOS 17.0, *)) [AVAudioApplication requestRecordPermissionWithCompletionHandler:^(BOOL granted) {}];
-    else [AVAudioSession.sharedInstance requestRecordPermission:^(BOOL granted) {}];
+    [AVAudioApplication requestRecordPermissionWithCompletionHandler:^(BOOL granted) {}];
 }
 int HoloKit_MicrophoneStart(int processing) {
     // MicrophoneProcessing: 0 Environment, 1 EchoCancellation, 2 Default, 3 Voice.

@@ -119,6 +119,10 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or lat
 
 - HoloKit requires iOS 27.0 or later. Project Validation reports a Target minimum iOS Version below
   27.0 as an error that blocks the build, with a fix that sets 27.0.
+- The microphone uses iOS 27's tap call (`installTapOnBus:bufferSize:format:error:block:`): a tap that
+  cannot be installed is reported in `HoloKitMicrophoneCapture.LastError` instead of raising an
+  exception. Microphone permission uses `AVAudioApplication` only (the `AVAudioSession` calls were
+  deprecated in iOS 17). The SDK's native code builds without deprecation warnings for iOS 27.
 - AR Foundation and ARKit XR Plugin 6.7.0 (were 6.4.3). ARKit XR Plugin 6.7.0 fixes AR content
   rotated 90 degrees in apps built with the iOS 27 SDK: it reads the interface orientation from
   `UIWindowScene`. A project that lists either package in its own manifest must raise it to 6.7.0.

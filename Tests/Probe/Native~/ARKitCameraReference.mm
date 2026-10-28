@@ -10,16 +10,17 @@ extern "C" int HoloKit_GetARCameraReference(void* nativeSession, int orientation
     ARSession* session = (__bridge ARSession*)((UnityXRNativeSession*)nativeSession)->sessionPtr;
     ARFrame* frame = session.currentFrame;
     if (!frame) return 0;
-    // Unity's landscape names are the reverse of UIKit's (OrientationSupport.mm).
-    UIInterfaceOrientation pose = orientation == 3 ? UIInterfaceOrientationLandscapeRight
-        : orientation == 4 ? UIInterfaceOrientationLandscapeLeft
-        : (UIInterfaceOrientation)orientation;
-    simd_float4x4 v = [frame.camera viewMatrixForOrientation:pose];
-    simd_float4x4 p = [frame.camera projectionMatrixForOrientation:pose
-        viewportSize:CGSizeMake(width, height) zNear:.1 zFar:20];
+    // ARKit's view rotation angle: the clockwise degrees that keep the camera image level, 0 at UIKit's
+    // LandscapeRight, 90 Portrait, 180 LandscapeLeft, 270 PortraitUpsideDown. Unity's landscape names
+    // are the reverse of UIKit's (OrientationSupport.mm).
+    static const CGFloat angles[] = {0, 90, 270, 0, 180};
+    const CGFloat angle = angles[orientation];
+    const CGSize viewport = CGSizeMake(width, height);
+    simd_float4x4 v = [frame.camera viewMatrixForViewRotationAngle:angle];
+    simd_float4x4 p = [frame.camera projectionMatrixForViewRotationAngle:angle viewportSize:viewport zNear:.1 zFar:20];
     memcpy(view, &v, sizeof(v));
     memcpy(projection, &p, sizeof(p));
-    CGAffineTransform d = [frame displayTransformForOrientation:pose viewportSize:CGSizeMake(width,height)];
+    CGAffineTransform d = [frame displayTransformForViewRotationAngle:angle viewportSize:viewport];
     display[0]=d.a; display[1]=d.b; display[2]=d.c; display[3]=d.d; display[4]=d.tx; display[5]=d.ty;
     display[6]=CVPixelBufferGetWidth(frame.capturedImage);
     display[7]=CVPixelBufferGetHeight(frame.capturedImage);
