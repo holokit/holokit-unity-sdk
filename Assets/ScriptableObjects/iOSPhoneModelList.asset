@@ -195,7 +195,7 @@ MonoBehaviour:
       ScreenResolution: {x: 2556, y: 1179}
       ScreenDpi: 460
       ViewportBottomOffset: 0
-      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      CameraOffset: {x: 0.039895, y: -0.0553, z: -0.00759}
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone16,2
     Description: iPhone 15 Pro Max
@@ -227,7 +227,7 @@ MonoBehaviour:
       ScreenResolution: {x: 2622, y: 1206}
       ScreenDpi: 460
       ViewportBottomOffset: 0
-      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      CameraOffset: {x: 0.039895, y: -0.0568, z: -0.00759}
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone17,2
     Description: iPhone 16 Pro Max
@@ -267,7 +267,7 @@ MonoBehaviour:
       ScreenResolution: {x: 2622, y: 1206}
       ScreenDpi: 460
       ViewportBottomOffset: 0
-      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      CameraOffset: {x: 0.039895, y: -0.0568, z: -0.00759}
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone18,2
     Description: iPhone 17 Pro Max
@@ -283,7 +283,7 @@ MonoBehaviour:
       ScreenResolution: {x: 2622, y: 1206}
       ScreenDpi: 460
       ViewportBottomOffset: 0
-      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      CameraOffset: {x: 0.039895, y: -0.0568, z: -0.00759}
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone19,2
     Description: iPhone 18 Pro
@@ -291,7 +291,7 @@ MonoBehaviour:
       ScreenResolution: {x: 2622, y: 1206}
       ScreenDpi: 460
       ViewportBottomOffset: 0
-      CameraOffset: {x: 0.039895, y: -0.03254, z: -0.00759}
+      CameraOffset: {x: 0.039895, y: -0.0568, z: -0.00759}
       ScreenBottomBorder: 0.00276
   - ModelName: iPhone19,3
     Description: iPhone 18 Pro Max

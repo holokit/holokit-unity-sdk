@@ -161,6 +161,11 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or lat
 
 ### Fixed
 
+- Stereo drew everything about 2.3 cm off on iPhone 15 Pro, most visibly the hands: its
+  `CameraOffset.y` (-32.54 mm, half the phone's width less the bezel) put the AR camera mid-phone,
+  so the eyes were placed 2.3 cm too high. Now -55.3 mm, checked in a HoloKit X against a still hand.
+  16 Pro, 17 Pro and 18 Pro (`iPhone17,1`, `iPhone18,1`, `iPhone19,1`, `iPhone19,2`) had copied the
+  value and now use -56.8 mm from their display geometry, not yet checked in a headset.
 - Two hands (0.6.0-preview.1 to preview.3): the hand skeleton showed only the first hand, and with
   two hands the thumb and index tips could be drawn up to 9 cm off, between the hands.
   `HandSkeletonView` now draws every tracked hand (`HandSkeleton.BuildHands`). `HandJointSmoother`
