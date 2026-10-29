@@ -38,6 +38,28 @@ namespace HoloKit.iOS
         {
             joints.Clear();
             bones.Clear();
+            Append(positions, confidences, joints, bones, minimumConfidence);
+        }
+
+        /// <summary>
+        /// Fills the joints and bones of the first `handCount` hands, one hand after another
+        /// (both lists are cleared first).
+        /// </summary>
+        public static void BuildHands(int handCount, IReadOnlyList<IReadOnlyDictionary<JointName, Vector3>> positions,
+            IReadOnlyList<IReadOnlyDictionary<JointName, float>> confidences,
+            List<Vector3> joints, List<(Vector3 Start, Vector3 End)> bones,
+            float minimumConfidence = MinimumConfidence)
+        {
+            joints.Clear();
+            bones.Clear();
+            for (int i = 0; i < handCount; i++)
+                Append(positions[i], confidences[i], joints, bones, minimumConfidence);
+        }
+
+        static void Append(IReadOnlyDictionary<JointName, Vector3> positions,
+            IReadOnlyDictionary<JointName, float> confidences,
+            List<Vector3> joints, List<(Vector3 Start, Vector3 End)> bones, float minimumConfidence)
+        {
             foreach (var pair in positions)
                 if (Confident(confidences, pair.Key, minimumConfidence))
                     joints.Add(pair.Value);

@@ -23,7 +23,7 @@ namespace HoloKit.iOS
         [Tooltip("The maximum number of hands to be detected. We recommend to set this value to 1 to save energy if you don't need to detect both hands.")]
         [SerializeField] MaxHandCount m_MaxHandCount = MaxHandCount.One;
 
-        [Tooltip("Show the first tracked hand as the HoloKit Swift SDK's skeleton (yellow joints, cyan bones), " +
+        [Tooltip("Show every tracked hand as the HoloKit Swift SDK's skeleton (yellow joints, cyan bones), " +
                  "drawn over the real hand so AR occlusion never hides it (HandSkeletonView).")]
         [SerializeField] bool m_HandJointsVisibility = true;
 
@@ -52,7 +52,6 @@ namespace HoloKit.iOS
 
         readonly HandJointSmoother m_Smoother = new();
         readonly List<Dictionary<JointName, Vector3>> m_SmoothedPoses = new() { new(), new() };
-        readonly int[] m_HandKeys = new int[2];
 
         /// <summary>Smooth joint world positions (1€ filter); off returns Vision and LiDAR's raw positions.</summary>
         public bool SmoothJoints
@@ -142,7 +141,7 @@ namespace HoloKit.iOS
                     var joint = hand.GetChild(j);
                     m_HandJoints[i].Add((JointName)j, joint.gameObject);
                     // The joint objects stay as positioned markers for code that reads them;
-                    // HandSkeletonView draws the visible hand.
+                    // HandSkeletonView draws the visible hands.
                     if (joint.TryGetComponent<MeshRenderer>(out var jointRenderer))
                         jointRenderer.enabled = false;
                 }
@@ -185,16 +184,8 @@ namespace HoloKit.iOS
         private void OnHandPoseUpdated()
         {
             if (m_SmoothJoints)
-            {
-                // Each hand keeps its filters by chirality (else by slot) across updates.
-                for (int i = 0; i < m_HandPoseDetector.HandCount && i < m_HandKeys.Length; i++)
-                {
-                    var chirality = m_HandPoseDetector.HandChiralities[i];
-                    m_HandKeys[i] = chirality != HandChirality.Unknown ? (int)chirality : 10 + i;
-                }
-                m_Smoother.Smooth(Mathf.Min(m_HandPoseDetector.HandCount, 2), m_HandKeys, m_HandPoseDetector.HandPoses3D,
+                m_Smoother.Smooth(Mathf.Min(m_HandPoseDetector.HandCount, 2), m_HandPoseDetector.HandPoses3D,
                     m_SmoothedPoses, m_HandPoseDetector.LastUpdateTime, m_Smoothing);
-            }
             var poses = HandPoses3D;
             for (int i = 0; i < m_HandJoints.Count; i++)
             {

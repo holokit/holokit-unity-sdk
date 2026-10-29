@@ -9,9 +9,9 @@ using UnityEngine;
 namespace HoloKit.iOS
 {
     /// <summary>
-    /// Draws the first tracked hand as the HoloKit Swift SDK's Hands example does: yellow joint
-    /// spheres (8 mm radius) and cyan bones (6 mm thick), unlit. It draws over the camera image and
-    /// the scene, so AR occlusion (the real hand's own LiDAR depth) never hides it.
+    /// Draws every tracked hand (up to two) as the HoloKit Swift SDK's Hands example draws one:
+    /// yellow joint spheres (8 mm radius) and cyan bones (6 mm thick), unlit. It draws over the
+    /// camera image and the scene, so AR occlusion (the real hand's own LiDAR depth) never hides it.
     /// <see cref="HandTrackingManager"/> adds it when Hand Joints Visibility is on.
     /// </summary>
     [RequireComponent(typeof(HandTrackingManager))]
@@ -19,6 +19,7 @@ namespace HoloKit.iOS
     {
         public const float JointRadius = 0.008f;
         public const float BoneThickness = 0.006f;
+        public const int MaxHands = 2;
         const string ShaderResource = "HoloKit/HandSkeleton";
 
         HandTrackingManager m_Hands;
@@ -48,9 +49,9 @@ namespace HoloKit.iOS
 
             m_Root = new GameObject("Hand Skeleton").transform;
             m_Root.SetParent(transform, false);
-            for (int i = 0; i < HandSkeleton.MaxJoints; i++)
+            for (int i = 0; i < MaxHands * HandSkeleton.MaxJoints; i++)
                 m_Joints.Add(Part(PrimitiveType.Sphere, $"Joint {i}", m_JointMaterial, Vector3.one * (2 * JointRadius)));
-            for (int i = 0; i < HandSkeleton.MaxBones; i++)
+            for (int i = 0; i < MaxHands * HandSkeleton.MaxBones; i++)
                 m_Bones.Add(Part(PrimitiveType.Cube, $"Bone {i}", m_BoneMaterial, Vector3.one * BoneThickness));
         }
 
@@ -87,7 +88,8 @@ namespace HoloKit.iOS
             var detector = m_Hands.HandPoseDetector;
             // HANDS OFF (a disabled manager) hides the skeleton even if a late Vision result arrives.
             if (m_Hands.isActiveAndEnabled && detector != null && detector.HandCount > 0)
-                HandSkeleton.Build(m_Hands.HandPoses3D[0], detector.HandPosesConfidence[0], m_JointPositions, m_BonePositions);
+                HandSkeleton.BuildHands(Mathf.Min(detector.HandCount, MaxHands), m_Hands.HandPoses3D,
+                    detector.HandPosesConfidence, m_JointPositions, m_BonePositions);
             else
             {
                 m_JointPositions.Clear();

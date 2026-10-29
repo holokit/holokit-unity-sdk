@@ -90,6 +90,23 @@ namespace HoloKit.Hands.Tests
             Assert.AreEqual(0, m_Joints.Count);
             Assert.AreEqual(0, m_Bones.Count);
         }
+
+        [Test]
+        public void BuildHandsDrawsEveryTrackedHand()
+        {
+            // HandSkeletonView drew only the first hand: with two hands tracked, one had no skeleton.
+            var second = new Dictionary<JointName, Vector3>();
+            foreach (var (joint, position) in Hand())
+                second[joint] = position + new Vector3(0.3f, 0, 0);
+            var hands = new List<Dictionary<JointName, Vector3>> { Hand(), second };
+            var confidences = new List<Dictionary<JointName, float>> { Confidences(), Confidences() };
+            HandSkeleton.BuildHands(2, hands, confidences, m_Joints, m_Bones);
+            Assert.AreEqual(42, m_Joints.Count);
+            Assert.AreEqual(40, m_Bones.Count);
+            Assert.AreEqual(1, m_Joints.FindAll(p => p == second[JointName.Wrist]).Count, "the second hand's own joints");
+            HandSkeleton.BuildHands(1, hands, confidences, m_Joints, m_Bones);
+            Assert.AreEqual(21, m_Joints.Count, "cleared first");
+        }
     }
 }
 #endif

@@ -239,14 +239,33 @@ namespace HoloKit.Hands.Tests
             var smoother = new HandJointSmoother();
             var raw = new List<Dictionary<JointName, Vector3>> { new() { [JointName.Wrist] = Vector3.zero }, new() };
             var smoothed = new List<Dictionary<JointName, Vector3>> { new(), new() };
-            int[] keys = { 1, 0 };
-            smoother.Smooth(1, keys, raw, smoothed, 0, HandSmoothing.Default);
+            smoother.Smooth(1, raw, smoothed, 0, HandSmoothing.Default);
             raw[0][JointName.Wrist] = new Vector3(0.5f, 0, 0); // a jump past 15 cm
-            smoother.Smooth(1, keys, raw, smoothed, 0.05, HandSmoothing.Default);
+            smoother.Smooth(1, raw, smoothed, 0.05, HandSmoothing.Default);
             Assert.AreEqual(0.5f, smoothed[0][JointName.Wrist].x, 1e-5f, "starts over instead of sliding across");
             raw[0][JointName.Wrist] = new Vector3(0.52f, 0, 0);
-            smoother.Smooth(1, keys, raw, smoothed, 0.10, HandSmoothing.Default);
+            smoother.Smooth(1, raw, smoothed, 0.10, HandSmoothing.Default);
             Assert.Less(smoothed[0][JointName.Wrist].x, 0.52f, "then smooths");
+        }
+
+        [Test]
+        public void SmootherKeepsTwoHandsApartWhenVisionLabelsBothTheSameSide()
+        {
+            // Device recording (iPhone 15 Pro, 2026-10-28): Vision gave both hands the same chirality in
+            // 66% of two-hand updates and swapped their order in 10%. Keyed by chirality, the hands shared
+            // filters and the thumb tips, 8 cm apart, were drawn between the hands.
+            var left = new Dictionary<JointName, Vector3> { [JointName.Wrist] = new(-0.15f, 0, -0.35f), [JointName.ThumbTip] = new(-0.04f, 0, -0.35f) };
+            var right = new Dictionary<JointName, Vector3> { [JointName.Wrist] = new(0.15f, 0, -0.35f), [JointName.ThumbTip] = new(0.04f, 0, -0.35f) };
+            var smoother = new HandJointSmoother();
+            var smoothed = new List<Dictionary<JointName, Vector3>> { new(), new() };
+            for (int i = 0; i < 20; i++)
+            {
+                var raw = i % 3 == 2 ? new List<Dictionary<JointName, Vector3>> { right, left } : new() { left, right };
+                smoother.Smooth(2, raw, smoothed, i * 0.05, HandSmoothing.Default);
+                for (int h = 0; h < 2; h++)
+                    foreach (var joint in raw[h].Keys)
+                        Assert.Less(Vector3.Distance(smoothed[h][joint], raw[h][joint]), 0.01f, $"update {i}, hand {h}, {joint}");
+            }
         }
 
         /// Builds and runs Tests/Hands/Native~ (the LiDAR hand depth core) on the Mac.

@@ -56,7 +56,7 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or lat
   results and W1/W2 thresholds are provisional (Tests/Probe/README.md); `handmotion` and `gesture`
   cover moving hands and gestures.
 - Hand skeleton from the Swift SDK: `HandTrackingManager` (Hand Joints Visibility, on by default) shows
-  the first hand as yellow joints and cyan bones (`HandSkeletonView`, topology in `HandSkeleton`), drawn
+  every tracked hand as yellow joints and cyan bones (`HandSkeletonView`, topology in `HandSkeleton`), drawn
   over the real hand so AR occlusion never hides it. It replaces the white joint spheres, which the
   real hand's own depth covered with an `AROcclusionManager` in the scene; the joint objects stay as
   positioned markers.
@@ -161,6 +161,12 @@ Requires Unity 6000.3 LTS or later, AR Foundation / ARKit 6.7.0, iOS 27.0 or lat
 
 ### Fixed
 
+- Two hands (0.6.0-preview.1 to preview.3): the hand skeleton showed only the first hand, and with
+  two hands the thumb and index tips could be drawn up to 9 cm off, between the hands.
+  `HandSkeletonView` now draws every tracked hand (`HandSkeleton.BuildHands`). `HandJointSmoother`
+  keeps each hand's filters by position (the previous update's nearest wrist) instead of Vision's
+  chirality, which on an iPhone 15 Pro recording named both hands the same side in two of three
+  updates, so the hands shared filters; `Smooth` no longer takes hand keys.
 - `HoloKitMicrophoneCapture` stopped for good when the app called Unity's `Microphone.Start` after it
   started (iOS stops an `AVAudioEngine` when another component reconfigures audio input). It now
   rebuilds the engine on the new input format and keeps its consumers, up to three times in five

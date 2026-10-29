@@ -64,9 +64,12 @@ namespace HoloKit.iOS
     }
 
     /// <summary>
-    /// Smooths every joint's world position with its own 1€ filter, per hand (keyed by
-    /// chirality, else by slot). A hand that disappears, or a joint that jumps more than
-    /// <see cref="ResetDistance"/> in one update, starts over instead of sliding across.
+    /// Smooths every joint's world position with its own 1€ filter, per hand. A hand keeps its
+    /// filters by position: each one takes those of the previous update's hand whose wrist is
+    /// nearest. Not by Vision's chirality, which on device gave both hands the same side in two
+    /// of three updates, so the hands shared filters and nearby joints were drawn between them.
+    /// A hand that disappears, or a joint that jumps more than <see cref="ResetDistance"/> in one
+    /// update, starts over instead of sliding across.
     /// </summary>
     public sealed class HandJointSmoother
     {
@@ -74,22 +77,28 @@ namespace HoloKit.iOS
         readonly Dictionary<(int hand, JointName joint), OneEuroFilter> m_Filters = new();
         readonly HashSet<(int, JointName)> m_Seen = new();
         readonly List<(int, JointName)> m_Stale = new();
+        readonly List<(int Id, Vector3 Wrist)> m_Previous = new();
+        readonly List<int> m_Ids = new();
+        readonly List<bool> m_Taken = new();
+        int m_NextId;
 
-        public void Reset() => m_Filters.Clear();
+        public void Reset()
+        {
+            m_Filters.Clear();
+            m_Previous.Clear();
+        }
 
-        /// <summary>
-        /// Smooths `raw` into `smoothed` for the hands in this update; `handKeys[i]` identifies
-        /// hand i across updates.
-        /// </summary>
-        public void Smooth(int handCount, IReadOnlyList<int> handKeys, IReadOnlyList<Dictionary<JointName, Vector3>> raw,
+        /// <summary>Smooths `raw` into `smoothed` for the first `handCount` hands of this update.</summary>
+        public void Smooth(int handCount, IReadOnlyList<Dictionary<JointName, Vector3>> raw,
             IReadOnlyList<Dictionary<JointName, Vector3>> smoothed, double time, HandSmoothing parameters)
         {
+            MatchHands(handCount, raw);
             m_Seen.Clear();
             for (int i = 0; i < handCount; i++)
             {
                 foreach (var (joint, position) in raw[i])
                 {
-                    var id = (handKeys[i], joint);
+                    var id = (m_Ids[i], joint);
                     m_Seen.Add(id);
                     m_Filters.TryGetValue(id, out var filter);
                     if (filter.Value.HasValue && Vector3.Distance(filter.Value.Value, position) > ResetDistance)
@@ -104,6 +113,65 @@ namespace HoloKit.iOS
                     m_Stale.Add(id);
             foreach (var id in m_Stale)
                 m_Filters.Remove(id);
+        }
+
+        // m_Ids[i]: the id of the previous update's hand nearest hand i (by wrist), else a new one.
+        // Two hands against two take the pairing with the smaller total distance; otherwise the
+        // closest remaining pair is matched first.
+        void MatchHands(int handCount, IReadOnlyList<Dictionary<JointName, Vector3>> raw)
+        {
+            m_Ids.Clear();
+            for (int i = 0; i < handCount; i++)
+                m_Ids.Add(-1);
+            if (handCount == 2 && m_Previous.Count == 2)
+            {
+                Vector3 a = Wrist(raw[0]), b = Wrist(raw[1]);
+                bool crossed = Vector3.Distance(a, m_Previous[1].Wrist) + Vector3.Distance(b, m_Previous[0].Wrist)
+                    < Vector3.Distance(a, m_Previous[0].Wrist) + Vector3.Distance(b, m_Previous[1].Wrist);
+                m_Ids[0] = m_Previous[crossed ? 1 : 0].Id;
+                m_Ids[1] = m_Previous[crossed ? 0 : 1].Id;
+            }
+            else
+            {
+                m_Taken.Clear();
+                for (int p = 0; p < m_Previous.Count; p++)
+                    m_Taken.Add(false);
+                for (int round = 0; round < Mathf.Min(handCount, m_Previous.Count); round++)
+                {
+                    int bestHand = -1, bestPrevious = -1;
+                    float best = float.MaxValue;
+                    for (int i = 0; i < handCount; i++)
+                    {
+                        if (m_Ids[i] >= 0)
+                            continue;
+                        for (int p = 0; p < m_Previous.Count; p++)
+                        {
+                            float distance = m_Taken[p] ? float.MaxValue : Vector3.Distance(Wrist(raw[i]), m_Previous[p].Wrist);
+                            if (distance < best) { best = distance; bestHand = i; bestPrevious = p; }
+                        }
+                    }
+                    if (bestHand < 0)
+                        break; // no finite distance left (a NaN wrist): the rest start over
+                    m_Ids[bestHand] = m_Previous[bestPrevious].Id;
+                    m_Taken[bestPrevious] = true;
+                }
+            }
+            m_Previous.Clear();
+            for (int i = 0; i < handCount; i++)
+            {
+                if (m_Ids[i] < 0)
+                    m_Ids[i] = m_NextId++;
+                m_Previous.Add((m_Ids[i], Wrist(raw[i])));
+            }
+        }
+
+        static Vector3 Wrist(Dictionary<JointName, Vector3> hand)
+        {
+            if (hand.TryGetValue(JointName.Wrist, out var wrist))
+                return wrist;
+            foreach (var position in hand.Values)
+                return position;
+            return Vector3.zero;
         }
     }
 }
